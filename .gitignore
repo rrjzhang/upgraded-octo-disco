@@ -1,3 +1,6 @@
 node_modules/
 dist/
 .DS_Store
+# codex run logs (one of these reached 84 MB; they live outside the repo now)
+image_generation/out/_codex_*.log
+image_generation/logs/
