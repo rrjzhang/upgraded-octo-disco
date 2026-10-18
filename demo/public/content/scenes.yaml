@@ -155,11 +155,13 @@ scenes:
         action: { type: look, text: "Bare trees and the church steeple on Grand. It looks colder out there than it is." }
     # Open floor: the wooden aisle down the left, the rug under the reading tables, the rug in front of the circulation desk.
     slots:
-      - { id: near, x: 0.28, y: 1.08 }     # on the aisle floor in the foreground, feet just below the frame; head at about 0.28
-      - { id: desk, x: 0.66, y: 0.87 }     # on the small rug at the left end of the circulation desk
+      - { id: near, x: 0.30, y: 1.08 }     # on the aisle floor in the foreground, feet just below the frame; head at about 0.28
+                                           # (x 0.30 with by_shelves 0.17 and armchair 0.41: the three never hide one another's heads)
+      - { id: desk, x: 0.56, y: 0.87 }     # on the left end of the patterned rug in front of the circulation desk (left of
+                                           # reading_table, so a figure here no longer stands in front of one there)
       - { id: reading_table, x: 0.68, y: 0.67 }   # on the rug right of the long table, by the potted plant; clear of the newspapers
-      - { id: by_shelves, x: 0.19, y: 0.70 }      # on the aisle floor between the low bookcase and the tall shelves, browsing
-      - { id: armchair, x: 0.36, y: 0.56 }        # standing on the aisle floor just right of the green armchair
+      - { id: by_shelves, x: 0.17, y: 0.70 }      # on the aisle floor between the low bookcase and the tall shelves, browsing
+      - { id: armchair, x: 0.41, y: 0.56 }        # standing on the floor right of the green armchair, at the rug's back-left corner
       - { id: armchair_seat, x: 0.29, y: 0.515, seated: true }   # in the green armchair under the reading lamp
       - { id: reading_seat, x: 0.49, y: 0.645, seated: true }    # on the chair at the near-left corner of the long table
 
@@ -179,7 +181,16 @@ scenes:
     exits:
       - { to: street, label: "Back to the street" }
     props:
-      - { asset: prop_chessboard, x: 0.235, y: 0.515, w: 0.165, h: 0.065 }
+      # Projected onto the top of the nearest stone table on bg_park_day (SPEC "Content schemas", Prop `quad`): the quad is
+      # the whole 600x515 image rect (TL, TR, BR, BL). The board in the PNG is itself seen in perspective (narrower at the
+      # top), so the rect's far edge comes out a little wider; the board itself lands near-edge-wider at about
+      # [[0.217,0.538],[0.395,0.539],[0.402,0.575],[0.208,0.576]], ~14% in from the table edges and over the faint board
+      # painted into the stone. x/y/w are the flat fallback. Tune live with gv.propQuad('park', 'prop_chessboard', quad).
+      - asset: prop_chessboard
+        x: 0.235
+        y: 0.515
+        w: 0.165
+        quad: [[0.200, 0.536], [0.410, 0.537], [0.402, 0.578], [0.209, 0.578]]
     hotspots:
       - id: chess_left_player
         label: "Mr. Lin"
@@ -207,8 +218,8 @@ scenes:
       - { id: chess_left, x: 0.19, y: 0.86, seated: true }    # on the near-left bench of the nearest table (where Mr. Lin sits in bg_park_chess_day)
       - { id: chess_right, x: 0.47, y: 0.86, seated: true }   # on the near-right bench of the nearest table (where Walt sits in bg_park_chess_day)
       - { id: path, x: 0.89, y: 0.82 }      # on the asphalt path, right of the cobble edge
-      - { id: by_tables, x: 0.73, y: 0.67 } # on the paving right of the middle table's near bench, before the cobbles
-      - { id: by_lamp, x: 0.78, y: 0.555 }  # on the paving just right of the lamppost, behind the far table's right bench
+      - { id: by_tables, x: 0.725, y: 0.67 } # on the paving right of the middle table's near bench, before the cobbles
+      - { id: by_lamp, x: 0.795, y: 0.555 }  # on the paving right of the lamppost, behind the far table's right bench
       - { id: by_fence, x: 0.62, y: 0.74 }  # on the paving in front of the middle table's near bench (table and fence behind)
       - { id: path_far, x: 0.95, y: 0.60 }  # on the asphalt path where it bends away
 
@@ -282,12 +293,12 @@ scenes:
       # Open floor everywhere below the wall line (y 0.595) except the stacked folding chairs on the left (x < 0.23 down to
       # y 0.73). No free seating in the image (the chairs are stacked), so the one seated slot is a stool in front of the
       # long table, as in center_cn; the seated figures bring their stool.
-      - { id: near, x: 0.24, y: 1.04 }       # on the floor in the left foreground, below the stacked chairs, feet just below the frame; head at about 0.33
-      - { id: by_chairs, x: 0.30, y: 0.72 }  # on the open floor just right of the stacked folding chairs, the potted plant behind
-      - { id: by_table, x: 0.37, y: 0.635 }  # on the floor in front of the long table's left end (table and mural behind)
+      - { id: near, x: 0.22, y: 1.04 }       # on the floor in the left foreground, below the stacked chairs, feet just below the frame; head at about 0.33
+      - { id: by_chairs, x: 0.35, y: 0.72 }  # on the open floor right of the stacked folding chairs, the potted plant behind
+      - { id: by_table, x: 0.43, y: 0.635 }  # on the floor in front of the long table's left end (table and mural behind)
       - { id: by_kitchen, x: 0.84, y: 0.65 } # on the floor just left of the kitchen doorway, under the mural's right end
       - { id: mid_right, x: 0.66, y: 0.86 }  # on the open floor, centre right, in the foreground
-      - { id: by_window, x: 0.08, y: 0.90 }  # on the floor in the left foreground by the windows, the stacked chairs behind
+      - { id: by_window, x: 0.07, y: 0.90 }  # on the floor in the left foreground by the windows, the stacked chairs behind
       - { id: seated_hall, x: 0.56, y: 0.665, seated: true }   # on a stool pulled up in front of the long table's middle
 
   - id: center_in
@@ -324,12 +335,12 @@ scenes:
       # the doormat and the rangoli by the entrance on the right. No free seating (the chairs are on trolleys), so the one
       # seated slot is a stool on the floor in front of the stage.
       - { id: near, x: 0.24, y: 1.04 }       # on the floor in the left foreground, feet just below the frame; head at about 0.23
-      - { id: by_chairs, x: 0.24, y: 0.60 }  # on the open floor just right of the stacked chair trolleys
+      - { id: by_chairs, x: 0.11, y: 0.60 }  # on the open floor just in front of the stacked chair trolleys (left of near's head)
       - { id: by_stage, x: 0.40, y: 0.50 }   # on the floor in front of the stage's left half (stage and garlands behind)
       - { id: by_board, x: 0.63, y: 0.52 }   # on the floor in front of the stage's right steps, left of the notice board
       - { id: by_door, x: 0.93, y: 0.50 }    # just inside the entrance, on the floor between the brass planter and the glass doors,
                                              # behind the doormat (clear of the rangoli, the board and the kitchen doorway)
-      - { id: mid_right, x: 0.62, y: 0.86 }  # on the open floor, centre right, in the foreground
+      - { id: mid_right, x: 0.51, y: 0.86 }  # on the open floor, centre, in the foreground (left of by_board, clear of the board)
       - { id: seated_hall, x: 0.52, y: 0.53, seated: true }   # on a stool pulled up in front of the stage's middle
 
   - id: street

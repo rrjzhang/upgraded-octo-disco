@@ -5,7 +5,7 @@ import type { ImageRecord } from './store';
 import type { Ctx } from './shared';
 import { appUrl } from '../util';
 
-export type SlotKind = 'bust' | 'figure' | 'bg' | 'tv' | 'castBust' | 'castTv';
+export type SlotKind = 'bust' | 'figure' | 'bg' | 'tv' | 'castBust' | 'castTv' | 'prop';
 export interface Slot {
   /** IndexedDB key, SPEC scheme "<section>/<id>/<variant>" */
   key: string;
@@ -95,6 +95,14 @@ export function enumerateSlots(model: Model): Slot[] {
     const grp = `Cast: ${nm ? `${nm} (${id})` : id}`;
     add({ key: `cast/${id}/bust`, group: grp, label: 'bust (1:1, transparent)', kind: 'castBust', file: c?.bust ?? null, exportName: c?.bust ? base(c.bust) : `cast_${id}_bust_A.png` });
     add({ key: `cast/${id}/tv`, group: grp, label: 'TV still (16:9)', kind: 'castTv', file: c?.tv ?? null, exportName: c?.tv ? base(c.tv) : `cast_${id}_tv_A.png` });
+  }
+  // events.csv `medium` (an event heard, not seen): the prop shown on the right panel, key props/<id>
+  const props = (m.props ?? {}) as Record<string, { file?: string }>;
+  const media = new Set<string>();
+  for (const r of model.doc('events.csv')?.table?.rows ?? []) if (r.medium?.trim()) media.add(r.medium.trim());
+  for (const id of [...media].sort()) {
+    const file = props[id]?.file ?? null;
+    add({ key: `props/${id}`, group: 'Event media (right panel)', label: `${id.replace(/^prop_/, '')} (1:1, transparent)`, kind: 'prop', file, exportName: file ? base(file) : `${id}_A.png` });
   }
   return out;
 }
@@ -238,6 +246,9 @@ export class ImagesTab {
     if (s.kind === 'bust' || s.kind === 'castBust') {
       stage = h('div', { class: 'pv-portrait' }, img(), h('span', { class: 'chip', text: s.kind === 'bust' ? s.label.replace('bust · ', '') : 'cast' }));
       note = 'Right-panel portrait as the game draws it: 484×300 panel, bust 290×290 contained, bottom-centred.';
+    } else if (s.kind === 'prop') {
+      stage = h('div', { class: 'pv-portrait pv-prop' }, img());
+      note = 'Right-panel image for an event heard, not seen: 484×300 panel, the whole object contained, centred.';
     } else if (s.kind === 'figure') {
       stage = h('div', { class: 'pv-figure' }, h('div', { class: 'shadow' }), img());
       note = 'Figure at 700 px tall on a neutral ground (the largest the game draws a near-slot figure).';

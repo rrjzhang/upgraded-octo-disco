@@ -79,7 +79,10 @@ function contentTables(npcsYaml, srcDir) {
   }
   return { characters: [...chars].map(([id, c]) => [id, c.base, c.portrait]), figures };
 }
-const PROPS = ['prop_tv_A', 'prop_chessboard_A'];
+const PROPS = ['prop_tv_A', 'prop_chessboard_A', 'prop_radio_A'];
+// props requested on a chroma-green ground (not transparent) get the figures' green knockout; prop_radio is
+// the right-panel image for events heard on the radio (events.csv `medium`, SPEC "Content schemas")
+const GREEN_PROPS = new Set(['prop_radio_A']);
 // Cast: authority figures named by news.csv `figure` and events.csv `portrait` (SPEC "Cast").
 // Sources: image_generation/out/cast_<id>_ref_A.png, cast_<id>_bust_A.png (1:1, transparent), cast_<id>_tv_A.png (16:9).
 // The content agent owns the names: public/content/cast.yaml (a list of { id, name, role }, or { cast: [...] }) is read
@@ -208,7 +211,19 @@ const SIL_SIT = union(circle(150, 66, 48), capsule(150, 100, 150, 140, 20), caps
 
 // ---------------------------------------------------------------- helpers
 const exists = id => fs.existsSync(path.join(SRC, id + '.png'));
-const src = id => path.join(SRC, id + '.png');
+/**
+ * Retakes never overwrite (image_generation/README "nothing is deleted"): a wardrobe or face redo of <id>_A is requested
+ * as <id>_A_v2, _v3, ... beside the original. The build reads the highest version present, so the v2 art supersedes
+ * the original without anyone touching out/. Round 7 (files 183-192) is the first use: Don Aurelio's and Pilar's clothes.
+ */
+const latest = (id) => {
+  if (!/_A$/.test(id)) return id;
+  const re = new RegExp('^' + id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '_v(\\d+)\\.png$');
+  let best = id, bestV = 0;
+  for (const f of fs.existsSync(SRC) ? fs.readdirSync(SRC) : []) { const m = re.exec(f); if (m && +m[1] > bestV) { bestV = +m[1]; best = f.slice(0, -4); } }
+  return best;
+};
+const src = id => path.join(SRC, latest(id) + '.png');
 // status of the image_generation request file that produced an image id ("done" | "failed" | "pending" | null)
 const REQ_DIR = path.resolve(SRC, '..');
 let reqStatus = null;
@@ -296,7 +311,7 @@ for (const [cid, base, portraitId] of CHARACTERS) {
         const t = tmp(); encodePNG(crop(img, x, y, side, side), t, true);
         sips('-z', String(PORTRAIT), String(PORTRAIT), t, '--out', dest);
       } else sips('-z', String(PORTRAIT), String(PORTRAIT), src(sid), '--out', dest);
-      entry[ex] = rel(dest); entry.sources.push(sid);
+      entry[ex] = rel(dest); entry.sources.push(latest(sid));
     }
     if (!entry.neutral) {
       const refId = CANDIDATES[cid]?.[0] ?? `${base}_ref_A`;
@@ -304,7 +319,7 @@ for (const [cid, base, portraitId] of CHARACTERS) {
         const img = decodePNG(src(refId)), b = referenceBustBox(img), t = tmp(), dest = out('portrait', `${cid}_neutral.png`);
         encodePNG(crop(img, b.x, b.y, b.w, b.h), t, false);
         sips('-z', String(PORTRAIT), String(PORTRAIT), t, '--out', dest);
-        entry.neutral = rel(dest); entry.fromReference = true; entry.sources.push(refId); entry.referenceCrop = b;
+        entry.neutral = rel(dest); entry.fromReference = true; entry.sources.push(latest(refId)); entry.referenceCrop = b;
       }
     }
   }
@@ -326,7 +341,7 @@ for (const key of FIGURES) {
   }
   const dest = out('figure', key + '.png');
   const r = trimTo(id, dest, 'h', FIG_H, true);
-  manifest.figures[key] = { file: rel(dest), w: r.w, h: r.h, seated, placeholder: false };
+  manifest.figures[key] = { file: rel(dest), w: r.w, h: r.h, seated, placeholder: false, source: latest(id) };
 }
 for (const [kind, sdf, w] of [['stand', SIL_STAND, 260], ['sit', SIL_SIT, 300]]) {
   const dest = out('figure', `placeholder_${kind}.png`);
@@ -339,7 +354,7 @@ if (placeholderFigures.length) warn.push(`placeholder figures (no source yet): $
 for (const id of PROPS) {
   if (!exists(id)) { warn.push(`missing prop ${id}`); continue; }
   const key = id.replace(/_A$/, ''), dest = out('prop', key + '.png');
-  const r = trimTo(id, dest, 'w', PROP_W);
+  const r = trimTo(id, dest, 'w', PROP_W, GREEN_PROPS.has(id));
   manifest.props[key] = { file: rel(dest), w: r.w, h: r.h };
 }
 

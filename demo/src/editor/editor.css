@@ -129,6 +129,7 @@ textarea.json { font: 11px ui-monospace, Menlo, monospace; width: 100%; min-widt
 .pv { display: flex; flex-direction: column; align-items: flex-start; }
 .pv-portrait { position: relative; width: 484px; height: 300px; background: var(--panel2); border-radius: 12px; overflow: hidden; flex: none; }
 .pv-portrait img { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); width: 290px; height: 290px; object-fit: contain; object-position: bottom; }
+.pv-portrait.pv-prop img { left: 24px; top: 24px; bottom: 52px; transform: none; width: calc(100% - 48px); height: calc(100% - 76px); object-position: center; }
 .pv-portrait .chip { position: absolute; right: 12px; top: 12px; font-size: 11px; background: #fff; border-radius: 10px; padding: 2px 8px; }
 .pv-portrait .ph, .pv-tv .ph, .pv-bg .ph { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
 .pv-figure { position: relative; height: 740px; min-width: 420px; padding: 20px 60px 20px; background: linear-gradient(#ddd6c8 0 78%, #c9c1b0 78%); border-radius: 8px; display: flex; justify-content: center; align-items: flex-end; }

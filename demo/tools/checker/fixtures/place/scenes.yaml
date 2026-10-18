@@ -1,4 +1,4 @@
-# Fixture for SPEC "Presence, place and conversation limits": the dialogue scene column, seated slots, screens.
+# Fixture for SPEC "Presence, place and conversation limits": the dialogue scene column, seated slots, screens, prop quads.
 scenes:
   - id: home
     name: Home
@@ -18,6 +18,13 @@ scenes:
     background: bg_park_day
     description: "Test park."
     exits: [{ to: home, label: "Home" }]
+    props:   # a prop projected onto a table top (Prop quad), with a quad for the evening render
+      - asset: prop_chessboard
+        x: 0.2
+        y: 0.5
+        w: 0.2
+        quad: [[0.20, 0.536], [0.41, 0.537], [0.40, 0.578], [0.21, 0.578]]
+        byBackground: { bg_park_eve: [[0.20, 0.53], [0.41, 0.53], [0.40, 0.57], [0.21, 0.57]] }
     slots:
       - { id: stand, x: 0.40, y: 0.90, scale: 0.5 }          # open path
       - { id: bench, x: 0.70, y: 0.90, scale: 0.4, seated: true }  # on the bench

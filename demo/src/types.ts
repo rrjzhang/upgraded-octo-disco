@@ -30,7 +30,13 @@ export interface Painted { background: string; npcs: string[] }
 export interface Slot { id: string; x: number; y: number; scale?: number; /** a seated spot (on real seating); seated figures may only use these */ seated?: boolean }
 /** A TV screen painted into the background: the glass corners (top-left, top-right, bottom-right, bottom-left) as fractions of the image. */
 export interface Screen { id: string; quad: [number, number][]; /** a different quad for a background variant (e.g. bg_home_eve), keyed by its asset id */ byBackground?: Record<string, [number, number][]> }
-export interface Prop { asset: string; x: number; y: number; w: number }
+export interface Prop {
+  asset: string; x: number; y: number; w: number;
+  /** SPEC "Content schemas": the image projected onto this quad (fractions of the background; TL, TR, BR, BL) instead of x/y/w */
+  quad?: [number, number][];
+  /** a different quad for a background variant, keyed by its asset id (as Screen.byBackground) */
+  byBackground?: Record<string, [number, number][]>;
+}
 export interface Exit { to: string; label: string }
 
 export interface Scene {
@@ -53,6 +59,8 @@ export interface Scene {
   horizon: number;
   /** Camera height in metres (default 1.6). */
   cameraHeight: number;
+  /** Cut-out figures present at once (SPEC "How many people at once"); absent = the room's maxPresent, else 3. */
+  maxPresent?: number;
 }
 
 /** `figure`: asset id used in this scene instead of the NPC's default figure (blank = default). */
@@ -129,6 +137,9 @@ export interface EventRow {
   rowNum: number;
   /** optional cast id (manifest.cast / content/cast.yaml): that bust is shown on the right panel */
   portrait: string;
+  /** optional prop id (manifest.props, e.g. prop_radio): the event is heard, not seen; that object is shown
+   *  on the right panel instead of any bust (SPEC "Content schemas", events.csv `medium`) */
+  medium: string;
 }
 
 export interface NewsRow {
@@ -227,6 +238,8 @@ export interface RoomConfig {
   override?: { text: unknown; imageKeys: string[] };
   /** Conversations allowed per NPC per day (default 1; SPEC "Conversation limit"). */
   maxTalksPerNpcPerDay?: number;
+  /** Cut-out figures present at once in a scene without its own `maxPresent` (default 3; SPEC "How many people at once"). */
+  maxPresent?: number;
 }
 
 export interface PlayerInfo {

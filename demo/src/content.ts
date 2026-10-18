@@ -3,7 +3,7 @@ import { load as loadYaml } from 'js-yaml';
 import Papa from 'papaparse';
 import type {
   Content, DialogueRow, Emotion, EventRow, Manifest, NewsRow, Npc, Questionnaire, Scene, Slot, Hotspot, CondField, Screen,
-  CastInfo, OverrideInfo, CultureId,
+  CastInfo, OverrideInfo, CultureId, Prop,
 } from './types';
 import { COND_FIELDS } from './types';
 import { DEFAULT_STRINGS } from './strings';
@@ -28,7 +28,7 @@ export const NEWS_COLUMNS = ['id', 'channel', 'nationalLeader', 'dayMin', 'valen
 /** Optional dialogue column (SPEC "Dialogue location"), placed after dayPhase: blank = anywhere, else scene ids joined by `|`. */
 export const DIALOGUE_OPTIONAL_COLUMNS = ['scene'];
 /** Optional columns (SPEC "Cast"): a cast id; blank or absent = unchanged behaviour. */
-export const EVENT_OPTIONAL_COLUMNS = ['portrait'];
+export const EVENT_OPTIONAL_COLUMNS = ['portrait', 'medium'];
 export const NEWS_OPTIONAL_COLUMNS = ['figure'];
 /** localStorage key of the researcher's text override (written by /editor.html). */
 export const OVERRIDE_KEY = 'gv:override:v1';
@@ -179,9 +179,10 @@ function parseScenes(r: Reporter, file: string, text: string): Scene[] {
       screens: parseScreens(r, file, where, s.screens),
       props: (Array.isArray(s.props) ? s.props : [])
         .filter((p: any, j: number) => (p?.asset ? true : (r.error(file, `${where} prop #${j + 1}: missing asset`), false)))
-        .map((p: any) => ({ asset: str(p.asset), x: num(p.x, 0), y: num(p.y, 0), w: num(p.w, 0.1) })),
+        .map((p: any, j: number) => ({ asset: str(p.asset), x: num(p.x, 0), y: num(p.y, 0), w: num(p.w, 0.1), ...parsePropQuad(r, file, `${where} prop #${j + 1}`, p) })),
       horizon: typeof s.horizon === 'number' && s.horizon > 0 && s.horizon < 1 ? s.horizon : DEFAULT_HORIZON,
       cameraHeight: typeof s.cameraHeight === 'number' && s.cameraHeight > 0 ? s.cameraHeight : DEFAULT_CAMERA_HEIGHT,
+      ...(Number.isInteger(s.maxPresent) && s.maxPresent > 0 ? { maxPresent: s.maxPresent } : {}),
       painted: s.painted && typeof s.painted === 'object' && s.painted.background
         ? { background: str(s.painted.background), npcs: (Array.isArray(s.painted.npcs) ? s.painted.npcs : []).map((x: any) => str(x)) }
         : undefined,
@@ -193,6 +194,26 @@ function parseScenes(r: Reporter, file: string, text: string): Scene[] {
     for (const hs of s.hotspots) if (hs.action.type === 'move' && !ids.has(str(hs.action.to))) r.error(file, `scene ${s.id} hotspot ${hs.id}: move to unknown scene "${hs.action.to}"`);
   }
   if (!ids.has('home')) r.error(file, 'no scene with id "home" (the day starts there)');
+  return out;
+}
+
+const isQuad = (q: any): boolean => Array.isArray(q) && q.length === 4 && q.every((p: any) => Array.isArray(p) && p.length === 2 && p.every((v: any) => typeof v === 'number' && Number.isFinite(v)));
+const toQuad = (q: number[][]) => q.map((p) => [p[0], p[1]] as [number, number]);
+
+/** Prop `quad` / `byBackground` (SPEC "Content schemas": a flat prop projected onto a surface seen in perspective). */
+function parsePropQuad(r: Reporter, file: string, where: string, p: any): Pick<Prop, 'quad' | 'byBackground'> {
+  const out: Pick<Prop, 'quad' | 'byBackground'> = {};
+  if (p.quad != null) {
+    if (isQuad(p.quad)) out.quad = toQuad(p.quad);
+    else r.error(file, `${where}: quad must be [[x,y],[x,y],[x,y],[x,y]] (top-left, top-right, bottom-right, bottom-left)`);
+  }
+  if (p.byBackground && typeof p.byBackground === 'object') {
+    out.byBackground = {};
+    for (const [bg, q] of Object.entries(p.byBackground)) {
+      if (isQuad(q)) out.byBackground[bg] = toQuad(q as number[][]);
+      else r.error(file, `${where}: byBackground.${bg} is not a quad`);
+    }
+  }
   return out;
 }
 
@@ -350,7 +371,7 @@ function parseEvents(r: Reporter, file: string, text: string, scenes: Map<string
       playerLean: row.playerLean, nationalLeader: row.nationalLeader,
       chance: num(row.chance, 1), cost: num(row.cost, 0),
       emotion: EMOTIONS.includes(emotion) ? emotion : 'neutral',
-      text: row.text, choices, rowNum, portrait: row.portrait ?? '',
+      text: row.text, choices, rowNum, portrait: row.portrait ?? '', medium: (row.medium ?? '').trim(),
     });
   });
   const ids = new Set(out.map((e) => e.id));

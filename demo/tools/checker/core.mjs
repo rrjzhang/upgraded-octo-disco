@@ -9,7 +9,7 @@ export const DIALOGUE_COLUMNS = 'id,met,rapport,lastValence,nationalLeader,playe
 export const EVENT_COLUMNS = 'id,source,target,valence,proximity,trigger,scene,npc,minRapport,playerLean,nationalLeader,chance,cost,emotion,text,choice1,effect1,choice2,effect2'.split(',');
 export const NEWS_COLUMNS = 'id,channel,nationalLeader,dayMin,valence,headline,body'.split(',');
 // optional trailing columns (SPEC 2026-10-18, cast): accepted when present, never required
-export const EVENT_OPTIONAL = ['portrait'];
+export const EVENT_OPTIONAL = ['portrait', 'medium'];
 export const NEWS_OPTIONAL = ['figure'];
 // optional dialogue column (SPEC 2026-10-18 "Dialogue location"), placed after dayPhase: blank = anywhere, else scene ids joined by |
 export const DIALOGUE_OPTIONAL = ['scene'];
@@ -232,12 +232,30 @@ function validateScenes(files, diag, assets) {
     else if (sc.background !== 'none' && assets && !hasAsset(assets, 'backgrounds', sc.background)) diag.warn('UNKNOWN_ASSET', rel, loc('background'), `background "${sc.background}" not in assets/manifest.json`);
     if (sc.horizon != null && !(typeof sc.horizon === 'number' && sc.horizon > 0 && sc.horizon < 1)) diag.error('BAD_VALUE', rel, loc('horizon'), `horizon must be a fraction 0..1, got ${JSON.stringify(sc.horizon)}`);
     if (sc.cameraHeight != null && !(typeof sc.cameraHeight === 'number' && sc.cameraHeight > 0 && sc.cameraHeight < 5)) diag.error('BAD_VALUE', rel, loc('cameraHeight'), `cameraHeight must be metres (0..5), got ${JSON.stringify(sc.cameraHeight)}`);
+    if (sc.maxPresent != null && !(Number.isInteger(sc.maxPresent) && sc.maxPresent > 0)) diag.error('BAD_VALUE', rel, loc('maxPresent'), `maxPresent must be a positive integer, got ${JSON.stringify(sc.maxPresent)}`);
     if (sc.pack != null && sc.pack !== '' && !SCENE_PACKS.includes(sc.pack)) diag.error('BAD_VALUE', rel, loc('pack'), `pack "${sc.pack}"; expected ${SCENE_PACKS.join('|')} (or omit for a shared scene)`);
     if (sc.lighting != null && !LIGHTING.includes(sc.lighting)) diag.error('BAD_VALUE', rel, loc('lighting'), `lighting "${sc.lighting}"; expected ${LIGHTING.join('|')}`);
     for (const [j, pr] of (sc.props || []).entries()) {
       if (!pr || !pr.asset) diag.error('SCHEMA', rel, loc(`props[${j}]`), 'prop needs asset');
       else if (assets && !hasAsset(assets, 'props', pr.asset)) diag.warn('UNKNOWN_ASSET', rel, loc(`props[${j}].asset`), `prop "${pr.asset}" not in assets/manifest.json`);
       for (const k of ['x', 'y', 'w']) if (pr && !isFrac(pr[k])) diag.error('BAD_VALUE', rel, loc(`props[${j}].${k}`), `expected a fraction 0..1, got ${JSON.stringify(pr[k])}`);
+      // SPEC "Content schemas": optional quad (the prop image projected onto a surface, as TV screens) and byBackground
+      const isPropQuad = (q) => Array.isArray(q) && q.length === 4 && q.every(pt => Array.isArray(pt) && pt.length === 2 && pt.every(v => typeof v === 'number' && v >= -0.2 && v <= 1.2));
+      if (pr && pr.quad != null && !isPropQuad(pr.quad)) diag.error('BAD_VALUE', rel, loc(`props[${j}].quad`), 'quad must be four [x, y] fraction pairs: top-left, top-right, bottom-right, bottom-left');
+      if (pr && pr.byBackground != null) {
+        if (typeof pr.byBackground !== 'object' || Array.isArray(pr.byBackground)) diag.error('SCHEMA', rel, loc(`props[${j}].byBackground`), 'byBackground must map a background asset id to a quad');
+        else {
+          // the backgrounds this scene can draw: its own, the painted variant, and the evening render of either
+          const eve = (id) => (id.includes('_day') ? id.replace('_day', '_eve') : `${id}_eve`);
+          const own = [sc.background, sc.painted && sc.painted.background].filter((b) => b && b !== 'none');
+          const sceneBgs = new Set(own.flatMap((b) => [b, eve(b)]));
+          for (const [bg, bq] of Object.entries(pr.byBackground)) {
+            if (!isPropQuad(bq)) diag.error('BAD_VALUE', rel, loc(`props[${j}].byBackground.${bg}`), 'expected four [x, y] fraction pairs');
+            else if (!sceneBgs.has(bg)) diag.error('BAD_VALUE', rel, loc(`props[${j}].byBackground.${bg}`), `"${bg}" is not a background of scene ${sc.id} (expected one of ${[...sceneBgs].join(', ')})`);
+            else if (assets && !hasAsset(assets, 'backgrounds', bg)) diag.warn('UNKNOWN_ASSET', rel, loc(`props[${j}].byBackground.${bg}`), `background "${bg}" not in assets/manifest.json`);
+          }
+        }
+      }
     }
     const hsIds = new Set();
     for (const [j, h] of (sc.hotspots || []).entries()) {
@@ -320,6 +338,67 @@ function validateScenes(files, diag, assets) {
     }
   });
   return scenes;
+}
+
+// ---------------------------------------------------------------- figure geometry (SPEC "How many people at once")
+// Mirrors src/content.ts figureHeight() and src/rules.ts figureRect / occlusion / figuresClash (this file is plain .mjs and
+// cannot import TS): keep the constants and formulas in step with those.
+export const DEFAULT_HORIZON = 1 / 3, DEFAULT_CAMERA_HEIGHT = 1.6, PERSON_HEIGHT = 1.7, SEATED_HEIGHT = 1.3, FIGURE_MIN = 0.12, FIGURE_MAX = 0.95;
+export const OCCLUSION_MAX = 0.4, HEAD_BAND = 0.25, DEFAULT_FIGURE_ASPECT = 0.45, IMG_W = 900, IMG_H = 600;
+export function figureHeight(sc, slot, seated) {
+  if (typeof slot.scale === 'number' && slot.scale > 0) return slot.scale;
+  const horizon = typeof sc.horizon === 'number' ? sc.horizon : DEFAULT_HORIZON;
+  const cam = typeof sc.cameraHeight === 'number' && sc.cameraHeight > 0 ? sc.cameraHeight : DEFAULT_CAMERA_HEIGHT;
+  return Math.min(FIGURE_MAX, Math.max(FIGURE_MIN, (slot.y - horizon) * ((seated ? SEATED_HEIGHT : PERSON_HEIGHT) / cam)));
+}
+export function figureRect(x, y, hFrac, aspect, w = IMG_W, h = IMG_H) {
+  const hgt = hFrac * h, wid = hgt * aspect;
+  return { x0: x * w - wid / 2, x1: x * w + wid / 2, y0: y * h - hgt, y1: y * h };
+}
+/** Share of `far`'s rectangle and of its head band (top HEAD_BAND) that the nearer `near` covers. */
+export function occlusion(near, far) {
+  const ix = Math.max(0, Math.min(near.x1, far.x1) - Math.max(near.x0, far.x0));
+  const fw = far.x1 - far.x0, fh = far.y1 - far.y0;
+  if (!ix || fw <= 0 || fh <= 0) return { covered: 0, head: 0 };
+  const iy = Math.max(0, Math.min(near.y1, far.y1) - Math.max(near.y0, far.y0));
+  const ihy = Math.max(0, Math.min(near.y1, far.y0 + fh * HEAD_BAND) - Math.max(near.y0, far.y0));
+  return { covered: (ix * iy) / (fw * fh), head: (ix * ihy) / (fw * fh * HEAD_BAND) };
+}
+
+/**
+ * SLOT_OCCLUSION: pairs of slots whose figures, standing together, would have the nearer one (larger y) cover any of the
+ * further one's head band or more than OCCLUSION_MAX of it (the engine's figuresClash rule). Only slots someone can actually be in at the same time count: each slot needs an appearance, by two
+ * different NPCs who can share a roster (same pack, or one of them shared). Worst case per slot: the tallest and widest
+ * figure that appears on it (manifest size; DEFAULT_FIGURE_ASPECT when unknown). The engine skips such a pair at runtime.
+ */
+function checkSlotOcclusion(scenes, npcs, assets, diag, sceneLines) {
+  for (const sc of scenes.values()) {
+    const boxes = [];
+    for (const sl of sc.slotById.values()) {
+      if (!sl || typeof sl.x !== 'number' || typeof sl.y !== 'number') continue;
+      const who = [];
+      let hFrac = 0, aspect = 0;
+      for (const n of npcs.values()) for (const a of n.appearances || []) {
+        if (!a || a.scene !== sc.id || a.slot !== sl.id) continue;
+        const fig = a.figure || n.figure;
+        const e = fig && (assets?.figures?.[fig] || (assets?.aliases?.[fig] && assets?.figures?.[assets.aliases[fig]]));
+        const seated = fig ? isSeatedFigure(assets, fig) : n.seated === true;
+        hFrac = Math.max(hFrac, figureHeight(sc, sl, seated));
+        aspect = Math.max(aspect, e && e.w && e.h ? e.w / e.h : DEFAULT_FIGURE_ASPECT);
+        who.push(n);
+      }
+      if (who.length) boxes.push({ sl, who, rect: figureRect(sl.x, sl.y, hFrac, aspect) });
+    }
+    const together = (a, b) => a.who.some(p => b.who.some(q => p.id !== q.id && (p.pack === 'shared' || q.pack === 'shared' || p.pack === q.pack)));
+    for (const far of boxes) for (const near of boxes) {
+      if (far === near || near.sl.y < far.sl.y || !together(near, far)) continue;
+      const o = occlusion(near.rect, far.rect);
+      if (o.head <= 0 && o.covered <= OCCLUSION_MAX) continue;
+      // an info note, not a warning: the engine resolves the clash by never showing both at once (SPEC "How many people at once")
+      diag.info('SLOT_OCCLUSION', 'scenes.yaml', { line: sceneLines.get(sc.id), path: `scenes.${sc.id}.slots.${far.sl.id}` },
+        `in ${sc.id}, a figure on slot "${near.sl.id}" (nearer) would cover ${Math.round(o.head * 100)}% of the head band and ${Math.round(o.covered * 100)}% of a figure on "${far.sl.id}"; the engine never shows both at once. Move one sideways if both should be able to appear together`);
+    }
+  }
 }
 
 /** A seated figure asset: manifest `seated: true`, or (without a manifest entry saying otherwise) an id containing `_fig_sit`. */
@@ -420,6 +499,10 @@ function validateEvents(files, diag, scenes, npcs, assets, castIds) {
     if (r.scene && !scenes.has(r.scene)) diag.error('UNKNOWN_SCENE', rel, loc('scene'), `unknown scene "${r.scene}"`);
     if (r.npc && !npcs.has(r.npc)) diag.error('UNKNOWN_NPC', rel, loc('npc'), `unknown npc "${r.npc}"`);
     if (r.portrait && assets && !assets.cast?.[r.portrait] && !castIds.has(r.portrait)) diag.warn('UNKNOWN_ASSET', rel, loc('portrait'), `cast "${r.portrait}" is not in cast.yaml or assets/manifest.json cast (PLACEHOLDER shown)`);
+    // medium (SPEC events.csv): a prop id shown instead of a bust; art not generated yet is a PLACEHOLDER on screen
+    // (like a pending cast bust), so a missing manifest entry is a note, not a warning; a non-prop id is an error
+    if (r.medium && !/^prop_[a-z0-9_]+$/.test(r.medium)) diag.error('BAD_VALUE', rel, loc('medium'), `"${r.medium}"; expected a prop id (prop_<name>, e.g. prop_radio) or blank`);
+    else if (r.medium && assets && !hasAsset(assets, 'props', r.medium)) diag.info('PENDING_ASSET', rel, loc('medium'), `prop "${r.medium}" not in assets/manifest.json yet (PLACEHOLDER "${r.medium.replace(/^prop_/, '')}" shown; image_generation request or editor upload props/${r.medium})`);
     let minRapport = 0;
     if (r.minRapport !== '') { if (/^[0-3]$/.test(r.minRapport)) minRapport = +r.minRapport; else diag.error('BAD_VALUE', rel, loc('minRapport'), `"${r.minRapport}"; expected 0..3 or blank`); }
     if (r.minRapport !== '' && !r.npc) diag.error('SCHEMA', rel, loc('minRapport'), 'minRapport set but npc is blank');
@@ -831,6 +914,10 @@ export function checkContent(input) {
   }
   const scenes = validateScenes(files, diag, assets);
   const npcs = validateNpcs(files, diag, scenes, assets);
+  {
+    const text = files['scenes.yaml'] ?? '';
+    checkSlotOcclusion(scenes, npcs, assets, diag, new Map([...scenes.keys()].map(id => [id, yamlLine(text, id)])));
+  }
   // cross-file: talk hotspots and painted casts must name real NPCs
   for (const sc of scenes.values()) {
     const rel = 'scenes.yaml';

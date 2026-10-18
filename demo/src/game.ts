@@ -1,9 +1,10 @@
 /** The game runtime: state transitions + plain-DOM rendering of the 1440x900 stage. */
 import type {
-  Content, DialogueRow, Questionnaire, Emotion, EventRow, GameState, Hotspot, ModuleId, NewsRow, Npc, Scene, Screen, Slot,
+  Content, DialogueRow, Questionnaire, Emotion, EventRow, GameState, Hotspot, ModuleId, NewsRow, Npc, Prop, Scene, Screen, Slot,
 } from './types';
 import {
   DAY_ACTIONS, DEFAULT_TALKS_PER_DAY, DEMO_DAYS, DIALOGUE_COST, FEATURES, FREE_DEPTH, applyEffects, dayPhaseOf, eventMatches, leanOf, phaseOf, rowDepth, selectRow,
+  DEFAULT_MAX_PRESENT, figureRect, figuresClash, type FigRect,
   type Delta,
 } from './rules';
 import { appendLog, debugEnabled, getRoom, readLog, saveState } from './store';
@@ -74,6 +75,8 @@ export class Game {
   private shownScene: string | null = null;
   /** dev only: screen quads set with gv.screens(), per scene, in memory */
   private devScreens = new Map<string, Screen[]>();
+  /** dev only: prop quads set with gv.propQuad(), per scene and prop asset, in memory (null = flat placement) */
+  private devPropQuads = new Map<string, Map<string, [number, number][] | null>>();
   /** the still the room screens showed when the TV was switched on; kept until the TV window closes (memory only) */
   private tvOnScreen: { id: string; image: string | null } | null = null;
 
@@ -262,7 +265,9 @@ export class Game {
    * Who is in a scene today. Each appearance rolls on its own hash of (room seed, day, scene, NPC id, slot), so the
    * answer does not depend on the order of npcs.yaml or on which other NPCs exist: editing one NPC's appearances
    * never moves anybody else. Two NPCs rolling into the same slot: the lower roll wins (ties by id), again order-free.
-   * `dev` adds gv.place() placements (rendering only; event rolls pass false).
+   * Candidates are taken in that same (roll, id) order up to `maxPresentIn` cut-out figures, skipping one whose figure would
+   * clash with an accepted one (SPEC "How many people at once": head band covered, or > 40% hidden). Painted NPCs do not count.
+   * `dev` adds gv.place() placements (rendering only; event rolls pass false); they bypass the cap and the clash check.
    */
   presentIn(sceneId: string, dev = true): Presence[] {
     const sc = this.c.sceneById.get(sceneId);
@@ -282,9 +287,15 @@ export class Game {
     }
     cands.sort((a, b) => a.roll - b.roll || (a.npc.id < b.npc.id ? -1 : a.npc.id > b.npc.id ? 1 : 0));
     const used = new Set<string>();
+    const max = this.maxPresentIn(sc);
+    const placed: { y: number; rect: FigRect }[] = [];
     for (const cd of cands) {
+      if (placed.length >= max) break;
       if (used.has(cd.slot.id) || out.some((p) => p.npc.id === cd.npc.id)) continue;
+      const box = { y: cd.slot.y, rect: this.figureBox(sc, cd.slot, cd.npc, cd.figure) };
+      if (placed.some((p) => figuresClash(p, box))) continue;
       used.add(cd.slot.id);
+      placed.push(box);
       out.push({ npc: cd.npc, slot: cd.slot, figure: cd.figure });
     }
     if (dev) for (const pl of this.devPlaced.get(sceneId) ?? []) {
@@ -388,6 +399,16 @@ export class Game {
     const m = this.c.manifest.cast?.[id];
     const file = m?.[variant];
     return file ? { url: this.c.assetUrl(file), placeholder: !!m?.placeholder, name, role } : { url: '', placeholder: true, name, role };
+  }
+
+  /** An object shown on the right panel for an event that is heard, not seen (events.csv `medium`, e.g. prop_radio):
+   *  override `props/<id>`, then manifest.props; url '' when missing. label is the id without `prop_` ("radio"). */
+  private propImage(id: string): { url: string; placeholder: boolean; label: string } {
+    const label = id.replace(/^prop_/, '').replace(/_/g, ' ');
+    const o = this.c.imageOverrides.get(`props/${id}`);
+    if (o) return { url: o.url, placeholder: false, label };
+    const m = assetEntry(this.c.manifest, this.c.manifest.props, id);
+    return m?.file ? { url: this.c.assetUrl(m.file), placeholder: false, label } : { url: '', placeholder: true, label };
   }
 
   /** The leader's TV stills: manifest list, with `tv/<leaderId>/<i>` overrides replacing or extending it. */
@@ -544,6 +565,20 @@ export class Game {
    * Conversations allowed per NPC per day: the room's `maxTalksPerNpcPerDay` (default 1). In dev mode `&talks=N`
    * overrides it for the tab (and the DEV1 room has no value, so it stays 1).
    */
+  /** Cut-out figures allowed at once in a scene: its `maxPresent`, else the room's, else 3. Dev: `&present=N` for the tab. */
+  maxPresentIn(sc: Scene): number {
+    const dev = isDev ? Number(params.get('present')) : NaN;
+    if (Number.isInteger(dev) && dev > 0) return dev;
+    for (const v of [sc.maxPresent, Number(this.s.config.maxPresent)]) if (Number.isInteger(v) && v! > 0) return v!;
+    return DEFAULT_MAX_PRESENT;
+  }
+
+  /** The figure's box in the 900 x 600 image, exactly as renderScene() draws it (SPEC "How many people at once"). */
+  private figureBox(sc: Scene, slot: Slot, npc: Npc, figure?: string): FigRect {
+    const fig = this.figureFor(npc, figure);
+    return figureRect(slot.x, slot.y, figureHeight(sc, slot, fig.seated), fig.aspect, IMG_W, IMG_H);
+  }
+
   get maxTalks(): number {
     const dev = isDev ? Number(params.get('talks')) : NaN;
     if (Number.isInteger(dev) && dev > 0) return dev;
@@ -1107,6 +1142,14 @@ export class Game {
     return st ? { id: st.id, image: st.image ?? null } : null;
   }
 
+  /** A prop's projection quad on the background actually drawn (dev override first), or null for flat placement. */
+  private propQuad(sc: Scene, p: Prop): [number, number][] | null {
+    const dev = this.devPropQuads.get(sc.id);
+    if (dev?.has(p.asset)) return dev.get(p.asset) ?? null;
+    const bgId = this.bgFor(sc)?.id;
+    return (bgId && p.byBackground?.[bgId]) || p.quad || null;
+  }
+
   /** A TV glass: the still laid out at 1280 x 720 and projected onto the quad (scene-box pixels) with matrix3d. */
   private screenEl(scr: Screen): HTMLElement {
     // the screen as measured on the background actually drawn (the evening render may put the TV a little elsewhere)
@@ -1202,9 +1245,15 @@ export class Game {
       const m = assetEntry(this.c.manifest, this.c.manifest.props, p.asset);
       if (!m?.file) continue;
       const w = p.w * IMG_W;
+      const q = this.propQuad(sc, p);
+      // SPEC "Content schemas": with a quad the prop is laid out at its manifest size and projected onto the quad
+      // (the same homography as the TV glass); without one it is placed flat at x/y/w
+      const pw = m.w || 1000, ph = m.h || 1000;
       const prop = h('img', {
-        class: 'prop', src: this.c.assetUrl(m.file), alt: '', draggable: 'false',
-        style: `left:${p.x * IMG_W}px;top:${p.y * IMG_H}px;width:${w}px;`,
+        class: q ? 'prop prop-quad' : 'prop', src: this.c.assetUrl(m.file), alt: '', draggable: 'false',
+        style: q
+          ? `left:0;top:0;width:${pw}px;height:${ph}px;max-width:none;transform-origin:0 0;transform:${matrix3d(q.map(([x, y]) => [x * IMG_W, y * IMG_H] as [number, number]), pw, ph)};`
+          : `left:${p.x * IMG_W}px;top:${p.y * IMG_H}px;width:${w}px;`,
       });
       prop.addEventListener('error', () => prop.remove());
       box.append(prop);
@@ -1380,7 +1429,17 @@ export class Game {
 
     const portrait = h('div', { class: 'portrait' });
     let via: string | null = null;
-    if (p.kind === 'event' && p.ev.portrait) {
+    if (p.kind === 'event' && p.ev.medium) {
+      // heard, not seen (a radio): the object, uncropped on a plain ground; `portrait` (if any) names the voice
+      const pr = this.propImage(p.ev.medium);
+      const voice = p.ev.portrait ? this.castImage(p.ev.portrait, 'bust').name : '';
+      portrait.classList.add('medium');
+      portrait.append(pr.url
+        ? h('img', { class: 'medium-img', src: pr.url, alt: pr.label })
+        : h('div', { class: 'medium-ph', role: 'img', 'aria-label': `${pr.label} (${this.str('ui.pendingArt')})` },
+          h('span', { class: 'ph-mark', text: `${this.str('ui.pendingArt')} · ${pr.label}` })),
+        h('span', { class: 'who', text: voice ? `${pr.label} · ${voice}` : pr.label }));
+    } else if (p.kind === 'event' && p.ev.portrait) {
       // a cast member (authority figure) speaks: their bust, their name and role
       const ci = this.castImage(p.ev.portrait, 'bust');
       via = npc ? this.viaLabel(p.ev, npc.name) : null;
@@ -1422,7 +1481,7 @@ export class Game {
       if (!p.ev.choices.length) {
         choices.append(h('button', { class: 'choice', 'data-fk': 'ch:cont', onclick: () => this.chooseEvent(p.ev, null), text: this.str('ui.continue') }));
       }
-      status = `event ${p.ev.id} · ${p.ev.trigger}${p.ev.npc ? ` · ${p.ev.npc}` : ''}${p.ev.portrait ? ` · cast ${p.ev.portrait}` : ''}`;
+      status = `event ${p.ev.id} · ${p.ev.trigger}${p.ev.npc ? ` · ${p.ev.npc}` : ''}${p.ev.portrait ? ` · cast ${p.ev.portrait}` : ''}${p.ev.medium ? ` · medium ${p.ev.medium}` : ''}`;
     } else if (p.kind === 'bed') {
       body.append(h('p', { class: 'line', text: this.str('ui.bed.prompt', { actions: this.costWords(this.s.actions) }) }));
       const pick = (n: 1 | 2 | 3) => {
@@ -1586,6 +1645,20 @@ export class Game {
        * Dev only: TV screen quads for a scene, in memory (never saved). gv.screens('home', [[x,y],[x,y],[x,y],[x,y]])
        * sets one screen (fractions of the background: top-left, top-right, bottom-right, bottom-left); gv.screens('home', null) clears.
        */
+      /**
+       * Dev only: a prop's projection quad, in memory (never saved). gv.propQuad('park', 'prop_chessboard', [[x,y],[x,y],[x,y],[x,y]])
+       * (fractions of the background: top-left, top-right, bottom-right, bottom-left of the prop image); `null` draws it flat
+       * at x/y/w; with no quad argument the dev override is dropped. Returns the quad now in use.
+       */
+      propQuad: (scene: string, asset: string, quad?: [number, number][] | null) => {
+        const sc = this.c.sceneById.get(scene) ?? this.scene;
+        const map = this.devPropQuads.get(sc.id) ?? new Map<string, [number, number][] | null>();
+        if (quad === undefined) map.delete(asset); else map.set(asset, quad);
+        this.devPropQuads.set(sc.id, map);
+        this.render();
+        const p = sc.props.find((x) => x.asset === asset);
+        return p ? this.propQuad(sc, p) : `no prop ${asset} in scene ${sc.id}`;
+      },
       screens: (scene?: string, quad?: [number, number][] | null) => {
         const id = scene ?? this.s.scene;
         if (quad === null) this.devScreens.delete(id);

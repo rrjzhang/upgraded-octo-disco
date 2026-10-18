@@ -65,6 +65,44 @@ export interface Ctx extends NpcState { nationalLeader: Leader; playerLean: Lean
 /** Default conversations per NPC per day (SPEC "Conversation limit"). */
 export const DEFAULT_TALKS_PER_DAY = 1;
 
+/** Default cap on cut-out figures present in a scene at once (SPEC "How many people at once"); painted NPCs do not count. */
+export const DEFAULT_MAX_PRESENT = 3;
+/** A nearer figure may cover at most this share of a further figure's rectangle (SPEC "How many people at once"). */
+export const OCCLUSION_MAX = 0.4;
+/** The top share of a further figure that counts as its head band: no nearer figure may cover any of it. */
+export const HEAD_BAND = 0.25;
+/** Width / height assumed for a figure whose asset size is unknown. */
+export const DEFAULT_FIGURE_ASPECT = 0.45;
+
+/** A figure's on-screen box in px: feet anchored at the bottom centre, as the renderer draws it. */
+export interface FigRect { x0: number; y0: number; x1: number; y1: number }
+
+/** `x`,`y`: slot fractions; `hFrac`: figureHeight(); `aspect`: width / height; `w`,`h`: image box size in px. */
+export function figureRect(x: number, y: number, hFrac: number, aspect: number, w: number, h: number): FigRect {
+  const hgt = hFrac * h, wid = hgt * aspect;
+  return { x0: x * w - wid / 2, x1: x * w + wid / 2, y0: y * h - hgt, y1: y * h };
+}
+
+/** How much of `far` the nearer figure `near` hides: the covered share of its rectangle and of its head band (0..1). */
+export function occlusion(near: FigRect, far: FigRect): { covered: number; head: number } {
+  const ix = Math.max(0, Math.min(near.x1, far.x1) - Math.max(near.x0, far.x0));
+  const fw = far.x1 - far.x0, fh = far.y1 - far.y0;
+  if (!ix || fw <= 0 || fh <= 0) return { covered: 0, head: 0 };
+  const iy = Math.max(0, Math.min(near.y1, far.y1) - Math.max(near.y0, far.y0));
+  const headBottom = far.y0 + fh * HEAD_BAND;
+  const ihy = Math.max(0, Math.min(near.y1, headBottom) - Math.max(near.y0, far.y0));
+  return { covered: (ix * iy) / (fw * fh), head: (ix * ihy) / (fw * fh * HEAD_BAND) };
+}
+
+/**
+ * True when two figures may not stand together: the nearer one (larger feet y; equal y checks both ways) would cover any
+ * of the further one's head band, or more than OCCLUSION_MAX of its rectangle. Mirrored in tools/checker/core.mjs.
+ */
+export function figuresClash(a: { y: number; rect: FigRect }, b: { y: number; rect: FigRect }): boolean {
+  const bad = (near: FigRect, far: FigRect) => { const o = occlusion(near, far); return o.head > 0 || o.covered > OCCLUSION_MAX; };
+  return (a.y >= b.y && bad(a.rect, b.rect)) || (b.y >= a.y && bad(b.rect, a.rect));
+}
+
 /** Feature switches kept in code but off for the study (SPEC "TV once a day"). */
 export const FEATURES = {
   /** the TV module's "Keep watching" second story (1 action); off: one story per day */

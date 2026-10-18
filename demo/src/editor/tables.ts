@@ -23,6 +23,8 @@ export class TableTab {
     const npcIds = () => m.npcs.map((n) => n.id);
     const sceneIds = () => m.scenes.map((s) => s.id);
     const castIds = () => [...new Set([...Object.keys(m.manifest.cast ?? {}), ...m.castIds])];
+    // events.csv `medium`: prop ids (manifest.props, plus any already named in the sheet, e.g. a prop still being generated)
+    const propIds = () => [...new Set([...Object.keys((m.manifest.props ?? {}) as Record<string, unknown>), ...(m.doc('events.csv')?.table?.rows ?? []).map((r) => (r.medium ?? '').trim()).filter(Boolean)])];
     this.cols = path === 'events.csv'
       ? [
         { key: 'id', kind: { type: 'text', size: 14 } },
@@ -35,6 +37,7 @@ export class TableTab {
         { key: 'chance', kind: { type: 'text', size: 3 } }, { key: 'cost', kind: { type: 'text', size: 2 } },
         { key: 'emotion', kind: en(EMOTIONS) },
         { key: 'portrait', label: 'portrait (cast)', kind: { type: 'text', size: 10, list: castIds } },
+        { key: 'medium', label: 'medium (prop)', kind: { type: 'text', size: 10, list: propIds } },
         { key: 'text', kind: { type: 'long' } },
         { key: 'choice1', kind: { type: 'long' } }, { key: 'effect1', kind: { type: 'text', size: 18 } },
         { key: 'choice2', kind: { type: 'long' } }, { key: 'effect2', kind: { type: 'text', size: 18 } },
@@ -64,9 +67,11 @@ export class TableTab {
       this.msg);
     const wrap = h('div', { class: 'tablewrap' });
     const castList = h('datalist', { id: `cast-${this.path}` }, ...[...new Set([...Object.keys(m.manifest.cast ?? {}), ...m.castIds])].map((v) => h('option', { value: v })));
+    const otherLists = this.cols.filter((c) => c.kind.type === 'text' && c.kind.list && c.key === 'medium')
+      .map((c) => h('datalist', { id: `${c.key}-${this.path}` }, ...(c.kind.type === 'text' && c.kind.list ? c.kind.list() : []).map((v) => h('option', { value: v }))));
     if (!this.table) wrap.append(h('p', { class: 'empty', text: `content/${this.path} is missing.` }));
     else {
-      wrap.append(castList, h('table', { class: 'sheet' },
+      wrap.append(castList, ...otherLists, h('table', { class: 'sheet' },
         h('thead', {}, h('tr', {}, h('th'), ...this.cols.map((c) => h('th', { class: c.kind.type === 'long' ? 'wide' : '', text: c.label ?? c.key, title: c.key })), h('th'))),
         this.tbody));
       this.renderRows();
@@ -88,7 +93,7 @@ export class TableTab {
       const v = r[c.key] ?? '';
       if (c.kind.type === 'enum') return selectEl(c.kind.values(), v, at(c.key), c.kind.blank);
       if (c.kind.type === 'long') return h('textarea', { ...at(c.key), rows: 3 }, v);
-      return h('input', { ...at(c.key), value: v, size: c.kind.size ?? 8, list: c.kind.list ? `cast-${this.path}` : null });
+      return h('input', { ...at(c.key), value: v, size: c.kind.size ?? 8, list: c.kind.list ? (c.key === 'medium' ? `medium-${this.path}` : `cast-${this.path}`) : null });
     };
     return h('tr', { 'data-row': String(i), class: i === this.sel ? 'sel' : '' },
       h('td', { class: 'b' }),

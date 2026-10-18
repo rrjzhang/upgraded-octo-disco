@@ -65,6 +65,8 @@ button { font-family: inherit; }
 .bg-flat-name { font: 600 40px var(--ui); color: var(--ink); }
 .bg-flat-id { margin-top: 8px; font-size: 14px; }
 .prop { position: absolute; pointer-events: none; user-select: none; z-index: 2; }
+/* a prop projected onto a surface seen in perspective (Prop.quad): softened a little to sit in the photo */
+.prop-quad { filter: blur(0.35px) brightness(.9) saturate(.85); }
 
 .hotspot {
   position: absolute; z-index: 5; background: transparent; border: 2px dashed transparent; border-radius: 6px;
@@ -204,6 +206,13 @@ button { font-family: inherit; }
 .chip-worried { border-color: #8a3b2f; color: #7c3226; }
 .who { position: absolute; left: 12px; bottom: 12px; background: rgba(31,29,26,.82); color: var(--panel); padding: 4px 10px; border-radius: 6px; font-weight: 500; }
 .portrait .pending { right: auto; left: 12px; top: 12px; }
+/* events.csv `medium` (heard, not seen, e.g. a radio): the whole object, contained on the plain panel ground, not a face crop */
+.portrait.medium .medium-img { position: absolute; inset: 24px 24px 52px; width: calc(100% - 48px); height: calc(100% - 76px); object-fit: contain; object-position: center; }
+.portrait.medium .medium-ph { position: absolute; inset: 24px 24px 52px; border: 1.5px dashed rgba(217,164,65,.7); border-radius: 8px; background: repeating-linear-gradient(135deg, rgba(31,29,26,.08) 0 10px, rgba(31,29,26,.03) 10px 20px); }
+.portrait.medium .medium-ph .ph-mark {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); white-space: nowrap;
+  font: 600 10px var(--ui); letter-spacing: .12em; text-transform: uppercase; color: var(--amber); background: rgba(31,29,26,.72); padding: 3px 8px; border-radius: 3px;
+}
 .desc { font: italic 16px/1.45 var(--serif); color: var(--muted); margin: 18px 0 8px; }
 .dialogue { min-height: 40px; }
 .line { font: 19px/1.5 var(--serif); margin: 6px 0; }

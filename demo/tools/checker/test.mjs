@@ -152,5 +152,59 @@ t('pack: mx NPCs without an mx scene warn and fall back', () => {
   assert.equal(pk3.packs.mx.pack, 'cn');
 });
 
+// SPEC events.csv `medium`: a prop shown on the right panel instead of a bust (a radio). A known prop passes,
+// a prop not generated yet is an info note (PLACEHOLDER on screen), a non-prop id is an error.
+const medRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'gv-check-medium-')), medDir = path.join(medRoot, 'content');
+fs.cpSync(path.join(here, 'fixtures', 'good'), medDir, { recursive: true });
+const medEv = fs.readFileSync(path.join(medDir, 'events.csv'), 'utf8').trimEnd().split('\n');
+fs.writeFileSync(path.join(medDir, 'events.csv'), [medEv[0] + ',medium', medEv[1] + ',prop_radio', medEv[2] + ',ch_bob',
+  'E_TV,us,home,neutral,distal,day_start,,,,,,1,,,On the radio.,,,,,prop_tv'].join('\n') + '\n');
+fs.mkdirSync(path.join(medRoot, 'assets'));
+fs.writeFileSync(path.join(medRoot, 'assets', 'manifest.json'), JSON.stringify({ backgrounds: {}, portraits: {}, figures: {}, props: { prop_tv: { file: 'prop/prop_tv.png', w: 600, h: 600 } }, tv: {} }));
+const medRep = fs.mkdtempSync(path.join(os.tmpdir(), 'gv-check-medium-report-'));
+const med = JSON.parse(spawnSync(process.execPath, [path.join(here, 'check.mjs'), '--content', medDir, '--report', medRep, '--json'], { encoding: 'utf8' }).stdout);
+t('medium: known prop passes, pending prop is an info note, non-prop id is an error', () => {
+  const d = med.diagnostics.filter(x => x.column === 'medium').map(x => `${x.severity}:${x.code}:${x.row}`).sort();
+  assert.deepEqual(d, ['error:BAD_VALUE:E_OVER', 'info:PENDING_ASSET:E_INV']);
+  assert.equal(med.diagnostics.filter(x => x.file === 'events.csv' && x.code === 'SCHEMA').length, 0);
+});
+
+// SPEC "Content schemas" Prop quad / byBackground: the place fixture's projected chessboard passes; a short quad, a
+// byBackground key that is not one of the scene's backgrounds and a short byBackground quad are errors.
+t('prop quad: the place fixture prop quad and byBackground pass', () => assert.equal(place.result.diagnostics.filter(d => /props\[/.test(d.path || '')).length, 0));
+const pqDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gv-check-propquad-'));
+fs.cpSync(path.join(here, 'fixtures', 'place'), pqDir, { recursive: true });
+fs.writeFileSync(path.join(pqDir, 'scenes.yaml'), fs.readFileSync(path.join(pqDir, 'scenes.yaml'), 'utf8')
+  .replace(/quad: \[\[0\.20, 0\.536\].*\n/, 'quad: [[0.2, 0.5], [0.3, 0.5], [0.3, 1.9]]\n')
+  .replace(/byBackground: \{ bg_park_eve: .*\n/, 'byBackground: { bg_home_day: [[0.2,0.5],[0.3,0.5],[0.3,0.6],[0.2,0.6]], bg_park_eve: [[0.2,0.5],[0.3,0.5]] }\n'));
+const pqRep = fs.mkdtempSync(path.join(os.tmpdir(), 'gv-check-propquad-report-'));
+const pq = JSON.parse(spawnSync(process.execPath, [path.join(here, 'check.mjs'), '--content', pqDir, '--report', pqRep, '--json'], { encoding: 'utf8' }).stdout);
+t('prop quad: bad quad, foreign background key and bad byBackground quad are errors', () => {
+  const d = pq.diagnostics.filter(x => /props\[/.test(x.path || '')).map(x => `${x.severity}:${x.code}:${x.path}`).sort();
+  assert.deepEqual(d, [
+    'error:BAD_VALUE:scenes[1].props[0].byBackground.bg_home_day',
+    'error:BAD_VALUE:scenes[1].props[0].byBackground.bg_park_eve',
+    'error:BAD_VALUE:scenes[1].props[0].quad',
+  ]);
+});
+
+// SPEC "How many people at once": SLOT_OCCLUSION for slots two different NPCs can hold together, the nearer hiding the
+// further one's head band; a slot nobody appears on, or two slots only one NPC uses, are not reported
+const occDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gv-check-occ-'));
+fs.cpSync(path.join(here, 'fixtures', 'good'), occDir, { recursive: true });
+fs.writeFileSync(path.join(occDir, 'scenes.yaml'), fs.readFileSync(path.join(here, 'fixtures', 'good', 'scenes.yaml'), 'utf8')
+  .replace('{ id: left, x: 0.25, y: 0.90, scale: 0.5 }', '{ id: left, x: 0.25, y: 0.90, scale: 0.7 }')
+  .replace('      - { id: right, x: 0.70, y: 0.90, scale: 0.5 }\n', '      - { id: right, x: 0.70, y: 0.90, scale: 0.5 }\n      - { id: back, x: 0.36, y: 0.60, scale: 0.3 }\n      - { id: spare, x: 0.25, y: 0.62, scale: 0.3 }\n      - { id: solo, x: 0.72, y: 0.60, scale: 0.3 }\n'));
+fs.writeFileSync(path.join(occDir, 'npcs.yaml'), fs.readFileSync(path.join(here, 'fixtures', 'good', 'npcs.yaml'), 'utf8')
+  .replace('      - { scene: home, slot: right, chance: 0.5 }\n', '      - { scene: home, slot: right, chance: 0.5 }\n      - { scene: home, slot: back, chance: 0.5 }\n      - { scene: home, slot: solo, chance: 0.5 }\n'));
+const occ = JSON.parse(spawnSync(process.execPath, [path.join(here, 'check.mjs'), '--content', occDir, '--report', fs.mkdtempSync(path.join(os.tmpdir(), 'gv-check-occ-report-')), '--json'], { encoding: 'utf8' }).stdout);
+t('occlusion: SLOT_OCCLUSION names near slot "left" covering "back"; unused and single-NPC pairs are quiet', () => {
+  assert.deepEqual(nonInfo(occ), []);
+  const occs = occ.diagnostics.filter(x => x.code === 'SLOT_OCCLUSION');
+  assert.deepEqual(occs.map(x => `${x.severity}:${x.loc?.path ?? x.path}`), ['info:scenes.home.slots.back']);
+  const d = occs[0];
+  assert.match(d.message, /"left" \(nearer\) would cover 44% of the head band and 44% of a figure on "back"/);
+});
+
 console.log(failures ? `\n${failures} test(s) failed` : '\nall tests passed');
 process.exit(failures ? 1 : 0);

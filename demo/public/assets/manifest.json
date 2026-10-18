@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-18T10:12:06.934Z",
+  "generated": "2026-10-18T19:21:05.150Z",
   "source": "image_generation/out (_A set)",
   "backgrounds": {
     "bg_home_day": {
@@ -468,182 +468,208 @@
       "w": 206,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_us_neighbor_fig_stand_A"
     },
     "ch_us_stranger_a_fig_sit": {
       "file": "figure/ch_us_stranger_a_fig_sit.png",
       "w": 336,
       "h": 700,
       "seated": true,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_us_stranger_a_fig_sit_A"
     },
     "ch_us_stranger_a_fig_stand": {
       "file": "figure/ch_us_stranger_a_fig_stand.png",
       "w": 249,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_us_stranger_a_fig_stand_A"
     },
     "ch_us_stranger_b_fig_stand": {
       "file": "figure/ch_us_stranger_b_fig_stand.png",
       "w": 249,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_us_stranger_b_fig_stand_A"
     },
     "ch_us_leader_int_fig_stand": {
       "file": "figure/ch_us_leader_int_fig_stand.png",
       "w": 205,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_us_leader_int_fig_stand_A"
     },
     "ch_us_leader_seg_fig_stand": {
       "file": "figure/ch_us_leader_seg_fig_stand.png",
       "w": 247,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_us_leader_seg_fig_stand_A"
     },
     "ch_cn_neighbor_fig_stand": {
       "file": "figure/ch_cn_neighbor_fig_stand.png",
       "w": 205,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_cn_neighbor_fig_stand_A"
     },
     "ch_cn_stranger_a_fig_sit": {
       "file": "figure/ch_cn_stranger_a_fig_sit.png",
       "w": 338,
       "h": 700,
       "seated": true,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_cn_stranger_a_fig_sit_A"
     },
     "ch_cn_stranger_a_fig_stand": {
       "file": "figure/ch_cn_stranger_a_fig_stand.png",
       "w": 202,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_cn_stranger_a_fig_stand_A"
     },
     "ch_cn_stranger_b_fig_stand": {
       "file": "figure/ch_cn_stranger_b_fig_stand.png",
       "w": 194,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_cn_stranger_b_fig_stand_A"
     },
     "ch_cn_leader_int_fig_stand": {
       "file": "figure/ch_cn_leader_int_fig_stand.png",
       "w": 200,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_cn_leader_int_fig_stand_A"
     },
     "ch_cn_leader_sep_fig_stand": {
       "file": "figure/ch_cn_leader_sep_fig_stand.png",
       "w": 221,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_cn_leader_sep_fig_stand_A"
     },
     "ch_us_leader_asm_fig_stand": {
       "file": "figure/ch_us_leader_asm_fig_stand.png",
       "w": 245,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_us_leader_asm_fig_stand_A"
     },
     "ch_cn_leader_asm_fig_stand": {
       "file": "figure/ch_cn_leader_asm_fig_stand.png",
       "w": 197,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_cn_leader_asm_fig_stand_A"
     },
     "ch_mx_neighbor_fig_stand": {
       "file": "figure/ch_mx_neighbor_fig_stand.png",
       "w": 208,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_mx_neighbor_fig_stand_A"
     },
     "ch_mx_stranger_a_fig_stand": {
       "file": "figure/ch_mx_stranger_a_fig_stand.png",
       "w": 214,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_mx_stranger_a_fig_stand_A"
     },
     "ch_mx_stranger_b_fig_stand": {
       "file": "figure/ch_mx_stranger_b_fig_stand.png",
       "w": 247,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_mx_stranger_b_fig_stand_A"
     },
     "ch_mx_leader_asm_fig_stand": {
       "file": "figure/ch_mx_leader_asm_fig_stand.png",
       "w": 234,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_mx_leader_asm_fig_stand_A"
     },
     "ch_mx_leader_int_fig_stand": {
       "file": "figure/ch_mx_leader_int_fig_stand.png",
       "w": 212,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_mx_leader_int_fig_stand_A"
     },
     "ch_mx_leader_sep_fig_stand": {
       "file": "figure/ch_mx_leader_sep_fig_stand.png",
       "w": 236,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_mx_leader_sep_fig_stand_A"
     },
     "ch_in_neighbor_fig_stand": {
       "file": "figure/ch_in_neighbor_fig_stand.png",
       "w": 197,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_in_neighbor_fig_stand_A"
     },
     "ch_in_stranger_a_fig_stand": {
       "file": "figure/ch_in_stranger_a_fig_stand.png",
       "w": 221,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_in_stranger_a_fig_stand_A"
     },
     "ch_in_stranger_b_fig_stand": {
       "file": "figure/ch_in_stranger_b_fig_stand.png",
       "w": 217,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_in_stranger_b_fig_stand_A"
     },
     "ch_in_leader_asm_fig_stand": {
       "file": "figure/ch_in_leader_asm_fig_stand.png",
       "w": 206,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_in_leader_asm_fig_stand_A"
     },
     "ch_in_leader_int_fig_stand": {
       "file": "figure/ch_in_leader_int_fig_stand.png",
       "w": 222,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_in_leader_int_fig_stand_A"
     },
     "ch_in_leader_sep_fig_stand": {
       "file": "figure/ch_in_leader_sep_fig_stand.png",
       "w": 210,
       "h": 700,
       "seated": false,
-      "placeholder": false
+      "placeholder": false,
+      "source": "ch_in_leader_sep_fig_stand_A"
     },
     "placeholder_stand": {
       "file": "figure/placeholder_stand.png",
