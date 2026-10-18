@@ -104,6 +104,16 @@ npcs:
     community: home
     role: neighbor
     stance: none
+    # Writer-facing profile (see SPEC "Character profiles"); never shown to participants.
+    profile:
+      integrationLean: 4
+      warmth: 8
+      talkative: 7
+      backstory: "Came from Guangzhou at thirty-one to join her husband, who died six years ago. Worked twenty years at a dry cleaner on Grand, now helps run the seniors' lunch at the center. Daughter is a nurse on night shifts; grandson Kevin, nine, stays over on Tuesdays. Reads the Chinese paper and the local one, in that order."
+      motivation: "Wants the player to be fed, to show up on Saturday, and to not drift away from the community the way her daughter has."
+      voice: "Short, concrete sentences. Food before feelings. Gives instructions as kindness. Never says 'I worry'; shows it with an extra egg tart."
+      topics: [seniors' lunch, Saturday school, Kevin, the center kitchen, the market on Eighth, Mr. Guo's committees]
+      avoid: [politics in the abstract, money, her late husband unless asked]
     portrait: ch_cn_neighbor
     figure: ch_cn_neighbor_fig_stand
     seated: false
