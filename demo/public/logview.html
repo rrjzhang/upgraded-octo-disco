@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Great Vote log viewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap">
+<link rel="stylesheet" href="logview.css">
+</head>
+<body>
+<header class="bar">
+  <div class="bar-row">
+    <h1>Log viewer</h1>
+    <form id="roomForm" class="grp" autocomplete="off">
+      <label for="room">Room</label>
+      <input id="room" name="room" size="6" maxlength="12" placeholder="DEV1" spellcheck="false">
+      <button type="submit" class="btn">Load</button>
+    </form>
+    <div id="rooms" class="rooms" aria-label="Rooms with a log in this browser"></div>
+    <label class="btn ghost file">Open .jsonl&hellip;<input id="file" type="file" accept=".jsonl,.json,.txt,.log,application/json,text/plain"></label>
+    <span class="spacer"></span>
+    <input id="filter" type="search" placeholder="Filter lines&hellip;" aria-label="Filter lines by text">
+    <button id="expand" type="button" class="btn ghost">Expand all</button>
+    <button id="collapse" type="button" class="btn ghost">Collapse all</button>
+    <label class="chk"><input id="rawAll" type="checkbox"> raw JSON</label>
+  </div>
+  <div id="meta" class="meta" aria-live="polite">Pick a room or drop a .jsonl export anywhere on the page.</div>
+</header>
+<main id="out"></main>
+<div id="drop" class="drop" hidden>Drop the .jsonl file to view it</div>
+<script src="logview.js"></script>
+</body>
+</html>
