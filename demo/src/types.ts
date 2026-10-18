@@ -26,7 +26,8 @@ export interface Hotspot { id: string; label: string; zone: Zone; action: Hotspo
 // listed NPC is in the player's roster; those NPCs are then present without a figure and are reached
 // through `talk` hotspots instead of clickable cut-outs.
 export interface Painted { background: string; npcs: string[] }
-export interface Slot { id: string; x: number; y: number; scale: number }
+/** Where a figure's feet stand (fractions of the image; y may exceed 1 to crop the legs). `scale` overrides the horizon formula. */
+export interface Slot { id: string; x: number; y: number; scale?: number }
 export interface Prop { asset: string; x: number; y: number; w: number }
 export interface Exit { to: string; label: string }
 
@@ -42,6 +43,10 @@ export interface Scene {
   slots: Slot[];
   props: Prop[];
   painted?: Painted;
+  /** Eye-level line as a fraction of the image height (where the vanishing lines meet). */
+  horizon: number;
+  /** Camera height in metres (default 1.6). */
+  cameraHeight: number;
 }
 
 export interface Appearance { scene: string; slot: string; chance: number }

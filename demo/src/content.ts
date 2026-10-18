@@ -2,7 +2,7 @@
 import { load as loadYaml } from 'js-yaml';
 import Papa from 'papaparse';
 import type {
-  Content, DialogueRow, Emotion, EventRow, Manifest, NewsRow, Npc, Questionnaire, Scene, Hotspot, CondField,
+  Content, DialogueRow, Emotion, EventRow, Manifest, NewsRow, Npc, Questionnaire, Scene, Slot, Hotspot, CondField,
 } from './types';
 import { COND_FIELDS } from './types';
 import { DEFAULT_STRINGS } from './strings';
@@ -83,6 +83,27 @@ function parseCsv(r: Reporter, file: string, text: string, columns: string[]): R
   });
 }
 
+/** Scene perspective defaults: the backgrounds were generated as eye-level shots, horizon about a third from the top. */
+export const DEFAULT_HORIZON = 1 / 3;
+export const DEFAULT_CAMERA_HEIGHT = 1.6;
+/** Standing adult and seated figure (the seated assets include the stool or bench) heights in metres. */
+export const PERSON_HEIGHT = 1.7;
+export const SEATED_HEIGHT = 1.3;
+/** A figure is never drawn shorter or taller than these fractions of the frame. */
+export const FIGURE_MIN = 0.12;
+export const FIGURE_MAX = 0.95;
+
+/**
+ * Horizon-locked figure height as a fraction of the image height. On an eye-level shot the horizon is at camera height
+ * at every depth, so a person of height H whose feet are at y spans (y - horizon) * H / cameraHeight of the frame.
+ * A slot's explicit `scale` overrides this.
+ */
+export function figureHeight(sc: Pick<Scene, 'horizon' | 'cameraHeight'>, slot: Pick<Slot, 'y' | 'scale'>, seated: boolean): number {
+  if (slot.scale) return slot.scale;
+  const h = (slot.y - sc.horizon) * ((seated ? SEATED_HEIGHT : PERSON_HEIGHT) / sc.cameraHeight);
+  return Math.min(FIGURE_MAX, Math.max(FIGURE_MIN, h));
+}
+
 function parseScenes(r: Reporter, file: string, text: string): Scene[] {
   let doc: any;
   try {
@@ -133,10 +154,12 @@ function parseScenes(r: Reporter, file: string, text: string): Scene[] {
       slots: (Array.isArray(s.slots) ? s.slots : [])
         .filter((sl: any, j: number) =>
           sl?.id && typeof sl.x === 'number' && typeof sl.y === 'number' ? true : (r.error(file, `${where} slot #${j + 1}: needs id,x,y`), false))
-        .map((sl: any) => ({ id: str(sl.id), x: sl.x, y: sl.y, scale: num(sl.scale, 0.5) })),
+        .map((sl: any) => ({ id: str(sl.id), x: sl.x, y: sl.y, scale: typeof sl.scale === 'number' && sl.scale > 0 ? sl.scale : undefined })),
       props: (Array.isArray(s.props) ? s.props : [])
         .filter((p: any, j: number) => (p?.asset ? true : (r.error(file, `${where} prop #${j + 1}: missing asset`), false)))
         .map((p: any) => ({ asset: str(p.asset), x: num(p.x, 0), y: num(p.y, 0), w: num(p.w, 0.1) })),
+      horizon: typeof s.horizon === 'number' && s.horizon > 0 && s.horizon < 1 ? s.horizon : DEFAULT_HORIZON,
+      cameraHeight: typeof s.cameraHeight === 'number' && s.cameraHeight > 0 ? s.cameraHeight : DEFAULT_CAMERA_HEIGHT,
       painted: s.painted && typeof s.painted === 'object' && s.painted.background
         ? { background: str(s.painted.background), npcs: (Array.isArray(s.painted.npcs) ? s.painted.npcs : []).map((x: any) => str(x)) }
         : undefined,

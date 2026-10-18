@@ -49,7 +49,7 @@ Regenerates `public/assets/**` and `manifest.json` from `../image_generation/out
 ## Art conventions
 
 - The word **PLACEHOLDER** appears wherever an image is missing: grey silhouettes for people, a dashed box over a hotspot flagged `placeholder: true` (the living-room and clinic TVs until the Round 2 backgrounds land), the TV still, and a flat panel for a missing background.
-- Each scene has a `near` slot for the person the player is there to talk to (about 90% of the frame height); overheard or incidental people use the smaller slots further back.
+- Figures are sized from each scene's `horizon` (and optional `cameraHeight`) in `scenes.yaml`: a standing adult's head lands just above the eye-level line wherever they stand. Each scene has a `near` slot for the person the player is there to talk to (feet at or just below the bottom edge); overheard or incidental people stand further back. In dev mode, H also shows the horizon and each figure's head line, and `gv.place('cn_leader_sep','near')` puts someone on a slot to check the size.
 - A scene can declare a `painted` background variant with some NPCs generated into the image (the park with its two chess players). It switches on by itself once `bg_park_chess_day` exists in the manifest; the NPCs are then reached through `talk` hotspots. Adjust those zones to the generated figures.
 - End-of-day survey: BIIS-2 (Bicultural Identity Integration Scale, version 2), 17 items, scored in the module and logged with each submission; see `public/content/questionnaire/README.md`.
 

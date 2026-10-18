@@ -1,6 +1,6 @@
 {
  "content": "/Users/richardzhang/great_vote/demo/public/content",
- "generated": "2026-10-18T03:59:09.742Z",
+ "generated": "2026-10-18T04:42:51.153Z",
  "ok": true,
  "counts": {
   "error": 0,
@@ -26,7 +26,7 @@
    "id": "us_neighbor",
    "name": "Dana",
    "sheet": "dialogue/us_neighbor.csv",
-   "rowCount": 10,
+   "rowCount": 24,
    "fallback": "DN10",
    "coverage": 0.9814814814814815,
    "served": 424,
@@ -42,17 +42,73 @@
      "cost": 0,
      "witness": "DN01  [at met=no, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=us-leaning, dayPhase=early]"
     },
+    "DN20": {
+     "cost": 1,
+     "witness": "DN01/choice1 → DN20  [via next]"
+    },
+    "DN22": {
+     "cost": 1,
+     "witness": "DN01/choice1 → DN20/choice2 → DN22  [via next]"
+    },
+    "DN21": {
+     "cost": 1,
+     "witness": "DN01/choice1 → DN20/choice1 → DN21  [via next]"
+    },
+    "DN23": {
+     "cost": 1,
+     "witness": "DN01/choice1 → DN20/choice1 → DN21/choice1 → DN23  [via next]"
+    },
+    "DN24": {
+     "cost": 1,
+     "witness": "DN01/choice1 → DN20/choice1 → DN21/choice1 → DN23/choice1 → DN24  [via next]"
+    },
+    "DN25": {
+     "cost": 1,
+     "witness": "DN01/choice1 → DN20/choice1 → DN21/choice1 → DN23/choice1 → DN24/choice1 → DN25  [via next]"
+    },
     "DN02": {
      "cost": 1,
      "witness": "DN01/choice2 → DN02  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=us-leaning, dayPhase=early]"
     },
     "DN09": {
      "cost": 2,
-     "witness": "DN01/choice1 → DN02/choice1 → DN09  [via next]"
+     "witness": "DN01/choice2 → DN02/choice1 → DN09  [via next]"
     },
     "DN03": {
      "cost": 1,
-     "witness": "DN01/choice1 → event:ev_library_dana_hold/choice1 → event:ev_library_dana_hold/choice2 → DN03  [at met=yes, rapport=2, lastValence=none, nationalLeader=enforcement, playerLean=us-leaning, dayPhase=early]"
+     "witness": "DN01/choice1 → DN20/choice3 → event:ev_library_dana_hold/choice1 → event:ev_library_dana_hold/choice2 → DN03  [at met=yes, rapport=2, lastValence=none, nationalLeader=enforcement, playerLean=us-leaning, dayPhase=early]"
+    },
+    "DN11": {
+     "cost": 2,
+     "witness": "DN01/choice1 → DN20/choice3 → event:ev_library_dana_hold/choice1 → DN03/choice1 → DN11  [via next]"
+    },
+    "DN12": {
+     "cost": 2,
+     "witness": "DN01/choice1 → DN20/choice3 → event:ev_library_dana_hold/choice1 → DN03/choice2 → DN12  [via next]"
+    },
+    "DN13": {
+     "cost": 2,
+     "witness": "DN01/choice1 → DN20/choice3 → event:ev_library_dana_hold/choice1 → DN03/choice1 → DN11/choice1 → DN13  [via next]"
+    },
+    "DN14": {
+     "cost": 2,
+     "witness": "DN01/choice1 → DN20/choice3 → event:ev_library_dana_hold/choice1 → DN03/choice1 → DN11/choice2 → DN14  [via next]"
+    },
+    "DN15": {
+     "cost": 2,
+     "witness": "DN01/choice1 → DN20/choice3 → event:ev_library_dana_hold/choice1 → DN03/choice1 → DN11/choice1 → DN13/choice1 → DN15  [via next]"
+    },
+    "DN16": {
+     "cost": 2,
+     "witness": "DN01/choice1 → DN20/choice3 → event:ev_library_dana_hold/choice1 → DN03/choice1 → DN11/choice1 → DN13/choice1 → DN15/choice1 → DN16  [via next]"
+    },
+    "DN17": {
+     "cost": 2,
+     "witness": "DN01/choice1 → DN20/choice3 → event:ev_library_dana_hold/choice1 → DN03/choice1 → DN11/choice1 → DN13/choice1 → DN15/choice1 → DN16/choice1 → DN17  [via next]"
+    },
+    "DN18": {
+     "cost": 2,
+     "witness": "DN01/choice1 → DN20/choice3 → event:ev_library_dana_hold/choice1 → DN03/choice1 → DN11/choice1 → DN13/choice1 → DN15/choice1 → DN16/choice1 → DN17/choice1 → DN18  [via next]"
     },
     "DN04": {
      "cost": 1,
@@ -81,9 +137,23 @@
    },
    "winCount": {
     "DN01": 216,
+    "DN20": 0,
+    "DN22": 0,
+    "DN21": 0,
+    "DN23": 0,
+    "DN24": 0,
+    "DN25": 0,
     "DN02": 24,
     "DN09": 0,
     "DN03": 72,
+    "DN11": 0,
+    "DN12": 0,
+    "DN13": 0,
+    "DN14": 0,
+    "DN15": 0,
+    "DN16": 0,
+    "DN17": 0,
+    "DN18": 0,
     "DN04": 12,
     "DN05": 12,
     "DN06": 8,
@@ -3556,7 +3626,7 @@
    "id": "us_stranger_a",
    "name": "Walt",
    "sheet": "dialogue/us_stranger_a.csv",
-   "rowCount": 10,
+   "rowCount": 16,
    "fallback": "WT10",
    "coverage": 0.9814814814814815,
    "served": 424,
@@ -3565,7 +3635,7 @@
    "neverWins": [],
    "unreachable": [],
    "overBudget": [],
-   "reachableStates": 8,
+   "reachableStates": 9,
    "canTalk": true,
    "rows": {
     "WT01": {
@@ -3576,13 +3646,37 @@
      "cost": 1,
      "witness": "WT01/choice1 → WT09  [via next]"
     },
+    "WT20": {
+     "cost": 2,
+     "witness": "WT01/choice1 → WT09/choice1 → WT20  [via next]"
+    },
+    "WT21": {
+     "cost": 2,
+     "witness": "WT01/choice1 → WT09/choice1 → WT20/choice1 → WT21  [via next]"
+    },
+    "WT22": {
+     "cost": 2,
+     "witness": "WT01/choice1 → WT09/choice1 → WT20/choice2 → WT22  [via next]"
+    },
+    "WT23": {
+     "cost": 2,
+     "witness": "WT01/choice1 → WT09/choice1 → WT20/choice1 → WT21/choice1 → WT23  [via next]"
+    },
+    "WT24": {
+     "cost": 2,
+     "witness": "WT01/choice1 → WT09/choice1 → WT20/choice1 → WT21/choice1 → WT23/choice1 → WT24  [via next]"
+    },
+    "WT25": {
+     "cost": 2,
+     "witness": "WT01/choice1 → WT09/choice1 → WT20/choice1 → WT21/choice1 → WT23/choice1 → WT24/choice1 → WT25  [via next]"
+    },
     "WT02": {
      "cost": 1,
      "witness": "WT01/choice2 → WT02  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=us-leaning, dayPhase=early]"
     },
     "WT03": {
      "cost": 2,
-     "witness": "WT01/choice1 → WT09/choice1 → WT03  [at met=yes, rapport=2, lastValence=positive, nationalLeader=enforcement, playerLean=us-leaning, dayPhase=early]"
+     "witness": "WT01/choice1 → WT09/choice1 → WT20/choice3 → WT03  [at met=yes, rapport=2, lastValence=none, nationalLeader=enforcement, playerLean=us-leaning, dayPhase=early]"
     },
     "WT04": {
      "cost": 1,
@@ -3612,6 +3706,12 @@
    "winCount": {
     "WT01": 216,
     "WT09": 0,
+    "WT20": 0,
+    "WT21": 0,
+    "WT22": 0,
+    "WT23": 0,
+    "WT24": 0,
+    "WT25": 0,
     "WT02": 24,
     "WT03": 72,
     "WT04": 12,
@@ -6220,7 +6320,7 @@
      "prio": 6,
      "line": "Thirty-one years at the plant, and the best thing I got out of it was a guy on the line who taught me the Sicilian. Funny what sticks.",
      "tie": null,
-     "cost": null
+     "cost": 2
     },
     {
      "row": "WT03",
@@ -6228,7 +6328,7 @@
      "prio": 6,
      "line": "Thirty-one years at the plant, and the best thing I got out of it was a guy on the line who taught me the Sicilian. Funny what sticks.",
      "tie": null,
-     "cost": null
+     "cost": 2
     },
     {
      "row": "WT03",
@@ -6236,7 +6336,7 @@
      "prio": 6,
      "line": "Thirty-one years at the plant, and the best thing I got out of it was a guy on the line who taught me the Sicilian. Funny what sticks.",
      "tie": null,
-     "cost": null
+     "cost": 2
     },
     {
      "row": "WT03",
@@ -6244,7 +6344,7 @@
      "prio": 6,
      "line": "Thirty-one years at the plant, and the best thing I got out of it was a guy on the line who taught me the Sicilian. Funny what sticks.",
      "tie": null,
-     "cost": null
+     "cost": 2
     },
     {
      "row": "WT03",
@@ -6252,7 +6352,7 @@
      "prio": 6,
      "line": "Thirty-one years at the plant, and the best thing I got out of it was a guy on the line who taught me the Sicilian. Funny what sticks.",
      "tie": null,
-     "cost": null
+     "cost": 2
     },
     {
      "row": "WT03",
@@ -6260,7 +6360,7 @@
      "prio": 6,
      "line": "Thirty-one years at the plant, and the best thing I got out of it was a guy on the line who taught me the Sicilian. Funny what sticks.",
      "tie": null,
-     "cost": null
+     "cost": 2
     },
     {
      "row": "WT03",
@@ -6268,7 +6368,7 @@
      "prio": 6,
      "line": "Thirty-one years at the plant, and the best thing I got out of it was a guy on the line who taught me the Sicilian. Funny what sticks.",
      "tie": null,
-     "cost": null
+     "cost": 2
     },
     {
      "row": "WT03",
@@ -6276,7 +6376,7 @@
      "prio": 6,
      "line": "Thirty-one years at the plant, and the best thing I got out of it was a guy on the line who taught me the Sicilian. Funny what sticks.",
      "tie": null,
-     "cost": null
+     "cost": 2
     },
     {
      "row": "WT03",
@@ -6284,7 +6384,7 @@
      "prio": 6,
      "line": "Thirty-one years at the plant, and the best thing I got out of it was a guy on the line who taught me the Sicilian. Funny what sticks.",
      "tie": null,
-     "cost": null
+     "cost": 2
     },
     {
      "row": "WT03",
@@ -6292,7 +6392,7 @@
      "prio": 6,
      "line": "Thirty-one years at the plant, and the best thing I got out of it was a guy on the line who taught me the Sicilian. Funny what sticks.",
      "tie": null,
-     "cost": null
+     "cost": 2
     },
     {
      "row": "WT03",
@@ -6300,7 +6400,7 @@
      "prio": 6,
      "line": "Thirty-one years at the plant, and the best thing I got out of it was a guy on the line who taught me the Sicilian. Funny what sticks.",
      "tie": null,
-     "cost": null
+     "cost": 2
     },
     {
      "row": "WT03",
@@ -6308,7 +6408,7 @@
      "prio": 6,
      "line": "Thirty-one years at the plant, and the best thing I got out of it was a guy on the line who taught me the Sicilian. Funny what sticks.",
      "tie": null,
-     "cost": null
+     "cost": 2
     },
     {
      "row": "WT03",
@@ -6316,7 +6416,7 @@
      "prio": 6,
      "line": "Thirty-one years at the plant, and the best thing I got out of it was a guy on the line who taught me the Sicilian. Funny what sticks.",
      "tie": null,
-     "cost": null
+     "cost": 2
     },
     {
      "row": "WT03",
@@ -6324,7 +6424,7 @@
      "prio": 6,
      "line": "Thirty-one years at the plant, and the best thing I got out of it was a guy on the line who taught me the Sicilian. Funny what sticks.",
      "tie": null,
-     "cost": null
+     "cost": 2
     },
     {
      "row": "WT03",
@@ -6332,7 +6432,7 @@
      "prio": 6,
      "line": "Thirty-one years at the plant, and the best thing I got out of it was a guy on the line who taught me the Sicilian. Funny what sticks.",
      "tie": null,
-     "cost": null
+     "cost": 2
     },
     {
      "row": "WT03",
@@ -6340,7 +6440,7 @@
      "prio": 6,
      "line": "Thirty-one years at the plant, and the best thing I got out of it was a guy on the line who taught me the Sicilian. Funny what sticks.",
      "tie": null,
-     "cost": null
+     "cost": 2
     },
     {
      "row": "WT03",
@@ -6348,7 +6448,7 @@
      "prio": 6,
      "line": "Thirty-one years at the plant, and the best thing I got out of it was a guy on the line who taught me the Sicilian. Funny what sticks.",
      "tie": null,
-     "cost": null
+     "cost": 2
     },
     {
      "row": "WT03",
@@ -6356,7 +6456,7 @@
      "prio": 6,
      "line": "Thirty-one years at the plant, and the best thing I got out of it was a guy on the line who taught me the Sicilian. Funny what sticks.",
      "tie": null,
-     "cost": null
+     "cost": 2
     },
     {
      "row": "WT03",
@@ -24746,7 +24846,7 @@
    "id": "cn_neighbor",
    "name": "Mrs. Chen",
    "sheet": "dialogue/cn_neighbor.csv",
-   "rowCount": 10,
+   "rowCount": 23,
    "fallback": "MC10",
    "coverage": 0.9814814814814815,
    "served": 424,
@@ -24766,29 +24866,81 @@
      "cost": 1,
      "witness": "MC01/choice1 → MC09  [via next]"
     },
+    "MC20": {
+     "cost": 1,
+     "witness": "MC01/choice1 → MC09/choice1 → MC20  [via next]"
+    },
+    "MC21": {
+     "cost": 1,
+     "witness": "MC01/choice1 → MC09/choice2 → MC21  [via next]"
+    },
+    "MC22": {
+     "cost": 1,
+     "witness": "MC01/choice1 → MC09/choice1 → MC20/choice1 → MC22  [via next]"
+    },
+    "MC23": {
+     "cost": 1,
+     "witness": "MC01/choice1 → MC09/choice1 → MC20/choice2 → MC23  [via next]"
+    },
+    "MC24": {
+     "cost": 1,
+     "witness": "MC01/choice1 → MC09/choice1 → MC20/choice2 → MC23/choice1 → MC24  [via next]"
+    },
+    "MC25": {
+     "cost": 1,
+     "witness": "MC01/choice1 → MC09/choice1 → MC20/choice2 → MC23/choice1 → MC24/choice1 → MC25  [via next]"
+    },
     "MC02": {
      "cost": 1,
-     "witness": "MC01/choice2 → MC02  [at met=yes, rapport=0, lastValence=positive, nationalLeader=enforcement, playerLean=us-leaning, dayPhase=early]"
+     "witness": "MC01/choice2 → MC02  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=us-leaning, dayPhase=early]"
     },
     "MC03": {
      "cost": 1,
-     "witness": "MC01/choice1 → MC09/choice1 → MC03  [at met=yes, rapport=2, lastValence=positive, nationalLeader=enforcement, playerLean=us-leaning, dayPhase=early]"
+     "witness": "MC01/choice1 → MC09/choice1 → MC20/choice3 → MC03  [at met=yes, rapport=2, lastValence=none, nationalLeader=enforcement, playerLean=us-leaning, dayPhase=early]"
+    },
+    "MC11": {
+     "cost": 2,
+     "witness": "MC01/choice1 → MC09/choice1 → MC20/choice3 → MC03/choice1 → MC11  [via next]"
+    },
+    "MC12": {
+     "cost": 2,
+     "witness": "MC01/choice1 → MC09/choice1 → MC20/choice3 → MC03/choice2 → MC12  [via next]"
+    },
+    "MC13": {
+     "cost": 2,
+     "witness": "MC01/choice1 → MC09/choice1 → MC20/choice3 → MC03/choice1 → MC11/choice1 → MC13  [via next]"
+    },
+    "MC14": {
+     "cost": 2,
+     "witness": "MC01/choice1 → MC09/choice1 → MC20/choice3 → MC03/choice1 → MC11/choice2 → MC14  [via next]"
+    },
+    "MC15": {
+     "cost": 2,
+     "witness": "MC01/choice1 → MC09/choice1 → MC20/choice3 → MC03/choice1 → MC11/choice1 → MC13/choice1 → MC15  [via next]"
+    },
+    "MC16": {
+     "cost": 2,
+     "witness": "MC01/choice1 → MC09/choice1 → MC20/choice3 → MC03/choice1 → MC11/choice1 → MC13/choice1 → MC15/choice1 → MC16  [via next]"
+    },
+    "MC17": {
+     "cost": 2,
+     "witness": "MC01/choice1 → MC09/choice1 → MC20/choice3 → MC03/choice1 → MC11/choice1 → MC13/choice1 → MC15/choice1 → MC16/choice1 → MC17  [via next]"
     },
     "MC04": {
      "cost": 1,
-     "witness": "MC01/choice2 → MC04  [at met=yes, rapport=0, lastValence=positive, nationalLeader=enforcement, playerLean=us-leaning, dayPhase=mid]"
+     "witness": "MC01/choice2 → MC04  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=us-leaning, dayPhase=mid]"
     },
     "MC05": {
      "cost": 1,
-     "witness": "MC01/choice2 → MC05  [at met=yes, rapport=0, lastValence=positive, nationalLeader=inclusive, playerLean=us-leaning, dayPhase=mid]"
+     "witness": "MC01/choice2 → MC05  [at met=yes, rapport=0, lastValence=none, nationalLeader=inclusive, playerLean=us-leaning, dayPhase=mid]"
     },
     "MC06": {
      "cost": 1,
-     "witness": "MC01/choice2 → MC06  [at met=yes, rapport=0, lastValence=positive, nationalLeader=enforcement, playerLean=home-leaning, dayPhase=late]"
+     "witness": "MC01/choice2 → MC06  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=home-leaning, dayPhase=late]"
     },
     "MC07": {
      "cost": 1,
-     "witness": "MC01/choice2 → MC07  [at met=yes, rapport=0, lastValence=positive, nationalLeader=enforcement, playerLean=us-leaning, dayPhase=late]"
+     "witness": "MC01/choice2 → MC07  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=us-leaning, dayPhase=late]"
     },
     "MC08": {
      "cost": 1,
@@ -24796,14 +24948,27 @@
     },
     "MC10": {
      "cost": 1,
-     "witness": "MC01/choice2 → MC10  [at met=yes, rapport=0, lastValence=positive, nationalLeader=enforcement, playerLean=balanced, dayPhase=late]"
+     "witness": "MC01/choice2 → MC10  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=balanced, dayPhase=late]"
     }
    },
    "winCount": {
     "MC01": 216,
     "MC09": 0,
+    "MC20": 0,
+    "MC21": 0,
+    "MC22": 0,
+    "MC23": 0,
+    "MC24": 0,
+    "MC25": 0,
     "MC02": 24,
     "MC03": 72,
+    "MC11": 0,
+    "MC12": 0,
+    "MC13": 0,
+    "MC14": 0,
+    "MC15": 0,
+    "MC16": 0,
+    "MC17": 0,
     "MC04": 12,
     "MC05": 12,
     "MC06": 8,
@@ -26546,150 +26711,6 @@
      "prio": 1,
      "line": "My tablet class moved to Wednesdays and nobody told me. I sat there forty minutes with the tai chi group.",
      "tie": null,
-     "cost": 2
-    },
-    {
-     "row": "MC04",
-     "spec": 3,
-     "prio": 4,
-     "line": "Kevin's school sent home a form asking where everyone in the house was born. His mother left it on the counter a week. Nobody wants to fill it in.",
-     "tie": null,
-     "cost": 2
-    },
-    {
-     "row": "MC07",
-     "spec": 3,
-     "prio": 4,
-     "line": "I never see you at the center anymore. Busy with your library friends? I'm teasing. Mostly.",
-     "tie": null,
-     "cost": 2
-    },
-    {
-     "row": "MC02",
-     "spec": 2,
-     "prio": 1,
-     "line": "My tablet class moved to Wednesdays and nobody told me. I sat there forty minutes with the tai chi group.",
-     "tie": null,
-     "cost": 2
-    },
-    {
-     "row": "MC04",
-     "spec": 3,
-     "prio": 4,
-     "line": "Kevin's school sent home a form asking where everyone in the house was born. His mother left it on the counter a week. Nobody wants to fill it in.",
-     "tie": null,
-     "cost": 2
-    },
-    {
-     "row": "MC10",
-     "spec": 0,
-     "prio": 0,
-     "line": "Not now, I'm counting lunch bowls. Thirty-two. Thirty-three...",
-     "tie": null,
-     "cost": 2
-    },
-    {
-     "row": "MC02",
-     "spec": 2,
-     "prio": 1,
-     "line": "My tablet class moved to Wednesdays and nobody told me. I sat there forty minutes with the tai chi group.",
-     "tie": null,
-     "cost": 2
-    },
-    {
-     "row": "MC04",
-     "spec": 3,
-     "prio": 4,
-     "line": "Kevin's school sent home a form asking where everyone in the house was born. His mother left it on the counter a week. Nobody wants to fill it in.",
-     "tie": null,
-     "cost": 2
-    },
-    {
-     "row": "MC06",
-     "spec": 3,
-     "prio": 4,
-     "line": "You're here every day now. Good. But be careful, Mr. Guo has his eye on you for the festival committee.",
-     "tie": null,
-     "cost": 2
-    },
-    {
-     "row": "MC02",
-     "spec": 2,
-     "prio": 1,
-     "line": "My tablet class moved to Wednesdays and nobody told me. I sat there forty minutes with the tai chi group.",
-     "tie": null,
-     "cost": 2
-    },
-    {
-     "row": "MC05",
-     "spec": 3,
-     "prio": 4,
-     "line": "The center got a grant for a social worker who speaks Mandarin and Cantonese. Finally I can retire from reading everyone's Medicare letters.",
-     "tie": null,
-     "cost": 2
-    },
-    {
-     "row": "MC07",
-     "spec": 3,
-     "prio": 4,
-     "line": "I never see you at the center anymore. Busy with your library friends? I'm teasing. Mostly.",
-     "tie": null,
-     "cost": 2
-    },
-    {
-     "row": "MC02",
-     "spec": 2,
-     "prio": 1,
-     "line": "My tablet class moved to Wednesdays and nobody told me. I sat there forty minutes with the tai chi group.",
-     "tie": null,
-     "cost": 2
-    },
-    {
-     "row": "MC05",
-     "spec": 3,
-     "prio": 4,
-     "line": "The center got a grant for a social worker who speaks Mandarin and Cantonese. Finally I can retire from reading everyone's Medicare letters.",
-     "tie": null,
-     "cost": 2
-    },
-    {
-     "row": "MC10",
-     "spec": 0,
-     "prio": 0,
-     "line": "Not now, I'm counting lunch bowls. Thirty-two. Thirty-three...",
-     "tie": null,
-     "cost": 2
-    },
-    {
-     "row": "MC02",
-     "spec": 2,
-     "prio": 1,
-     "line": "My tablet class moved to Wednesdays and nobody told me. I sat there forty minutes with the tai chi group.",
-     "tie": null,
-     "cost": 2
-    },
-    {
-     "row": "MC05",
-     "spec": 3,
-     "prio": 4,
-     "line": "The center got a grant for a social worker who speaks Mandarin and Cantonese. Finally I can retire from reading everyone's Medicare letters.",
-     "tie": null,
-     "cost": 2
-    },
-    {
-     "row": "MC06",
-     "spec": 3,
-     "prio": 4,
-     "line": "You're here every day now. Good. But be careful, Mr. Guo has his eye on you for the festival committee.",
-     "tie": null,
-     "cost": 2
-    },
-    {
-     "row": "MC02",
-     "spec": 2,
-     "prio": 1,
-     "line": "My tablet class moved to Wednesdays and nobody told me. I sat there forty minutes with the tai chi group.",
-     "tie": null,
      "cost": 1
     },
     {
@@ -26825,150 +26846,6 @@
      "spec": 3,
      "prio": 4,
      "line": "You're here every day now. Good. But be careful, Mr. Guo has his eye on you for the festival committee.",
-     "tie": null,
-     "cost": 1
-    },
-    {
-     "row": "MC08",
-     "spec": 2,
-     "prio": 8,
-     "line": "Oh. Hello.",
-     "tie": null,
-     "cost": 1
-    },
-    {
-     "row": "MC08",
-     "spec": 2,
-     "prio": 8,
-     "line": "Oh. Hello.",
-     "tie": null,
-     "cost": 1
-    },
-    {
-     "row": "MC08",
-     "spec": 2,
-     "prio": 8,
-     "line": "Oh. Hello.",
-     "tie": null,
-     "cost": 1
-    },
-    {
-     "row": "MC08",
-     "spec": 2,
-     "prio": 8,
-     "line": "Oh. Hello.",
-     "tie": null,
-     "cost": 1
-    },
-    {
-     "row": "MC08",
-     "spec": 2,
-     "prio": 8,
-     "line": "Oh. Hello.",
-     "tie": null,
-     "cost": 1
-    },
-    {
-     "row": "MC08",
-     "spec": 2,
-     "prio": 8,
-     "line": "Oh. Hello.",
-     "tie": null,
-     "cost": 1
-    },
-    {
-     "row": "MC08",
-     "spec": 2,
-     "prio": 8,
-     "line": "Oh. Hello.",
-     "tie": null,
-     "cost": 1
-    },
-    {
-     "row": "MC08",
-     "spec": 2,
-     "prio": 8,
-     "line": "Oh. Hello.",
-     "tie": null,
-     "cost": 1
-    },
-    {
-     "row": "MC08",
-     "spec": 2,
-     "prio": 8,
-     "line": "Oh. Hello.",
-     "tie": null,
-     "cost": 1
-    },
-    {
-     "row": "MC08",
-     "spec": 2,
-     "prio": 8,
-     "line": "Oh. Hello.",
-     "tie": null,
-     "cost": 1
-    },
-    {
-     "row": "MC08",
-     "spec": 2,
-     "prio": 8,
-     "line": "Oh. Hello.",
-     "tie": null,
-     "cost": 1
-    },
-    {
-     "row": "MC08",
-     "spec": 2,
-     "prio": 8,
-     "line": "Oh. Hello.",
-     "tie": null,
-     "cost": 1
-    },
-    {
-     "row": "MC08",
-     "spec": 2,
-     "prio": 8,
-     "line": "Oh. Hello.",
-     "tie": null,
-     "cost": 1
-    },
-    {
-     "row": "MC08",
-     "spec": 2,
-     "prio": 8,
-     "line": "Oh. Hello.",
-     "tie": null,
-     "cost": 1
-    },
-    {
-     "row": "MC08",
-     "spec": 2,
-     "prio": 8,
-     "line": "Oh. Hello.",
-     "tie": null,
-     "cost": 1
-    },
-    {
-     "row": "MC08",
-     "spec": 2,
-     "prio": 8,
-     "line": "Oh. Hello.",
-     "tie": null,
-     "cost": 1
-    },
-    {
-     "row": "MC08",
-     "spec": 2,
-     "prio": 8,
-     "line": "Oh. Hello.",
-     "tie": null,
-     "cost": 1
-    },
-    {
-     "row": "MC08",
-     "spec": 2,
-     "prio": 8,
-     "line": "Oh. Hello.",
      "tie": null,
      "cost": 1
     },
@@ -27117,6 +26994,294 @@
      "cost": 2
     },
     {
+     "row": "MC08",
+     "spec": 2,
+     "prio": 8,
+     "line": "Oh. Hello.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC08",
+     "spec": 2,
+     "prio": 8,
+     "line": "Oh. Hello.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC08",
+     "spec": 2,
+     "prio": 8,
+     "line": "Oh. Hello.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC08",
+     "spec": 2,
+     "prio": 8,
+     "line": "Oh. Hello.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC08",
+     "spec": 2,
+     "prio": 8,
+     "line": "Oh. Hello.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC08",
+     "spec": 2,
+     "prio": 8,
+     "line": "Oh. Hello.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC08",
+     "spec": 2,
+     "prio": 8,
+     "line": "Oh. Hello.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC08",
+     "spec": 2,
+     "prio": 8,
+     "line": "Oh. Hello.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC08",
+     "spec": 2,
+     "prio": 8,
+     "line": "Oh. Hello.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC08",
+     "spec": 2,
+     "prio": 8,
+     "line": "Oh. Hello.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC08",
+     "spec": 2,
+     "prio": 8,
+     "line": "Oh. Hello.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC08",
+     "spec": 2,
+     "prio": 8,
+     "line": "Oh. Hello.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC08",
+     "spec": 2,
+     "prio": 8,
+     "line": "Oh. Hello.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC08",
+     "spec": 2,
+     "prio": 8,
+     "line": "Oh. Hello.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC08",
+     "spec": 2,
+     "prio": 8,
+     "line": "Oh. Hello.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC08",
+     "spec": 2,
+     "prio": 8,
+     "line": "Oh. Hello.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC08",
+     "spec": 2,
+     "prio": 8,
+     "line": "Oh. Hello.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC08",
+     "spec": 2,
+     "prio": 8,
+     "line": "Oh. Hello.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC02",
+     "spec": 2,
+     "prio": 1,
+     "line": "My tablet class moved to Wednesdays and nobody told me. I sat there forty minutes with the tai chi group.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC04",
+     "spec": 3,
+     "prio": 4,
+     "line": "Kevin's school sent home a form asking where everyone in the house was born. His mother left it on the counter a week. Nobody wants to fill it in.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC07",
+     "spec": 3,
+     "prio": 4,
+     "line": "I never see you at the center anymore. Busy with your library friends? I'm teasing. Mostly.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC02",
+     "spec": 2,
+     "prio": 1,
+     "line": "My tablet class moved to Wednesdays and nobody told me. I sat there forty minutes with the tai chi group.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC04",
+     "spec": 3,
+     "prio": 4,
+     "line": "Kevin's school sent home a form asking where everyone in the house was born. His mother left it on the counter a week. Nobody wants to fill it in.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC10",
+     "spec": 0,
+     "prio": 0,
+     "line": "Not now, I'm counting lunch bowls. Thirty-two. Thirty-three...",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC02",
+     "spec": 2,
+     "prio": 1,
+     "line": "My tablet class moved to Wednesdays and nobody told me. I sat there forty minutes with the tai chi group.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC04",
+     "spec": 3,
+     "prio": 4,
+     "line": "Kevin's school sent home a form asking where everyone in the house was born. His mother left it on the counter a week. Nobody wants to fill it in.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC06",
+     "spec": 3,
+     "prio": 4,
+     "line": "You're here every day now. Good. But be careful, Mr. Guo has his eye on you for the festival committee.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC02",
+     "spec": 2,
+     "prio": 1,
+     "line": "My tablet class moved to Wednesdays and nobody told me. I sat there forty minutes with the tai chi group.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC05",
+     "spec": 3,
+     "prio": 4,
+     "line": "The center got a grant for a social worker who speaks Mandarin and Cantonese. Finally I can retire from reading everyone's Medicare letters.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC07",
+     "spec": 3,
+     "prio": 4,
+     "line": "I never see you at the center anymore. Busy with your library friends? I'm teasing. Mostly.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC02",
+     "spec": 2,
+     "prio": 1,
+     "line": "My tablet class moved to Wednesdays and nobody told me. I sat there forty minutes with the tai chi group.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC05",
+     "spec": 3,
+     "prio": 4,
+     "line": "The center got a grant for a social worker who speaks Mandarin and Cantonese. Finally I can retire from reading everyone's Medicare letters.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC10",
+     "spec": 0,
+     "prio": 0,
+     "line": "Not now, I'm counting lunch bowls. Thirty-two. Thirty-three...",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC02",
+     "spec": 2,
+     "prio": 1,
+     "line": "My tablet class moved to Wednesdays and nobody told me. I sat there forty minutes with the tai chi group.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC05",
+     "spec": 3,
+     "prio": 4,
+     "line": "The center got a grant for a social worker who speaks Mandarin and Cantonese. Finally I can retire from reading everyone's Medicare letters.",
+     "tie": null,
+     "cost": 1
+    },
+    {
+     "row": "MC06",
+     "spec": 3,
+     "prio": 4,
+     "line": "You're here every day now. Good. But be careful, Mr. Guo has his eye on you for the festival committee.",
+     "tie": null,
+     "cost": 1
+    },
+    {
      "row": "MC02",
      "spec": 2,
      "prio": 1,
@@ -27410,7 +27575,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 2
+     "cost": 1
     },
     {
      "row": "MC03",
@@ -27418,7 +27583,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 2
+     "cost": 1
     },
     {
      "row": "MC03",
@@ -27426,7 +27591,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 2
+     "cost": 1
     },
     {
      "row": "MC03",
@@ -27434,7 +27599,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 2
+     "cost": 1
     },
     {
      "row": "MC03",
@@ -27442,7 +27607,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 2
+     "cost": 1
     },
     {
      "row": "MC03",
@@ -27450,7 +27615,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 2
+     "cost": 1
     },
     {
      "row": "MC03",
@@ -27458,7 +27623,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 2
+     "cost": 1
     },
     {
      "row": "MC03",
@@ -27466,7 +27631,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 2
+     "cost": 1
     },
     {
      "row": "MC03",
@@ -27474,7 +27639,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 2
+     "cost": 1
     },
     {
      "row": "MC03",
@@ -27482,7 +27647,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 2
+     "cost": 1
     },
     {
      "row": "MC03",
@@ -27490,7 +27655,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 2
+     "cost": 1
     },
     {
      "row": "MC03",
@@ -27498,7 +27663,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 2
+     "cost": 1
     },
     {
      "row": "MC03",
@@ -27506,7 +27671,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 2
+     "cost": 1
     },
     {
      "row": "MC03",
@@ -27514,7 +27679,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 2
+     "cost": 1
     },
     {
      "row": "MC03",
@@ -27522,7 +27687,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 2
+     "cost": 1
     },
     {
      "row": "MC03",
@@ -27530,7 +27695,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 2
+     "cost": 1
     },
     {
      "row": "MC03",
@@ -27538,7 +27703,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 2
+     "cost": 1
     },
     {
      "row": "MC03",
@@ -27546,7 +27711,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 2
+     "cost": 1
     },
     {
      "row": "MC03",
@@ -27842,7 +28007,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 3
+     "cost": 2
     },
     {
      "row": "MC03",
@@ -27850,7 +28015,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 3
+     "cost": 2
     },
     {
      "row": "MC03",
@@ -27858,7 +28023,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 3
+     "cost": 2
     },
     {
      "row": "MC03",
@@ -27866,7 +28031,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 3
+     "cost": 2
     },
     {
      "row": "MC03",
@@ -27874,7 +28039,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 3
+     "cost": 2
     },
     {
      "row": "MC03",
@@ -27882,7 +28047,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 3
+     "cost": 2
     },
     {
      "row": "MC03",
@@ -27890,7 +28055,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 3
+     "cost": 2
     },
     {
      "row": "MC03",
@@ -27898,7 +28063,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 3
+     "cost": 2
     },
     {
      "row": "MC03",
@@ -27906,7 +28071,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 3
+     "cost": 2
     },
     {
      "row": "MC03",
@@ -27914,7 +28079,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 3
+     "cost": 2
     },
     {
      "row": "MC03",
@@ -27922,7 +28087,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 3
+     "cost": 2
     },
     {
      "row": "MC03",
@@ -27930,7 +28095,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 3
+     "cost": 2
     },
     {
      "row": "MC03",
@@ -27938,7 +28103,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 3
+     "cost": 2
     },
     {
      "row": "MC03",
@@ -27946,7 +28111,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 3
+     "cost": 2
     },
     {
      "row": "MC03",
@@ -27954,7 +28119,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 3
+     "cost": 2
     },
     {
      "row": "MC03",
@@ -27962,7 +28127,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 3
+     "cost": 2
     },
     {
      "row": "MC03",
@@ -27970,7 +28135,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 3
+     "cost": 2
     },
     {
      "row": "MC03",
@@ -27978,7 +28143,7 @@
      "prio": 6,
      "line": "Kevin's school wants a grandparent to talk about Lunar New Year in his class. Will you come with me? My English gets nervous in front of children.",
      "tie": null,
-     "cost": 3
+     "cost": 2
     },
     {
      "row": "MC03",

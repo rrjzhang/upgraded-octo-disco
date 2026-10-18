@@ -35,7 +35,7 @@ One page, 1440 x 900 logical, scaled to fit the window (CSS transform on a fixed
 
 - Day starts with 8 actions at Home, phase `morning`. Phase is derived from actions remaining: 8..6 morning, 5..3 afternoon, 2..0 evening. When phase is evening and an `_eve` background exists for the scene, use it.
 - Moving between scenes is free. A hotspot or dialogue costs the `cost` in its data (default 1). When actions reach 0, only Home and the bed/phone are available; other scenes show "Too tired, go home".
-- Bed (or the phone Call tab at 0 actions) runs the end-of-day survey module, then advances the day. Demo length: 5 days, then an end screen with an export button.
+- Bed (or the phone Call tab at 0 actions) runs the end-of-day survey module, then advances the day. With actions left the bed first asks in the right panel ("You still have N actions. If you'd rather not see anyone today, Work pays $40 a shift.": Go to work / Go to bed anyway / Stay up), logged as a `hotspot` line with `choice` 1/2/3; at 0 actions it goes straight to the call. Demo length: 5 days, then an end screen with an export button.
 - Wallet starts at $1000 (`START_WALLET`, one constant). Work pays into it; nothing else in the demo spends it.
 - Conversation tracking. A conversation starts at `talkTo` and ends when a choice has no `next`, when the player leaves (move, another NPC, a hotspot, closing the panel) or when the day ends. The engine logs one `conversation` line per conversation (shape below) with the wall time in ms and the turn count (one turn = one NPC line shown). Follow-up rows reached through `next` count as turns.
 - Injectable questionnaire. The end-of-day questionnaire is resolved per day, first match wins: (1) `GET /api/questionnaire?room=<code>&day=<n>` returning questionnaire JSON (same schema as `questionnaire/eod.json`), 2 s timeout, any failure falls through; (2) questionnaire JSON stored in the room config by the researcher (`researcher.html` offers an optional "Questionnaire JSON" paste field, validated on save) or a `questionnaireUrl` in the room config, fetched the same way; (3) the bundled `questionnaire/eod.json`. Dev mode accepts `&eod=<url>`, which stands in for the room's `questionnaireUrl` (source `room`). The survey log line records which source was used.
@@ -95,12 +95,17 @@ scenes:
         label: "Bed"
         zone: { x: 0.86, y: 0.40, w: 0.12, h: 0.30 }
         action: { type: end_day }
-    slots:                     # where NPC figures stand: feet anchor as fractions, scale = figure height / image height
-      - { id: by_door, x: 0.80, y: 0.90, scale: 0.55 }
+    horizon: 0.33              # eye-level line (fraction of image height), measured from the background
+    cameraHeight: 1.6          # optional, metres (default 1.6)
+    slots:                     # where NPC figures stand: feet anchor as fractions (y may go to 1.3: feet below the frame, legs cropped)
+      - { id: by_door, x: 0.80, y: 0.90 }          # height from the horizon formula below
+      - { id: odd_spot, x: 0.50, y: 0.70, scale: 0.40 }   # optional explicit figure height / image height, overrides the formula
 ```
 Action types: `window` (module tv|work|survey), `news`, `end_day`, `move` (to scene), `look` (shows `text` in the right panel, free), `talk` (`npc: <id>`; a click zone standing for a person painted into the background, costs the dialogue cost, rendered only while that NPC is present through `painted`). A hotspot may carry `placeholder: true`: the engine then draws an always-visible dashed box with the word PLACEHOLDER over the zone, for art that is not in the background yet (the living-room TV until the Round 2 background lands).
 
-Staging convention: every scene has a `near` slot (scale about 0.9, feet on the bottom edge) for the person the player is clearly there to talk to; incidental or overheard people take the smaller slots further back, or are painted into the background. A scene may declare `painted: { background: <asset id>, npcs: [<id>, ...] }`: when that asset exists in the manifest and every listed NPC is in the roster, the engine shows that background instead, skips the scene's composited props, treats the listed NPCs as present without drawing a figure, and reaches them through the scene's `talk` hotspots. Otherwise the plain background and cut-out figures are used, so content never waits on art.
+Figure size is horizon-locked: height / image height = (slot.y − horizon) × personHeight / cameraHeight, with personHeight 1.70 m standing and 1.30 m seated (the seated assets include the stool or bench), clamped to 0.12..0.95. On an eye-level shot this puts a standing adult's head just above the horizon at every depth. In dev mode the H reveal also draws the horizon and each figure's head line.
+
+Staging convention: every scene has a `near` slot (feet at or just below the bottom edge, no scale) for the person the player is clearly there to talk to; incidental or overheard people take the smaller slots further back, or are painted into the background. A scene may declare `painted: { background: <asset id>, npcs: [<id>, ...] }`: when that asset exists in the manifest and every listed NPC is in the roster, the engine shows that background instead, skips the scene's composited props, treats the listed NPCs as present without drawing a figure, and reaches them through the scene's `talk` hotspots. Otherwise the plain background and cut-out figures are used, so content never waits on art.
 
 Placeholders: wherever art is missing (background, figure, bust, TV still, placeholder hotspot) the engine shows the word PLACEHOLDER in small amber capitals on a dark chip, plus a grey silhouette for people. `street` is a hub scene with no background art: the engine renders it as a simple map card listing exits; give it `background: none`.
 

@@ -81,7 +81,7 @@ button { font-family: inherit; }
 .hs-label, .fig-label { display: inline-flex; align-items: center; }
 .hotspot:hover .hs-label, .hotspot:focus-visible .hs-label, .scene-box.reveal .hs-label { opacity: 1; }
 .fig-label {
-  position: absolute; left: 50%; top: 22px; transform: translateX(-50%); white-space: nowrap; background: var(--ink); color: var(--panel);
+  position: absolute; left: 50%; top: -24px; transform: translateX(-50%); white-space: nowrap; background: var(--ink); color: var(--panel);
   font-size: 12px; padding: 3px 8px; border-radius: 4px; opacity: 0; pointer-events: none; transition: opacity .12s; z-index: 1;
 }
 .figure:hover:not(:disabled) .fig-label, .figure:focus-visible .fig-label, .scene-box.reveal .fig-label { opacity: 1; }
@@ -114,6 +114,13 @@ button { font-family: inherit; }
 .hotspot.talk:hover:not(:disabled), .hotspot.talk:focus-visible, .hotspot.talk.speaking { border-color: var(--accent); background: rgba(31,111,107,.10); }
 .scene-box.reveal .hotspot.talk { border-color: var(--accent); }
 .figure .pending { right: 0; top: 0; }
+/* dev mode only (H): the horizon line and each figure's head height */
+.dev-guide { position: absolute; z-index: 900; pointer-events: none; display: none; height: 0; }
+.scene-box.reveal .dev-guide { display: block; }
+.dev-horizon { left: 0; right: 0; border-top: 2px dashed #ff3b6b; }
+.dev-head { border-top: 2px solid #35d0ff; }
+.dev-guide span { position: absolute; top: -18px; left: 4px; font: 600 11px var(--ui); color: #fff; background: rgba(0,0,0,.65); padding: 1px 5px; border-radius: 3px; white-space: nowrap; }
+.dev-horizon span { left: auto; right: 6px; }
 
 .tired {
   position: absolute; inset: 0; z-index: 1000; background: rgba(31,29,26,.62); color: var(--panel);
@@ -274,3 +281,4 @@ body.page { height: auto; min-height: 100%; }
 table { border-collapse: collapse; width: 100%; font-size: 14px; }
 th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #ddd5c5; }
 th { color: var(--muted); font-weight: 500; }
+.dev-head span { left: auto; right: 0; transform: translateX(100%); }

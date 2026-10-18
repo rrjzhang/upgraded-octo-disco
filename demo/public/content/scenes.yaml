@@ -1,6 +1,12 @@
 # Great Vote demo scenes. Zones, props and slots are fractions of the 1536 x 1024 background, origin top-left.
-# Slot x,y = feet anchor (for seated figures: bottom of the stool); scale = figure height / image height.
-# Every scene has a `near` slot (scale ~0.9, feet at the bottom edge) for the person the player is clearly there to talk to;
+# Slot x,y = feet anchor (for seated figures: bottom of the stool or bench). y may run past 1.0 (up to 1.25): the feet are
+# below the frame and the legs are cropped, as in a photo taken closer. Figure height comes from the scene's perspective:
+#   height / image height = (y - horizon) * personHeight / cameraHeight     (person 1.70 m standing, 1.30 m seated)
+# so a standing adult's head lands just above the horizon at any depth. `horizon` is the eye-level line, read off each
+# background from vanishing lines and from objects of known height (doors 2.1 m, tables 0.75 m, chair backs 0.9 m):
+#   horizon = floor_y - (cameraHeight / objectHeight) * (floor_y - top_y)  for an object standing on the floor at floor_y.
+# `cameraHeight` defaults to 1.6 m. An explicit slot `scale` (figure height / image height) still overrides the formula.
+# Every scene has a `near` slot (feet at or just below the bottom edge) for the person the player is clearly there to talk to;
 # overheard or incidental people use the smaller slots further back, or are painted into the background (`painted`).
 # Prop x,y = top-left of the prop image; w = fraction of image width; height follows the prop's aspect
 # unless an optional h is given (used only for the chessboard, which must be foreshortened onto the table top).
@@ -10,6 +16,8 @@ scenes:
     community: neutral
     background: bg_home_day
     lighting: warm_indoor
+    horizon: 0.29        # rug edges meet at y 0.29; sofa back, coffee table and the hall doorway all put the camera near 1.0 m
+    cameraHeight: 1.0    # a low, seated-eye-level shot: standing people in this room are tall in frame and the head leaves the top quickly
     description: "Your living room. The radiator ticks. The TV on the far wall is still on from last night."
     exits:
       - { to: street, label: "Front door" }
@@ -35,15 +43,17 @@ scenes:
         zone: { x: 0.89, y: 0.12, w: 0.08, h: 0.46 }
         action: { type: end_day }
     slots:
-      - { id: near, x: 0.66, y: 1.0, scale: 0.92 }      # a visitor standing in the room, conversational distance (clear of the bedroom door zone)
-      - { id: by_hall, x: 0.84, y: 0.80, scale: 0.62 }
-      - { id: by_sofa, x: 0.30, y: 0.86, scale: 0.64 }
+      - { id: near, x: 0.79, y: 0.64 }     # a visitor on the rug in front of the sofa's right arm, clear of the coffee table and the bedroom door.
+                                           # Low camera (1.0 m): feet any nearer than this push the head out of the top of the frame.
+      - { id: by_hall, x: 0.93, y: 0.50 }  # in the hallway past the door (unused: would sit over the bedroom door hotspot)
+      - { id: by_sofa, x: 0.30, y: 0.62 }  # by the sofa's left arm, in front of the bookcase
 
   - id: work
     name: Work
     community: neutral
     background: bg_work_day
     lighting: cool_indoor
+    horizon: 0.22        # file cabinet (1.1 m) gives 0.24, desk (0.73 m) gives 0.18; desk-row lines meet near 0.22
     description: "The logistics office on the fourth floor. Someone has written 'Q3!!' on the whiteboard and nothing else."
     exits:
       - { to: street, label: "Elevator down" }
@@ -61,15 +71,16 @@ scenes:
         zone: { x: 0.87, y: 0.00, w: 0.13, h: 0.38 }
         action: { type: look, text: "The back of the clinic on Fifth, and past it the roof of the community center on Grand." }
     slots:
-      - { id: near, x: 0.24, y: 1.0, scale: 0.92 }
-      - { id: desk_left, x: 0.30, y: 0.80, scale: 0.60 }
-      - { id: by_cabinet, x: 0.78, y: 0.74, scale: 0.56 }
+      - { id: near, x: 0.24, y: 1.0 }      # feet on the bottom edge: head lands at about 0.17, just above the low horizon
+      - { id: desk_left, x: 0.30, y: 0.80 }
+      - { id: by_cabinet, x: 0.78, y: 0.74 }
 
   - id: clinic
     name: Fifth Street Clinic
     community: us
     background: bg_clinic_day
     lighting: warm_indoor
+    horizon: 0.24        # coffee-table rug edges meet at y 0.24; water cooler (1.5 m) and chair backs put the camera at about 1.45 m
     description: "The waiting room smells of hand sanitizer. A TV in the corner plays the news with captions on."
     exits:
       - { to: street, label: "Back to the street" }
@@ -91,18 +102,19 @@ scenes:
         zone: { x: 0.01, y: 0.23, w: 0.08, h: 0.40 }
         action: { type: look, text: "Paper cones, the kind that go soft if you hold them too long." }
     slots:
-      - { id: near, x: 0.30, y: 1.0, scale: 0.92 }
-      - { id: front_desk, x: 0.78, y: 0.80, scale: 0.60 }
-      - { id: by_cooler, x: 0.17, y: 0.80, scale: 0.60 }
-      - { id: by_chairs, x: 0.62, y: 0.70, scale: 0.50 }
-      - { id: by_table, x: 0.46, y: 0.90, scale: 0.66 }
-      - { id: waiting_seat, x: 0.36, y: 0.56, scale: 0.34 }   # seated, on the row of waiting chairs
+      - { id: near, x: 0.30, y: 1.0 }      # feet on the bottom edge: 0.81 of the frame, head at about 0.19
+      - { id: front_desk, x: 0.78, y: 0.80 }
+      - { id: by_cooler, x: 0.17, y: 0.80 }
+      - { id: by_chairs, x: 0.62, y: 0.70 }
+      - { id: by_table, x: 0.46, y: 0.90 }
+      - { id: waiting_seat, x: 0.36, y: 0.56 }   # seated, on the row of waiting chairs
 
   - id: library
     name: Elm Street Library
     community: us
     background: bg_library_day
     lighting: warm_indoor
+    horizon: 0.33        # counter top/base lines meet at 0.33; near table (0.75 m) gives 0.33; camera about 1.6 m
     description: "The main reading room. Green lamps on the long tables, a sign-up sheet for the Thursday potluck by the desk."
     exits:
       - { to: street, label: "Back to the street" }
@@ -124,12 +136,12 @@ scenes:
         zone: { x: 0.32, y: 0.12, w: 0.39, h: 0.30 }
         action: { type: look, text: "Bare trees and the church steeple on Grand. It looks colder out there than it is." }
     slots:
-      - { id: near, x: 0.30, y: 1.0, scale: 0.92 }      # on the open floor in front of the left shelves, facing the player
-      - { id: desk, x: 0.66, y: 0.88, scale: 0.62 }
-      - { id: reading_table, x: 0.53, y: 0.67, scale: 0.40 }
-      - { id: by_shelves, x: 0.12, y: 0.76, scale: 0.50 }
-      - { id: armchair, x: 0.28, y: 0.56, scale: 0.30 }
-      - { id: reading_seat, x: 0.45, y: 0.68, scale: 0.30 }   # seated, at the near end of the long table
+      - { id: near, x: 0.30, y: 1.08 }     # feet just below the frame (legs cropped): 0.80 of the frame, head at about 0.28
+      - { id: desk, x: 0.66, y: 0.88 }
+      - { id: reading_table, x: 0.53, y: 0.67 }
+      - { id: by_shelves, x: 0.12, y: 0.76 }
+      - { id: armchair, x: 0.28, y: 0.56 }
+      - { id: reading_seat, x: 0.45, y: 0.68 }   # seated, at the near end of the long table
 
   - id: park
     name: Riverside Park
@@ -142,6 +154,7 @@ scenes:
       background: bg_park_chess_day
       npcs: [cn_stranger_a, us_stranger_a]
     lighting: outdoor
+    horizon: 0.31        # the three stone tables (0.75 m) at three depths give 0.30, 0.30, 0.32
     description: "The chess tables by the path. Leaves on the paving, a lamppost, regulars who nod but don't say much."
     exits:
       - { to: street, label: "Back to the street" }
@@ -169,19 +182,20 @@ scenes:
         zone: { x: 0.80, y: 0.42, w: 0.18, h: 0.50 }
         action: { type: look, text: "Joggers, a woman pushing a stroller with a dog in it, a man practising tai chi under the far trees." }
     slots:
-      - { id: chess_left, x: 0.13, y: 0.92, scale: 0.50 }    # seated, bench on the near-left of the nearest table
-      - { id: chess_right, x: 0.53, y: 0.90, scale: 0.50 }   # seated, bench on the near-right of the nearest table
-      - { id: path, x: 0.80, y: 0.80, scale: 0.52 }
-      - { id: by_tables, x: 0.66, y: 0.66, scale: 0.38 }
-      - { id: by_lamp, x: 0.74, y: 0.58, scale: 0.34 }
-      - { id: by_fence, x: 0.60, y: 0.60, scale: 0.34 }
-      - { id: path_far, x: 0.88, y: 0.62, scale: 0.36 }
+      - { id: chess_left, x: 0.13, y: 0.92 }    # seated, bench on the near-left of the nearest table
+      - { id: chess_right, x: 0.53, y: 0.90 }   # seated, bench on the near-right of the nearest table
+      - { id: path, x: 0.80, y: 0.80 }
+      - { id: by_tables, x: 0.66, y: 0.66 }
+      - { id: by_lamp, x: 0.74, y: 0.58 }
+      - { id: by_fence, x: 0.60, y: 0.60 }
+      - { id: path_far, x: 0.88, y: 0.62 }
 
   - id: center_cn
     name: Grand Avenue Community Center
     community: home
     background: bg_center_cn_day
     lighting: warm_indoor
+    horizon: 0.28        # kitchen door (2.1 m) gives 0.27, long table (0.75 m) gives 0.29; camera about 1.6 m
     description: "The main hall. Folding chairs stacked by the windows, lanterns left up from spring, something with ginger cooking in the kitchen."
     exits:
       - { to: street, label: "Back to the street" }
@@ -203,12 +217,12 @@ scenes:
         zone: { x: 0.85, y: 0.21, w: 0.14, h: 0.28 }
         action: { type: look, text: "Two big pots on the stove. A handwritten sign: 'Wash your own bowl. This means you.'" }
     slots:
-      - { id: near, x: 0.24, y: 1.0, scale: 0.92 }      # in front of the stacked chairs, conversational distance
-      - { id: by_table, x: 0.50, y: 0.74, scale: 0.56 }
-      - { id: by_board, x: 0.74, y: 0.64, scale: 0.46 }
-      - { id: by_kitchen, x: 0.88, y: 0.60, scale: 0.42 }
-      - { id: mid_right, x: 0.60, y: 0.90, scale: 0.62 }
-      - { id: seated_hall, x: 0.44, y: 0.72, scale: 0.42 }   # seated, on the open floor left of the long table
+      - { id: near, x: 0.24, y: 1.04 }     # in front of the stacked chairs, feet just below the frame: 0.80 of the frame, head at about 0.23
+      - { id: by_table, x: 0.50, y: 0.74 }
+      - { id: by_board, x: 0.74, y: 0.64 }
+      - { id: by_kitchen, x: 0.88, y: 0.60 }
+      - { id: mid_right, x: 0.60, y: 0.90 }
+      - { id: seated_hall, x: 0.44, y: 0.72 }   # seated, on the open floor left of the long table
 
   - id: street
     name: Street

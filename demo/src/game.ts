@@ -7,8 +7,8 @@ import {
   type Delta,
 } from './rules';
 import { appendLog, getRoom, readLog, saveState } from './store';
-import { assetEntry, questionnaireProblems } from './content';
-import { SILHOUETTE_BUST, downloadText, h, seeded, silhouetteFigure, subst } from './util';
+import { assetEntry, figureHeight, questionnaireProblems } from './content';
+import { SILHOUETTE_BUST, downloadText, h, isDev, seeded, silhouetteFigure, subst } from './util';
 
 const CULTURE_NAMES: Record<string, string> = { cn: 'Chinese', mx: 'Mexican', in: 'Indian' };
 const CULTURE_PACK_NAMES: Record<string, string> = { cn: 'China', mx: 'Mexico', in: 'India' };
@@ -19,7 +19,8 @@ type Panel =
   | { kind: 'idle'; note?: string }
   | { kind: 'dialogue'; npc: string; row: DialogueRow; tie: string[] }
   | { kind: 'event'; ev: EventRow }
-  | { kind: 'text'; title?: string; text: string; rule?: string };
+  | { kind: 'text'; title?: string; text: string; rule?: string }
+  | { kind: 'bed'; hs: string }; // going to bed with actions left: confirm first
 
 // slot null = the NPC is painted into the background (scene.painted); no figure is drawn and a `talk` hotspot stands for them
 interface Presence { npc: Npc; slot: Slot | null }
@@ -46,6 +47,8 @@ export class Game {
   private phoneEl!: HTMLElement;
   private journalDraft: string | null = null;
   private surveyLoading = false;
+  /** Dev only: gv.place() puts an NPC on a slot of a scene, for checking sizes. */
+  private devPlaced = new Map<string, { npc: string; slot: string }[]>();
 
   constructor(host: HTMLElement, private c: Content, private s: GameState) {
     this.stage = h('div', { class: 'stage', id: 'stage' });
@@ -201,6 +204,13 @@ export class Game {
         used.add(a.slot);
         out.push({ npc: n, slot });
       }
+    }
+    for (const pl of this.devPlaced.get(sceneId) ?? []) {
+      const n = this.c.npcById.get(pl.npc);
+      const slot = sc.slots.find((x) => x.id === pl.slot);
+      if (!n || !slot) continue;
+      for (let i = out.length - 1; i >= 0; i--) if (out[i].npc.id === n.id || out[i].slot?.id === slot.id) out.splice(i, 1);
+      out.push({ npc: n, slot });
     }
     return out;
   }
@@ -441,6 +451,11 @@ export class Game {
         appendLog(this.s, { type: 'hotspot', target: hs.id });
         return this.moveTo(String(a.to));
       case 'end_day':
+        if (this.s.actions > 0) {
+          // actions left: offer work or staying up before ending the day early
+          this.panel = { kind: 'bed', hs: hs.id };
+          return this.render();
+        }
         appendLog(this.s, { type: 'hotspot', target: hs.id });
         return this.endDay();
       case 'look': {
@@ -808,7 +823,7 @@ export class Game {
     const figures = present.filter((p): p is { npc: Npc; slot: Slot } => p.slot !== null).sort((a, b) => a.slot.y - b.slot.y);
     for (const { npc, slot } of figures) {
       const fig = this.figureFor(npc);
-      const hgt = slot.scale * IMG_H;
+      const hgt = figureHeight(sc, slot, npc.seated) * IMG_H;
       const wid = hgt * fig.aspect;
       const left = slot.x * IMG_W - wid / 2;
       const top = slot.y * IMG_H - hgt;
@@ -827,7 +842,12 @@ export class Game {
       const img = btn.querySelector('img')!;
       img.addEventListener('error', () => { img.src = silhouetteFigure(npc.seated); });
       box.append(btn);
+      // dev guide (shown with H): where this figure's head lands, to compare with the horizon line
+      if (isDev) box.append(h('div', { class: 'dev-guide dev-head', style: `top:${top}px;left:${left - 12}px;width:${wid + 24}px;`, title: `${npc.name}: feet ${slot.y}, ${slot.scale ? 'scale override' : 'horizon formula'}` },
+        h('span', { text: `${npc.name} ${(hgt / IMG_H).toFixed(2)}${slot.scale ? ' (scale)' : ''}` })));
     }
+    if (isDev) box.append(h('div', { class: 'dev-guide dev-horizon', style: `top:${sc.horizon * IMG_H}px;` },
+      h('span', { text: `horizon ${+sc.horizon.toFixed(3)} · camera ${sc.cameraHeight} m` })));
 
     if (tired) {
       box.append(h('div', { class: 'tired', role: 'alert' },
@@ -935,6 +955,19 @@ export class Game {
         choices.append(h('button', { class: 'choice', 'data-fk': 'ch:cont', onclick: () => this.chooseEvent(p.ev, null), text: this.str('ui.continue') }));
       }
       status = `event ${p.ev.id} · ${p.ev.trigger}${p.ev.npc ? ` · ${p.ev.npc}` : ''}`;
+    } else if (p.kind === 'bed') {
+      body.append(h('p', { class: 'line', text: this.str('ui.bed.prompt', { actions: this.costWords(this.s.actions) }) }));
+      const pick = (n: 1 | 2 | 3) => {
+        appendLog(this.s, { type: 'hotspot', target: p.hs, choice: n });
+        this.panel = { kind: 'idle' };
+        if (n === 1) return this.moveTo('work');
+        if (n === 2) return this.endDay();
+        this.render();
+      };
+      choices.append(
+        h('button', { class: 'choice', 'data-fk': 'ch:0', onclick: () => pick(1), text: this.str('ui.bed.work') }),
+        h('button', { class: 'choice', 'data-fk': 'ch:1', onclick: () => pick(2), text: this.str('ui.bed.sleep') }),
+        h('button', { class: 'choice', 'data-fk': 'ch:2', onclick: () => pick(3), text: this.str('ui.bed.stay') }));
     } else if (p.kind === 'text') {
       if (p.title) body.append(h('h3', { class: 'text-title', text: p.title }));
       for (const para of this.t(p.text).split(/\n\n+/)) {
@@ -1071,6 +1104,14 @@ export class Game {
       talk: (npc: string) => this.talkTo(npc),
       present: (scene?: string) => this.presentIn(scene ?? this.s.scene).map((p) => `${p.npc.id}@${p.slot ? p.slot.id : 'painted'}`),
       panel: () => this.panel,
+      /** Puts an NPC on a slot of the current scene (dev, for checking figure sizes); gv.place() clears. */
+      place: (npc?: string, slot?: string) => {
+        if (!npc) this.devPlaced.clear();
+        else this.devPlaced.set(this.s.scene, [...(this.devPlaced.get(this.s.scene) ?? []), { npc, slot: slot ?? 'near' }]);
+        this.render();
+        return this.presentIn(this.s.scene).map((p) => `${p.npc.id}@${p.slot ? p.slot.id : 'painted'}`);
+      },
+      reveal: (on = true) => { this.sceneBox.classList.toggle('reveal', on); },
       endDay: () => this.endDay(),
     };
   }
