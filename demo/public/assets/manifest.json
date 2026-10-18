@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-18T04:44:50.789Z",
+  "generated": "2026-10-18T04:45:53.418Z",
   "source": "image_generation/out (_A set)",
   "backgrounds": {
     "bg_home_day": {
@@ -351,6 +351,13 @@
       "seated": false,
       "placeholder": false
     },
+    "ch_us_leader_seg_fig_stand": {
+      "file": "figure/ch_us_leader_seg_fig_stand.png",
+      "w": 247,
+      "h": 700,
+      "seated": false,
+      "placeholder": false
+    },
     "ch_cn_neighbor_fig_stand": {
       "file": "figure/ch_cn_neighbor_fig_stand.png",
       "w": 205,
@@ -384,13 +391,6 @@
       "w": 300,
       "h": 700,
       "seated": true,
-      "placeholder": true
-    },
-    "ch_us_leader_seg_fig_stand": {
-      "file": "figure/placeholder_stand.png",
-      "w": 260,
-      "h": 700,
-      "seated": false,
       "placeholder": true
     }
   },
