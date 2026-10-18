@@ -1,6 +1,6 @@
 {
   "budget": 50,
-  "planned": 82,
+  "planned": 111,
   "reserved_for_retries": 5,
   "items": [
     {
@@ -1406,6 +1406,508 @@
       "save_prompt_used_as": "out/ch_nat_multi_tv_1_A.prompt.txt",
       "status": "pending",
       "file": "82_ch_nat_multi_tv_1_A.md"
+    },
+    {
+      "id": "cast_president_inclusive_ref_A",
+      "order": 83,
+      "part": 8,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "cast_president_inclusive_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/cast_president_inclusive_ref_A.png",
+      "save_prompt_used_as": "out/cast_president_inclusive_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "83_cast_president_inclusive_ref_A.md"
+    },
+    {
+      "id": "cast_president_inclusive_bust_A",
+      "order": 84,
+      "part": 8,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "cast_president_inclusive_A",
+      "depends_on": [
+        "cast_president_inclusive_ref_A"
+      ],
+      "attach": "out/cast_president_inclusive_ref_A.png",
+      "save_image_as": "out/cast_president_inclusive_bust_A.png",
+      "save_prompt_used_as": "out/cast_president_inclusive_bust_A.prompt.txt",
+      "status": "pending",
+      "file": "84_cast_president_inclusive_bust_A.md"
+    },
+    {
+      "id": "cast_president_inclusive_tv_A",
+      "order": 85,
+      "part": 8,
+      "style": "A",
+      "kind": "tv_still",
+      "aspect": "16:9",
+      "transparent_background": false,
+      "chat_group": "cast_president_inclusive_A",
+      "depends_on": [
+        "cast_president_inclusive_ref_A"
+      ],
+      "attach": "out/cast_president_inclusive_ref_A.png",
+      "save_image_as": "out/cast_president_inclusive_tv_A.png",
+      "save_prompt_used_as": "out/cast_president_inclusive_tv_A.prompt.txt",
+      "status": "pending",
+      "file": "85_cast_president_inclusive_tv_A.md"
+    },
+    {
+      "id": "cast_governor_ref_A",
+      "order": 86,
+      "part": 8,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "cast_governor_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/cast_governor_ref_A.png",
+      "save_prompt_used_as": "out/cast_governor_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "86_cast_governor_ref_A.md"
+    },
+    {
+      "id": "cast_governor_bust_A",
+      "order": 87,
+      "part": 8,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "cast_governor_A",
+      "depends_on": [
+        "cast_governor_ref_A"
+      ],
+      "attach": "out/cast_governor_ref_A.png",
+      "save_image_as": "out/cast_governor_bust_A.png",
+      "save_prompt_used_as": "out/cast_governor_bust_A.prompt.txt",
+      "status": "pending",
+      "file": "87_cast_governor_bust_A.md"
+    },
+    {
+      "id": "cast_governor_tv_A",
+      "order": 88,
+      "part": 8,
+      "style": "A",
+      "kind": "tv_still",
+      "aspect": "16:9",
+      "transparent_background": false,
+      "chat_group": "cast_governor_A",
+      "depends_on": [
+        "cast_governor_ref_A"
+      ],
+      "attach": "out/cast_governor_ref_A.png",
+      "save_image_as": "out/cast_governor_tv_A.png",
+      "save_prompt_used_as": "out/cast_governor_tv_A.prompt.txt",
+      "status": "pending",
+      "file": "88_cast_governor_tv_A.md"
+    },
+    {
+      "id": "cast_judge_ramos_ref_A",
+      "order": 89,
+      "part": 8,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "cast_judge_ramos_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/cast_judge_ramos_ref_A.png",
+      "save_prompt_used_as": "out/cast_judge_ramos_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "89_cast_judge_ramos_ref_A.md"
+    },
+    {
+      "id": "cast_judge_ramos_bust_A",
+      "order": 90,
+      "part": 8,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "cast_judge_ramos_A",
+      "depends_on": [
+        "cast_judge_ramos_ref_A"
+      ],
+      "attach": "out/cast_judge_ramos_ref_A.png",
+      "save_image_as": "out/cast_judge_ramos_bust_A.png",
+      "save_prompt_used_as": "out/cast_judge_ramos_bust_A.prompt.txt",
+      "status": "pending",
+      "file": "90_cast_judge_ramos_bust_A.md"
+    },
+    {
+      "id": "cast_judge_ramos_tv_A",
+      "order": 91,
+      "part": 8,
+      "style": "A",
+      "kind": "tv_still",
+      "aspect": "16:9",
+      "transparent_background": false,
+      "chat_group": "cast_judge_ramos_A",
+      "depends_on": [
+        "cast_judge_ramos_ref_A"
+      ],
+      "attach": "out/cast_judge_ramos_ref_A.png",
+      "save_image_as": "out/cast_judge_ramos_tv_A.png",
+      "save_prompt_used_as": "out/cast_judge_ramos_tv_A.prompt.txt",
+      "status": "pending",
+      "file": "91_cast_judge_ramos_tv_A.md"
+    },
+    {
+      "id": "cast_mayor_ref_A",
+      "order": 92,
+      "part": 8,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "cast_mayor_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/cast_mayor_ref_A.png",
+      "save_prompt_used_as": "out/cast_mayor_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "92_cast_mayor_ref_A.md"
+    },
+    {
+      "id": "cast_mayor_bust_A",
+      "order": 93,
+      "part": 8,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "cast_mayor_A",
+      "depends_on": [
+        "cast_mayor_ref_A"
+      ],
+      "attach": "out/cast_mayor_ref_A.png",
+      "save_image_as": "out/cast_mayor_bust_A.png",
+      "save_prompt_used_as": "out/cast_mayor_bust_A.prompt.txt",
+      "status": "pending",
+      "file": "93_cast_mayor_bust_A.md"
+    },
+    {
+      "id": "cast_mayor_tv_A",
+      "order": 94,
+      "part": 8,
+      "style": "A",
+      "kind": "tv_still",
+      "aspect": "16:9",
+      "transparent_background": false,
+      "chat_group": "cast_mayor_A",
+      "depends_on": [
+        "cast_mayor_ref_A"
+      ],
+      "attach": "out/cast_mayor_ref_A.png",
+      "save_image_as": "out/cast_mayor_tv_A.png",
+      "save_prompt_used_as": "out/cast_mayor_tv_A.prompt.txt",
+      "status": "pending",
+      "file": "94_cast_mayor_tv_A.md"
+    },
+    {
+      "id": "cast_police_chief_ref_A",
+      "order": 95,
+      "part": 8,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "cast_police_chief_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/cast_police_chief_ref_A.png",
+      "save_prompt_used_as": "out/cast_police_chief_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "95_cast_police_chief_ref_A.md"
+    },
+    {
+      "id": "cast_police_chief_bust_A",
+      "order": 96,
+      "part": 8,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "cast_police_chief_A",
+      "depends_on": [
+        "cast_police_chief_ref_A"
+      ],
+      "attach": "out/cast_police_chief_ref_A.png",
+      "save_image_as": "out/cast_police_chief_bust_A.png",
+      "save_prompt_used_as": "out/cast_police_chief_bust_A.prompt.txt",
+      "status": "pending",
+      "file": "96_cast_police_chief_bust_A.md"
+    },
+    {
+      "id": "cast_police_chief_tv_A",
+      "order": 97,
+      "part": 8,
+      "style": "A",
+      "kind": "tv_still",
+      "aspect": "16:9",
+      "transparent_background": false,
+      "chat_group": "cast_police_chief_A",
+      "depends_on": [
+        "cast_police_chief_ref_A"
+      ],
+      "attach": "out/cast_police_chief_ref_A.png",
+      "save_image_as": "out/cast_police_chief_tv_A.png",
+      "save_prompt_used_as": "out/cast_police_chief_tv_A.prompt.txt",
+      "status": "pending",
+      "file": "97_cast_police_chief_tv_A.md"
+    },
+    {
+      "id": "cast_principal_ref_A",
+      "order": 98,
+      "part": 8,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "cast_principal_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/cast_principal_ref_A.png",
+      "save_prompt_used_as": "out/cast_principal_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "98_cast_principal_ref_A.md"
+    },
+    {
+      "id": "cast_principal_bust_A",
+      "order": 99,
+      "part": 8,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "cast_principal_A",
+      "depends_on": [
+        "cast_principal_ref_A"
+      ],
+      "attach": "out/cast_principal_ref_A.png",
+      "save_image_as": "out/cast_principal_bust_A.png",
+      "save_prompt_used_as": "out/cast_principal_bust_A.prompt.txt",
+      "status": "pending",
+      "file": "99_cast_principal_bust_A.md"
+    },
+    {
+      "id": "cast_clinic_director_ref_A",
+      "order": 100,
+      "part": 8,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "cast_clinic_director_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/cast_clinic_director_ref_A.png",
+      "save_prompt_used_as": "out/cast_clinic_director_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "100_cast_clinic_director_ref_A.md"
+    },
+    {
+      "id": "cast_clinic_director_bust_A",
+      "order": 101,
+      "part": 8,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "cast_clinic_director_A",
+      "depends_on": [
+        "cast_clinic_director_ref_A"
+      ],
+      "attach": "out/cast_clinic_director_ref_A.png",
+      "save_image_as": "out/cast_clinic_director_bust_A.png",
+      "save_prompt_used_as": "out/cast_clinic_director_bust_A.prompt.txt",
+      "status": "pending",
+      "file": "101_cast_clinic_director_bust_A.md"
+    },
+    {
+      "id": "cast_clinic_director_tv_A",
+      "order": 102,
+      "part": 8,
+      "style": "A",
+      "kind": "tv_still",
+      "aspect": "16:9",
+      "transparent_background": false,
+      "chat_group": "cast_clinic_director_A",
+      "depends_on": [
+        "cast_clinic_director_ref_A"
+      ],
+      "attach": "out/cast_clinic_director_ref_A.png",
+      "save_image_as": "out/cast_clinic_director_tv_A.png",
+      "save_prompt_used_as": "out/cast_clinic_director_tv_A.prompt.txt",
+      "status": "pending",
+      "file": "102_cast_clinic_director_tv_A.md"
+    },
+    {
+      "id": "cast_agency_spokesperson_ref_A",
+      "order": 103,
+      "part": 8,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "cast_agency_spokesperson_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/cast_agency_spokesperson_ref_A.png",
+      "save_prompt_used_as": "out/cast_agency_spokesperson_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "103_cast_agency_spokesperson_ref_A.md"
+    },
+    {
+      "id": "cast_agency_spokesperson_bust_A",
+      "order": 104,
+      "part": 8,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "cast_agency_spokesperson_A",
+      "depends_on": [
+        "cast_agency_spokesperson_ref_A"
+      ],
+      "attach": "out/cast_agency_spokesperson_ref_A.png",
+      "save_image_as": "out/cast_agency_spokesperson_bust_A.png",
+      "save_prompt_used_as": "out/cast_agency_spokesperson_bust_A.prompt.txt",
+      "status": "pending",
+      "file": "104_cast_agency_spokesperson_bust_A.md"
+    },
+    {
+      "id": "cast_agency_spokesperson_tv_A",
+      "order": 105,
+      "part": 8,
+      "style": "A",
+      "kind": "tv_still",
+      "aspect": "16:9",
+      "transparent_background": false,
+      "chat_group": "cast_agency_spokesperson_A",
+      "depends_on": [
+        "cast_agency_spokesperson_ref_A"
+      ],
+      "attach": "out/cast_agency_spokesperson_ref_A.png",
+      "save_image_as": "out/cast_agency_spokesperson_tv_A.png",
+      "save_prompt_used_as": "out/cast_agency_spokesperson_tv_A.prompt.txt",
+      "status": "pending",
+      "file": "105_cast_agency_spokesperson_tv_A.md"
+    },
+    {
+      "id": "cast_council_member_ref_A",
+      "order": 106,
+      "part": 8,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "cast_council_member_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/cast_council_member_ref_A.png",
+      "save_prompt_used_as": "out/cast_council_member_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "106_cast_council_member_ref_A.md"
+    },
+    {
+      "id": "cast_council_member_bust_A",
+      "order": 107,
+      "part": 8,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "cast_council_member_A",
+      "depends_on": [
+        "cast_council_member_ref_A"
+      ],
+      "attach": "out/cast_council_member_ref_A.png",
+      "save_image_as": "out/cast_council_member_bust_A.png",
+      "save_prompt_used_as": "out/cast_council_member_bust_A.prompt.txt",
+      "status": "pending",
+      "file": "107_cast_council_member_bust_A.md"
+    },
+    {
+      "id": "cast_council_member_tv_A",
+      "order": 108,
+      "part": 8,
+      "style": "A",
+      "kind": "tv_still",
+      "aspect": "16:9",
+      "transparent_background": false,
+      "chat_group": "cast_council_member_A",
+      "depends_on": [
+        "cast_council_member_ref_A"
+      ],
+      "attach": "out/cast_council_member_ref_A.png",
+      "save_image_as": "out/cast_council_member_tv_A.png",
+      "save_prompt_used_as": "out/cast_council_member_tv_A.prompt.txt",
+      "status": "pending",
+      "file": "108_cast_council_member_tv_A.md"
+    },
+    {
+      "id": "cast_anchor_ref_A",
+      "order": 109,
+      "part": 8,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "cast_anchor_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/cast_anchor_ref_A.png",
+      "save_prompt_used_as": "out/cast_anchor_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "109_cast_anchor_ref_A.md"
+    },
+    {
+      "id": "cast_anchor_bust_A",
+      "order": 110,
+      "part": 8,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "cast_anchor_A",
+      "depends_on": [
+        "cast_anchor_ref_A"
+      ],
+      "attach": "out/cast_anchor_ref_A.png",
+      "save_image_as": "out/cast_anchor_bust_A.png",
+      "save_prompt_used_as": "out/cast_anchor_bust_A.prompt.txt",
+      "status": "pending",
+      "file": "110_cast_anchor_bust_A.md"
+    },
+    {
+      "id": "cast_anchor_tv_A",
+      "order": 111,
+      "part": 8,
+      "style": "A",
+      "kind": "tv_still",
+      "aspect": "16:9",
+      "transparent_background": false,
+      "chat_group": "cast_anchor_A",
+      "depends_on": [
+        "cast_anchor_ref_A"
+      ],
+      "attach": "out/cast_anchor_ref_A.png",
+      "save_image_as": "out/cast_anchor_tv_A.png",
+      "save_prompt_used_as": "out/cast_anchor_tv_A.prompt.txt",
+      "status": "pending",
+      "file": "111_cast_anchor_tv_A.md"
     }
   ]
 }

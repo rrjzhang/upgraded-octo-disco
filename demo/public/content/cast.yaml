@@ -1,0 +1,17 @@
+# Authority figures who appear in news stories (news.csv `figure`) and events (events.csv `portrait`).
+# Not roster NPCs: no dialogue, no rapport. Art: image_generation/out/<id>_ref_A.png, <id>_bust_A.png, <id>_tv_A.png.
+# The two national leaders stay nat_enforcement / nat_inclusive in npcs.yaml; cast_president_inclusive is the
+# woman who plays nat_inclusive (Lena Ortiz), so the inclusive condition's TV stories can name her as figure.
+# Home-culture backgrounds (Chinese, Mexican, Indian) are avoided for local officials so they do not read as
+# community cues; Ortiz keeps the name already used in content.
+cast:
+  - { id: cast_president_inclusive, name: "President Lena Ortiz", role: "President of the United States (inclusive condition)", gender: female, note: "Latina, late fifties, charcoal skirt suit. Same person as nat_inclusive; TV still at a plain podium." }
+  - { id: cast_governor, name: "Governor Dale Whitaker", role: "State governor", gender: male, note: "White, early sixties, grey suit. Restrictionist in both conditions: backs federal checks, refuses the interpreter mandate. TV still on state-building steps." }
+  - { id: cast_judge_ramos, name: "Judge Daniel Ramos", role: "Federal district judge", gender: male, note: "Latino, mid-sixties, wire-rimmed glasses. Dark suit on the reference, robe only in the bench still." }
+  - { id: cast_mayor, name: "Mayor Denise Caldwell", role: "Mayor", gender: female, note: "Black, early fifties, brick-red blazer. Protective of city services in both conditions." }
+  - { id: cast_police_chief, name: "Chief Ray Kowalski", role: "Police chief", gender: male, note: "White, mid-fifties, plain dark uniform shirt with no insignia or text." }
+  - { id: cast_principal, name: "Principal Karen Novak", role: "Principal, PS 21", gender: female, note: "White, late forties, cardigan and lanyard. Mrs. Chen's grandson's school. Bust only (letters and notes home)." }
+  - { id: cast_clinic_director, name: "Dr. Nadia Haddad", role: "Director, Fifth Street Clinic", gender: female, note: "Arab American, mid-forties, white coat. Print, events and a local TV interview." }
+  - { id: cast_agency_spokesperson, name: "Craig Mullins", role: "Spokesperson, federal immigration agency", gender: male, note: "White, mid-forties, navy suit. Speaks for the enforcement programmes." }
+  - { id: cast_council_member, name: "Councilmember Kevin Tran", role: "City council member, Fifth Street district", gender: male, note: "Vietnamese American, late thirties, blazer without tie. Runs the hearing on the Fifth Street lot." }
+  - { id: cast_anchor, name: "Jasmine Porter", role: "Local TV news anchor", gender: female, note: "Black, mid-thirties. Fronts local stories that have no single speaker." }
