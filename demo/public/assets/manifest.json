@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-18T03:58:26.915Z",
+  "generated": "2026-10-18T04:36:15.689Z",
   "source": "image_generation/out (_A set)",
   "backgrounds": {
     "bg_home_day": {
@@ -110,31 +110,51 @@
       }
     },
     "us_stranger_b": {
-      "neutral": "portrait/placeholder_neutral.png",
-      "warm": null,
-      "guarded": null,
+      "neutral": "portrait/us_stranger_b_neutral.png",
+      "warm": "portrait/us_stranger_b_warm.png",
+      "guarded": "portrait/us_stranger_b_guarded.png",
       "worried": null,
-      "placeholder": true,
+      "placeholder": false,
       "fromReference": false,
-      "sources": []
+      "sources": [
+        "ch_us_stranger_b_neutral_A",
+        "ch_us_stranger_b_warm_A",
+        "ch_us_stranger_b_guarded_A"
+      ]
     },
     "us_leader_int": {
-      "neutral": "portrait/placeholder_neutral.png",
+      "neutral": "portrait/us_leader_int_neutral.png",
       "warm": null,
       "guarded": null,
       "worried": null,
-      "placeholder": true,
-      "fromReference": false,
-      "sources": []
+      "placeholder": false,
+      "fromReference": true,
+      "sources": [
+        "ch_us_leader_int_ref_A"
+      ],
+      "referenceCrop": {
+        "x": 229,
+        "y": 0,
+        "w": 560,
+        "h": 560
+      }
     },
     "us_leader_seg": {
-      "neutral": "portrait/placeholder_neutral.png",
+      "neutral": "portrait/us_leader_seg_neutral.png",
       "warm": null,
       "guarded": null,
       "worried": null,
-      "placeholder": true,
-      "fromReference": false,
-      "sources": []
+      "placeholder": false,
+      "fromReference": true,
+      "sources": [
+        "ch_us_leader_seg_ref_A"
+      ],
+      "referenceCrop": {
+        "x": 231,
+        "y": 0,
+        "w": 560,
+        "h": 560
+      }
     },
     "nat_enforcement": {
       "neutral": "portrait/nat_enforcement_neutral.png",
@@ -154,22 +174,34 @@
       }
     },
     "nat_inclusive": {
-      "neutral": "portrait/placeholder_neutral.png",
+      "neutral": "portrait/nat_inclusive_neutral.png",
       "warm": null,
       "guarded": null,
       "worried": null,
-      "placeholder": true,
-      "fromReference": false,
-      "sources": []
+      "placeholder": false,
+      "fromReference": true,
+      "sources": [
+        "ch_nat_multi_ref_A"
+      ],
+      "referenceCrop": {
+        "x": 234,
+        "y": 43,
+        "w": 560,
+        "h": 560
+      }
     },
     "cn_neighbor": {
-      "neutral": "portrait/placeholder_neutral.png",
-      "warm": null,
-      "guarded": null,
+      "neutral": "portrait/cn_neighbor_neutral.png",
+      "warm": "portrait/cn_neighbor_warm.png",
+      "guarded": "portrait/cn_neighbor_guarded.png",
       "worried": null,
-      "placeholder": true,
+      "placeholder": false,
       "fromReference": false,
-      "sources": []
+      "sources": [
+        "ch_cn_neighbor_neutral_A",
+        "ch_cn_neighbor_warm_A",
+        "ch_cn_neighbor_guarded_A"
+      ]
     },
     "cn_stranger_a": {
       "neutral": "portrait/cn_stranger_a_neutral.png",
@@ -189,22 +221,30 @@
       }
     },
     "cn_stranger_b": {
-      "neutral": "portrait/placeholder_neutral.png",
-      "warm": null,
-      "guarded": null,
+      "neutral": "portrait/cn_stranger_b_neutral.png",
+      "warm": "portrait/cn_stranger_b_warm.png",
+      "guarded": "portrait/cn_stranger_b_guarded.png",
       "worried": null,
-      "placeholder": true,
+      "placeholder": false,
       "fromReference": false,
-      "sources": []
+      "sources": [
+        "ch_cn_stranger_b_neutral_A",
+        "ch_cn_stranger_b_warm_A",
+        "ch_cn_stranger_b_guarded_A"
+      ]
     },
     "cn_leader_int": {
-      "neutral": "portrait/placeholder_neutral.png",
-      "warm": null,
-      "guarded": null,
+      "neutral": "portrait/cn_leader_int_neutral.png",
+      "warm": "portrait/cn_leader_int_warm.png",
+      "guarded": "portrait/cn_leader_int_guarded.png",
       "worried": null,
-      "placeholder": true,
+      "placeholder": false,
       "fromReference": false,
-      "sources": []
+      "sources": [
+        "ch_cn_leader_int_neutral_A",
+        "ch_cn_leader_int_warm_A",
+        "ch_cn_leader_int_guarded_A"
+      ]
     },
     "cn_leader_sep": {
       "neutral": "portrait/cn_leader_sep_neutral.png",
@@ -267,6 +307,7 @@
     "ch_nat_enforcement": "nat_enforcement",
     "ch_nat_anti": "nat_enforcement",
     "ch_nat_inclusive": "nat_inclusive",
+    "ch_nat_multi": "nat_inclusive",
     "ch_cn_neighbor": "cn_neighbor",
     "ch_cn_stranger_a": "cn_stranger_a",
     "ch_cn_stranger_b": "cn_stranger_b",
@@ -304,6 +345,34 @@
       "seated": true,
       "placeholder": false
     },
+    "ch_us_stranger_b_fig_stand": {
+      "file": "figure/ch_us_stranger_b_fig_stand.png",
+      "w": 253,
+      "h": 700,
+      "seated": false,
+      "placeholder": false
+    },
+    "ch_cn_neighbor_fig_stand": {
+      "file": "figure/ch_cn_neighbor_fig_stand.png",
+      "w": 205,
+      "h": 700,
+      "seated": false,
+      "placeholder": false
+    },
+    "ch_cn_stranger_b_fig_stand": {
+      "file": "figure/ch_cn_stranger_b_fig_stand.png",
+      "w": 193,
+      "h": 700,
+      "seated": false,
+      "placeholder": false
+    },
+    "ch_cn_leader_int_fig_stand": {
+      "file": "figure/ch_cn_leader_int_fig_stand.png",
+      "w": 466,
+      "h": 700,
+      "seated": false,
+      "placeholder": false
+    },
     "placeholder_stand": {
       "file": "figure/placeholder_stand.png",
       "w": 260,
@@ -318,20 +387,6 @@
       "seated": true,
       "placeholder": true
     },
-    "ch_cn_neighbor_fig_stand": {
-      "file": "figure/placeholder_stand.png",
-      "w": 260,
-      "h": 700,
-      "seated": false,
-      "placeholder": true
-    },
-    "ch_us_stranger_b_fig_stand": {
-      "file": "figure/placeholder_stand.png",
-      "w": 260,
-      "h": 700,
-      "seated": false,
-      "placeholder": true
-    },
     "ch_us_leader_int_fig_stand": {
       "file": "figure/placeholder_stand.png",
       "w": 260,
@@ -340,20 +395,6 @@
       "placeholder": true
     },
     "ch_us_leader_seg_fig_stand": {
-      "file": "figure/placeholder_stand.png",
-      "w": 260,
-      "h": 700,
-      "seated": false,
-      "placeholder": true
-    },
-    "ch_cn_stranger_b_fig_stand": {
-      "file": "figure/placeholder_stand.png",
-      "w": 260,
-      "h": 700,
-      "seated": false,
-      "placeholder": true
-    },
-    "ch_cn_leader_int_fig_stand": {
       "file": "figure/placeholder_stand.png",
       "w": 260,
       "h": 700,
@@ -378,7 +419,7 @@
       "tv/nat_enforcement_1.jpg"
     ],
     "nat_inclusive": [
-      "tv/nat_enforcement_1.jpg"
+      "tv/nat_inclusive_1.jpg"
     ]
   },
   "candidates": {
@@ -395,8 +436,9 @@
       "h": 720
     },
     "nat_inclusive": {
-      "placeholder": true,
-      "note": "no inclusive-leader still yet; reuses nat_enforcement_1.jpg"
+      "placeholder": false,
+      "w": 1280,
+      "h": 853
     }
   }
 }

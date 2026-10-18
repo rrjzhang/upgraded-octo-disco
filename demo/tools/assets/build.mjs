@@ -226,7 +226,16 @@ for (const [cid, base] of Object.entries(CHARACTERS)) {
       const sid = `${base}_${ex}_A`;
       if (!exists(sid)) continue;
       const dest = out('portrait', `${cid}_${ex}.png`);
-      sips('-z', String(PORTRAIT), String(PORTRAIT), src(sid), '--out', dest);
+      const d0 = dims(src(sid));
+      if (d0.w !== d0.h) {
+        // Round 3 busts came back 2:3: take a square the width of the image, anchored just above the subject
+        // (alpha bounding box), so the head and shoulders fill the square without distortion.
+        const img = decodePNG(src(sid)), b = alphaBBox(img, 8, 0);
+        const side = Math.min(img.w, img.h), y = Math.max(0, Math.min(img.h - side, b.y - Math.round(side * 0.04)));
+        const x = Math.max(0, Math.min(img.w - side, Math.round(b.x + b.w / 2 - side / 2)));
+        const t = tmp(); encodePNG(crop(img, x, y, side, side), t, true);
+        sips('-z', String(PORTRAIT), String(PORTRAIT), t, '--out', dest);
+      } else sips('-z', String(PORTRAIT), String(PORTRAIT), src(sid), '--out', dest);
       entry[ex] = rel(dest); entry.sources.push(sid);
     }
     if (!entry.neutral) {

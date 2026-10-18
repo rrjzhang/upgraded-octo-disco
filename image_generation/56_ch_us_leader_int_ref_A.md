@@ -11,7 +11,7 @@ depends_on: []
 attach: "none"
 save_image_as: "out/ch_us_leader_int_ref_A.png"
 save_prompt_used_as: "out/ch_us_leader_int_ref_A.prompt.txt"
-status: "pending"
+status: "done"
 ---
 
 # ch_us_leader_int_ref_A
