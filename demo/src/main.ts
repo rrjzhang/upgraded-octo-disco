@@ -96,6 +96,10 @@ async function main(): Promise<void> {
     if (params.get('reset') === '1') {
       localStorage.removeItem(stateKey(code));
       localStorage.removeItem(logKey(code));
+      // drop reset=1 from the address so a later reload (F5, dev-server HMR) resumes the save instead of wiping it again
+      const u = new URL(location.href);
+      u.searchParams.delete('reset');
+      history.replaceState(null, '', u);
     }
     const leader: Leader = params.get('leader') === 'inclusive' ? 'inclusive' : 'enforcement';
     let room = getRoom(code);

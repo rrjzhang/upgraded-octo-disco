@@ -11,14 +11,21 @@ export type CultureId = 'cn' | 'mx' | 'in';
 export interface Zone { x: number; y: number; w: number; h: number }
 
 export interface HotspotAction {
-  type: 'window' | 'news' | 'end_day' | 'move' | 'look';
+  type: 'window' | 'news' | 'end_day' | 'move' | 'look' | 'talk';
   module?: ModuleId;
   cost?: number;
   to?: string;
   text?: string;
+  npc?: string; // talk: the NPC this zone stands for (a person painted into the background)
 }
 
-export interface Hotspot { id: string; label: string; zone: Zone; action: HotspotAction }
+// placeholder: true draws a visible PLACEHOLDER box over the zone until the art that should be there exists
+export interface Hotspot { id: string; label: string; zone: Zone; action: HotspotAction; placeholder?: boolean }
+
+// A background variant with some NPCs painted into the image. Used when the asset exists and every
+// listed NPC is in the player's roster; those NPCs are then present without a figure and are reached
+// through `talk` hotspots instead of clickable cut-outs.
+export interface Painted { background: string; npcs: string[] }
 export interface Slot { id: string; x: number; y: number; scale: number }
 export interface Prop { asset: string; x: number; y: number; w: number }
 export interface Exit { to: string; label: string }
@@ -34,6 +41,7 @@ export interface Scene {
   hotspots: Hotspot[];
   slots: Slot[];
   props: Prop[];
+  painted?: Painted;
 }
 
 export interface Appearance { scene: string; slot: string; chance: number }
@@ -181,6 +189,7 @@ export interface GameState {
   entries: Record<string, number>; // `${day}:${scene}` -> entry count, seeds event rolls
   journal: string;
   dayStartDone: number; // day whose day_start processing has run
+  surveyDay?: number; // day whose end-of-day survey is open; a reload reopens it instead of dropping it
   finished: boolean;
   started: string;
 }

@@ -108,13 +108,15 @@ function parseScenes(r: Reporter, file: string, text: string): Scene[] {
       }
       const a = hs.action ?? {};
       const type = str(a.type);
-      if (!['window', 'news', 'end_day', 'move', 'look'].includes(type)) r.error(file, `${hw}: unknown action type "${type}"`);
+      if (!['window', 'news', 'end_day', 'move', 'look', 'talk'].includes(type)) r.error(file, `${hw}: unknown action type "${type}"`);
+      if (type === 'talk' && !a.npc) r.error(file, `${hw}: talk action needs npc`);
       if (type === 'window' && !['tv', 'work', 'survey'].includes(str(a.module))) r.error(file, `${hw}: unknown module "${a.module}"`);
       hotspots.push({
         id: str(hs.id),
         label: str(hs.label, hs.id),
         zone: { x: z.x, y: z.y, w: z.w, h: z.h },
-        action: { type: type as any, module: a.module, cost: a.cost === undefined ? undefined : num(a.cost, 1), to: a.to, text: a.text },
+        action: { type: type as any, module: a.module, cost: a.cost === undefined ? undefined : num(a.cost, 1), to: a.to, text: a.text, npc: a.npc === undefined ? undefined : str(a.npc) },
+        placeholder: hs.placeholder === true,
       });
     });
     out.push({
@@ -135,6 +137,9 @@ function parseScenes(r: Reporter, file: string, text: string): Scene[] {
       props: (Array.isArray(s.props) ? s.props : [])
         .filter((p: any, j: number) => (p?.asset ? true : (r.error(file, `${where} prop #${j + 1}: missing asset`), false)))
         .map((p: any) => ({ asset: str(p.asset), x: num(p.x, 0), y: num(p.y, 0), w: num(p.w, 0.1) })),
+      painted: s.painted && typeof s.painted === 'object' && s.painted.background
+        ? { background: str(s.painted.background), npcs: (Array.isArray(s.painted.npcs) ? s.painted.npcs : []).map((x: any) => str(x)) }
+        : undefined,
     });
   });
   const ids = new Set(out.map((s) => s.id));

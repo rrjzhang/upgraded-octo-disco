@@ -21,7 +21,8 @@ type Panel =
   | { kind: 'event'; ev: EventRow }
   | { kind: 'text'; title?: string; text: string; rule?: string };
 
-interface Presence { npc: Npc; slot: Slot }
+// slot null = the NPC is painted into the background (scene.painted); no figure is drawn and a `talk` hotspot stands for them
+interface Presence { npc: Npc; slot: Slot | null }
 
 interface OpenWindow {
   module: ModuleId;
@@ -64,6 +65,9 @@ export class Game {
     }
     if (this.s.dayStartDone < this.s.day) this.beginDay();
     else this.render();
+    // The survey window lives only in the DOM; a page reload (dev-server HMR, F5, crash) used to drop it silently
+    // and leave the player at home on the same day. The open survey is persisted, so it comes back.
+    if (this.s.surveyDay === this.s.day) this.endDay();
   }
 
   private beginDay(): void {
@@ -134,8 +138,44 @@ export class Game {
     return this.s.actions <= 0 && this.s.scene !== 'home' && this.scene.background !== 'none';
   }
 
+  /** "1 action" / "2 actions", for aria-label and title. */
+  private costWords(n: number): string {
+    return this.str(n === 1 ? 'ui.cost' : 'ui.costs', { n });
+  }
+
+  /** The visible cost symbol: one amber dot per action, decorative (the accessible name carries the words). */
+  private costDots(n: number): HTMLElement | null {
+    if (n <= 0) return null;
+    const el = h('span', { class: 'cost', 'aria-hidden': 'true' });
+    for (let i = 0; i < n; i++) el.append(h('span', { class: 'cost-dot' }));
+    return el;
+  }
+
+  /** Extra actions a dialogue/event choice spends through an `actions -N` effect. */
+  private choiceCost(effect: string): number {
+    let n = 0;
+    for (const t of effect.split(';')) {
+      const m = /^\s*actions\s+-(\d+)\s*$/.exec(t);
+      if (m) n += +m[1];
+    }
+    return n;
+  }
+
+  /** Out of actions: every destination except home is closed. */
+  private moveBlocked(to: string): boolean {
+    return this.s.actions <= 0 && to !== 'home';
+  }
+
   private inRoster(n: Npc): boolean {
     return n.pack === 'shared' || n.pack === this.s.player.pack;
+  }
+
+  /** The painted background variant applies when its asset exists and every painted NPC is in the roster. */
+  private paintedActive(sc: Scene): boolean {
+    const p = sc.painted;
+    if (!p) return false;
+    if (!assetEntry(this.c.manifest, this.c.manifest.backgrounds, p.background)) return false;
+    return p.npcs.every((id) => { const n = this.c.npcById.get(id); return !!n && this.inRoster(n); });
   }
 
   presentIn(sceneId: string): Presence[] {
@@ -144,6 +184,7 @@ export class Game {
     const rng = seeded(this.s.config.seed, this.s.day, sceneId);
     const used = new Set<string>();
     const out: Presence[] = [];
+    if (this.paintedActive(sc)) for (const id of sc.painted!.npcs) out.push({ npc: this.c.npcById.get(id)!, slot: null });
     for (const n of this.c.npcs) {
       for (const a of n.appearances) {
         if (a.scene !== sceneId) continue;
@@ -173,7 +214,7 @@ export class Game {
   private bgFor(sc: Scene): { url: string; placeholder: boolean; id: string } | null {
     if (sc.background === 'none') return null;
     const m = this.c.manifest.backgrounds;
-    let id = sc.background;
+    let id = this.paintedActive(sc) ? sc.painted!.background : sc.background;
     if (phaseOf(this.s.actions) === 'evening') {
       const eve = id.includes('_day') ? id.replace('_day', '_eve') : `${id}_eve`;
       if (assetEntry(this.c.manifest, m, eve)) id = eve;
@@ -216,6 +257,11 @@ export class Game {
   moveTo(sceneId: string): void {
     if (!this.c.sceneById.has(sceneId)) {
       console.error(`[move] unknown scene "${sceneId}"`);
+      return;
+    }
+    if (this.moveBlocked(sceneId)) {
+      this.panel = { kind: 'idle', note: this.str('ui.tired') };
+      this.render();
       return;
     }
     const from = this.s.scene;
@@ -336,6 +382,8 @@ export class Game {
       return this.render();
     }
     switch (a.type) {
+      case 'talk':
+        return this.talkTo(String(a.npc));
       case 'move':
         appendLog(this.s, { type: 'hotspot', target: hs.id });
         return this.moveTo(String(a.to));
@@ -415,12 +463,20 @@ export class Game {
   }
 
   endDay(): void {
+    if (this.win?.module === 'survey') return; // already open: re-opening would reload the frame and wipe answers
     this.phoneOpen = false;
+    this.s.surveyDay = this.s.day;
+    this.save();
     this.openWindow('survey', { ...this.c.eod, day: this.s.day }, {
       onSubmit: (answers) => {
         appendLog(this.s, { type: 'survey', target: this.c.eod.id, answers });
+        this.s.surveyDay = undefined;
         this.closeWindow(false);
         this.finishDay();
+      },
+      onClose: () => {
+        this.s.surveyDay = undefined;
+        this.save();
       },
     });
   }
@@ -451,7 +507,7 @@ export class Game {
     frame.addEventListener('load', () => {
       frame.contentWindow?.postMessage({
         type: 'init',
-        payload: { day: this.s.day, actions: this.s.actions, wallet: this.s.wallet, condition: this.s.config.nationalLeader, content },
+        payload: { day: this.s.day, actions: this.s.actions, wallet: this.s.wallet, condition: this.s.config.nationalLeader, homeCulture: this.s.player.homeCulture, content },
       }, location.origin);
       frame.focus();
     });
@@ -571,6 +627,7 @@ export class Game {
         h('span', { class: 'tb-day', text: `${this.str('ui.day')} ${s.day} of ${DEMO_DAYS} · ${this.str(`ui.phase.${phase}`)}` }),
         h('span', { class: 'tb-scene', text: this.scene.name })),
       h('div', { class: 'tb-right' },
+        h('span', { class: 'tb-legend', title: this.str('ui.costLegendTitle') }, this.costDots(1), ` = ${this.costWords(1)}`),
         dots,
         h('span', { class: 'tb-wallet', 'aria-label': this.str('ui.wallet'), text: `$${s.wallet}` }),
         h('span', { class: 'tb-room', text: `${this.str('ui.room')} ${s.room}` }),
@@ -594,6 +651,7 @@ export class Game {
     box.replaceChildren();
     box.dataset.lighting = sc.lighting ?? '';
     box.classList.toggle('evening', phaseOf(this.s.actions) === 'evening');
+    box.classList.toggle('is-tired', this.tired());
 
     if (sc.background === 'none') {
       box.append(this.hubCard(sc));
@@ -609,7 +667,8 @@ export class Game {
       box.append(this.flatPanel(sc, bg.id));
     }
 
-    for (const p of sc.props) {
+    // composited props belong to the plain background; a painted variant has them in the image already
+    for (const p of this.paintedActive(sc) ? [] : sc.props) {
       const m = assetEntry(this.c.manifest, this.c.manifest.props, p.asset);
       if (!m?.file) continue;
       const w = p.w * IMG_W;
@@ -622,35 +681,47 @@ export class Game {
     }
 
     const tired = this.tired();
+    const present = this.presentIn(sc.id);
     for (const hs of sc.hotspots) {
       const a = hs.action;
-      const cost = a.cost ?? (a.type === 'window' || a.type === 'news' ? 1 : 0);
-      const disabled = tired || cost > this.s.actions;
-      const costTxt = cost ? ` (${this.str(cost === 1 ? 'ui.cost' : 'ui.costs', { n: cost })})` : '';
+      // a talk zone only exists while its NPC is painted into the current background
+      const talkNpc = a.type === 'talk' ? present.find((p) => p.npc.id === a.npc && p.slot === null)?.npc : undefined;
+      if (a.type === 'talk' && !talkNpc) continue;
+      const cost = a.type === 'talk' ? DIALOGUE_COST : a.cost ?? (a.type === 'window' || a.type === 'news' ? 1 : 0);
+      const blockedMove = a.type === 'move' && this.moveBlocked(String(a.to));
+      const disabled = tired || cost > this.s.actions || blockedMove;
+      const label = talkNpc ? this.str('ui.talkTo', { name: talkNpc.name }) : hs.label;
+      const costTxt = cost ? ` (${this.costWords(cost)})` : blockedMove ? ` (${this.str('ui.tired')})` : '';
+      const speaking = !!talkNpc && ((this.panel.kind === 'dialogue' && this.panel.npc === talkNpc.id) || (this.panel.kind === 'event' && this.panel.ev.npc === talkNpc.id));
       const b = h('button', {
-        class: 'hotspot', 'data-fk': `hs:${hs.id}`, 'aria-label': `${hs.label}${costTxt}`, title: `${hs.label}${costTxt}`,
+        class: `hotspot${hs.placeholder ? ' ph' : ''}${talkNpc ? ' talk' : ''}${speaking ? ' speaking' : ''}`,
+        'data-fk': `hs:${hs.id}`, 'aria-label': `${label}${costTxt}`, title: `${label}${costTxt}`,
         disabled, onclick: () => this.hotspot(hs),
         style: `left:${hs.zone.x * 100}%;top:${hs.zone.y * 100}%;width:${hs.zone.w * 100}%;height:${hs.zone.h * 100}%;`,
-      }, h('span', { class: 'hs-label', text: hs.label }));
+      },
+      hs.placeholder ? h('span', { class: 'ph-mark', text: `${this.str('ui.pendingArt')} · ${hs.label}` }) : null,
+      h('span', { class: 'hs-label' }, label, this.costDots(cost)));
       box.append(b);
     }
 
-    const present = this.presentIn(sc.id).sort((a, b) => a.slot.y - b.slot.y);
-    for (const { npc, slot } of present) {
+    const figures = present.filter((p): p is { npc: Npc; slot: Slot } => p.slot !== null).sort((a, b) => a.slot.y - b.slot.y);
+    for (const { npc, slot } of figures) {
       const fig = this.figureFor(npc);
       const hgt = slot.scale * IMG_H;
       const wid = hgt * fig.aspect;
       const left = slot.x * IMG_W - wid / 2;
       const top = slot.y * IMG_H - hgt;
       const speaking = (this.panel.kind === 'dialogue' && this.panel.npc === npc.id) || (this.panel.kind === 'event' && this.panel.ev.npc === npc.id);
+      const talkLabel = `${this.str('ui.talkTo', { name: npc.name })} (${this.costWords(DIALOGUE_COST)})`;
       const btn = h('button', {
         class: `figure${speaking ? ' speaking' : ''}${npc.seated ? ' seated' : ''}`, 'data-fk': `npc:${npc.id}`,
-        'aria-label': this.str('ui.talkTo', { name: npc.name }) + ` (${this.str('ui.cost', { n: DIALOGUE_COST })})`,
-        title: npc.name, disabled: tired || this.s.actions < DIALOGUE_COST, onclick: () => this.talkTo(npc.id),
+        'aria-label': talkLabel, title: talkLabel,
+        disabled: tired || this.s.actions < DIALOGUE_COST, onclick: () => this.talkTo(npc.id),
         style: `left:${left}px;top:${top}px;width:${wid}px;height:${hgt}px;z-index:${10 + Math.round(slot.y * 100)};`,
       },
       h('span', { class: 'shadow', style: `width:${wid * (npc.seated ? 0.9 : 0.7)}px;height:${Math.max(8, hgt * 0.05)}px;` }),
       h('img', { src: fig.url, alt: '', draggable: 'false' }),
+      h('span', { class: 'fig-label', 'aria-hidden': 'true' }, npc.name, this.costDots(DIALOGUE_COST)),
       fig.placeholder ? this.pendingTag() : null);
       const img = btn.querySelector('img')!;
       img.addEventListener('error', () => { img.src = silhouetteFigure(npc.seated); });
@@ -658,7 +729,7 @@ export class Game {
     }
 
     if (tired) {
-      box.append(h('div', { class: 'tired' },
+      box.append(h('div', { class: 'tired', role: 'alert' },
         h('p', { text: this.str('ui.tired') }),
         h('button', { class: 'btn', 'data-fk': 'gohome', onclick: () => this.moveTo('home'), text: this.str('ui.goHome') })));
     }
@@ -671,10 +742,15 @@ export class Game {
     const list = h('div', { class: 'hub-exits' });
     for (const ex of sc.exits) {
       const dest = this.c.sceneById.get(ex.to);
-      const blocked = this.s.actions <= 0 && ex.to !== 'home' && dest?.background !== 'none';
-      list.append(h('button', { class: 'hub-exit', 'data-fk': `hub:${ex.to}`, onclick: () => this.moveTo(ex.to) },
+      const blocked = this.moveBlocked(ex.to);
+      const name = dest?.name ?? ex.to;
+      list.append(h('button', {
+        class: `hub-exit${blocked ? ' blocked' : ''}`, 'data-fk': `hub:${ex.to}`, disabled: blocked, onclick: () => this.moveTo(ex.to),
+        'aria-label': `${ex.label}, go to ${name}${blocked ? ` (${this.str('ui.tired')})` : ''}`,
+        title: blocked ? this.str('ui.tired') : null,
+      },
         h('span', { class: 'hub-label', text: ex.label }),
-        h('span', { class: 'hub-dest', text: (dest?.name ?? ex.to) + (blocked ? ` · ${this.str('ui.tired')}` : '') })));
+        h('span', { class: 'hub-dest', text: name + (blocked ? ` · ${this.str('ui.tired')}` : '') })));
     }
     return h('div', { class: 'hub' },
       h('div', { class: 'hub-card' },
@@ -688,8 +764,19 @@ export class Game {
     const sc = this.scene;
     const exits = h('div', { class: 'exits' });
     for (const ex of sc.exits) {
-      exits.append(h('button', { class: 'exit', 'data-fk': `exit:${ex.to}`, onclick: () => this.moveTo(ex.to), 'aria-label': `${ex.label}, go to ${this.c.sceneById.get(ex.to)?.name ?? ex.to}` },
+      const blocked = this.moveBlocked(ex.to);
+      const name = this.c.sceneById.get(ex.to)?.name ?? ex.to;
+      exits.append(h('button', {
+        class: `exit${blocked ? ' blocked' : ''}`, 'data-fk': `exit:${ex.to}`, disabled: blocked, onclick: () => this.moveTo(ex.to),
+        'aria-label': `${ex.label}, go to ${name}${blocked ? ` (${this.str('ui.tired')})` : ''}`,
+        title: blocked ? this.str('ui.tired') : null,
+      },
         h('span', { class: 'arrow', 'aria-hidden': 'true', text: '→' }), ex.label));
+    }
+    // out of actions away from home: home stays one click away even when no exit here leads there
+    if (this.s.actions <= 0 && sc.id !== 'home' && !sc.exits.some((ex) => ex.to === 'home')) {
+      exits.append(h('button', { class: 'exit', 'data-fk': 'exit:home', onclick: () => this.moveTo('home') },
+        h('span', { class: 'arrow', 'aria-hidden': 'true', text: '→' }), this.str('ui.goHome')));
     }
     this.strip.replaceChildren(
       h('button', { class: 'phone-btn', 'data-fk': 'phone', 'aria-expanded': String(this.phoneOpen), onclick: () => { this.phoneOpen = !this.phoneOpen; this.renderPhone(); this.renderStrip(); } },
@@ -726,16 +813,14 @@ export class Game {
 
     if (p.kind === 'dialogue') {
       body.append(h('p', { class: 'line', text: this.t(p.row.line) }));
-      p.row.choices.forEach((ch, i) =>
-        choices.append(h('button', { class: 'choice', 'data-fk': `ch:${i}`, onclick: () => this.chooseDialogue(p.row, i), text: this.t(ch.text) })));
+      p.row.choices.forEach((ch, i) => choices.append(this.choiceBtn(i, this.t(ch.text), this.choiceCost(ch.effect), () => this.chooseDialogue(p.row, i))));
       if (!p.row.choices.length) {
         choices.append(h('button', { class: 'choice', 'data-fk': 'ch:cont', onclick: () => { this.panel = { kind: 'idle' }; this.render(); }, text: this.str('ui.continue') }));
       }
       status = `rule ${p.row.id} · ${p.npc} · p${p.row.priority} s${p.row.specificity}${p.tie.length ? ` · TIE with ${p.tie.join(',')}` : ''}`;
     } else if (p.kind === 'event') {
       body.append(h('p', { class: 'line', text: this.t(p.ev.text) }));
-      p.ev.choices.forEach((ch, i) =>
-        choices.append(h('button', { class: 'choice', 'data-fk': `ch:${i}`, onclick: () => this.chooseEvent(p.ev, i), text: this.t(ch.text) })));
+      p.ev.choices.forEach((ch, i) => choices.append(this.choiceBtn(i, this.t(ch.text), this.choiceCost(ch.effect), () => this.chooseEvent(p.ev, i))));
       if (!p.ev.choices.length) {
         choices.append(h('button', { class: 'choice', 'data-fk': 'ch:cont', onclick: () => this.chooseEvent(p.ev, null), text: this.str('ui.continue') }));
       }
@@ -755,6 +840,13 @@ export class Game {
     }
 
     this.right.replaceChildren(portrait, desc, body, choices, h('div', { class: 'status', text: status }));
+  }
+
+  private choiceBtn(i: number, text: string, cost: number, onclick: () => void): HTMLElement {
+    return h('button', {
+      class: 'choice', 'data-fk': `ch:${i}`, onclick,
+      'aria-label': cost ? `${text} (${this.costWords(cost)})` : null, title: cost ? this.costWords(cost) : null,
+    }, text, this.costDots(cost));
   }
 
   private renderPhone(): void {
@@ -852,7 +944,7 @@ export class Game {
       lean: (home: number, us: number) => { this.s.spent.home = home; this.s.spent.us = us; this.save(); this.render(); return leanOf(this.s.spent); },
       goto: (scene: string) => this.moveTo(scene),
       talk: (npc: string) => this.talkTo(npc),
-      present: (scene?: string) => this.presentIn(scene ?? this.s.scene).map((p) => `${p.npc.id}@${p.slot.id}`),
+      present: (scene?: string) => this.presentIn(scene ?? this.s.scene).map((p) => `${p.npc.id}@${p.slot ? p.slot.id : 'painted'}`),
       panel: () => this.panel,
       endDay: () => this.endDay(),
     };

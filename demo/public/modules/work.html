@@ -45,10 +45,10 @@
     clearInterval(timer);
     main.replaceChildren(
       el('p', { className: 'serif', style: 'font-size:20px;max-width:640px', textContent: 'Sort each letter into its district bin by street name. A shift lasts 20 seconds and pays $40 no matter how fast you are.' }),
-      el('p', { className: 'muted', textContent: `One shift costs ${SHIFT_COST} actions.` }),
+      el('p', { className: 'muted' }, 'One shift costs', GV.costDots(SHIFT_COST), el('span', { className: 'sr', textContent: ` ${SHIFT_COST} actions` }), '.'),
       msg ? el('p', { className: 'err', role: 'alert', textContent: msg }) : '',
     );
-    const b = el('button', { className: 'btn', textContent: `Start shift (${SHIFT_COST} actions)` });
+    const b = GV.costLabel(el('button', { className: 'btn' }), 'Start shift', SHIFT_COST);
     b.disabled = st.actions < SHIFT_COST;
     b.onclick = () => { b.disabled = true; pending = 'start'; GV.send({ type: 'spend', actions: SHIFT_COST }); };
     main.append(b);
@@ -107,7 +107,7 @@
   }
 
   function done(sorted, wrong) {
-    const again = el('button', { className: 'btn', textContent: `Another shift (${SHIFT_COST} actions)` });
+    const again = GV.costLabel(el('button', { className: 'btn' }), 'Another shift', SHIFT_COST);
     again.disabled = st.actions < SHIFT_COST;
     again.onclick = () => { again.disabled = true; pending = 'start'; GV.send({ type: 'spend', actions: SHIFT_COST }); };
     main.replaceChildren(

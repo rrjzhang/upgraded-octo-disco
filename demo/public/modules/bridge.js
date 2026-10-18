@@ -15,6 +15,21 @@
   const standalone = { actions: 8, wallet: 0 };
   window.GV = {
     inFrame,
+    /** The cost symbol: one amber dot per action, hidden from assistive tech (pair it with words). */
+    costDots(n) {
+      const dots = document.createElement('span');
+      dots.className = 'cost'; dots.setAttribute('aria-hidden', 'true');
+      for (let i = 0; i < n; i++) { const d = document.createElement('span'); d.className = 'cost-dot'; dots.append(d); }
+      return dots;
+    },
+    /** Fills a button with its label plus the cost dots; the accessible name keeps the cost in words. */
+    costLabel(btn, label, n) {
+      btn.replaceChildren(label, GV.costDots(n));
+      const words = `${n} action${n === 1 ? '' : 's'}`;
+      btn.setAttribute('aria-label', `${label} (${words})`);
+      btn.title = words;
+      return btn;
+    },
     on(type, f) { listeners[type].push(f); },
     send(msg) {
       if (inFrame) { window.parent.postMessage(msg, location.origin); return; }

@@ -28,8 +28,8 @@ export const DEFAULT_STRINGS: Record<string, string> = {
   'ui.phone.callLocked': 'Calls open at bedtime, when you have no actions left.',
   'ui.phone.callHome': 'Call family and end the day',
   'ui.phone.balance': 'Balance',
-  'ui.pendingArt': 'art pending',
-  'ui.pendingBg': 'Background art pending',
+  'ui.pendingArt': 'PLACEHOLDER',
+  'ui.pendingBg': 'PLACEHOLDER background',
   'ui.packBanner': 'The {culture} pack is not in this demo. You will meet the China roster instead.',
   'ui.end.title': 'Thank you',
   'ui.end.body': 'You have finished five days. Please let the researcher know you are done.',
@@ -37,6 +37,7 @@ export const DEFAULT_STRINGS: Record<string, string> = {
   'ui.street': 'Where to?',
   'ui.cost': '{n} action',
   'ui.costs': '{n} actions',
+  'ui.costLegendTitle': 'Each amber dot next to something you can do is one action it costs.',
   'ui.newsTitle': 'Newspaper',
   'ui.noNews': 'Nothing new in the paper today.',
 };

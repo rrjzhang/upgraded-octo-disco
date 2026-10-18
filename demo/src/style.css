@@ -44,6 +44,12 @@ button { font-family: inherit; }
 .dots { display: inline-flex; gap: 6px; }
 .dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #b9b0a0; }
 .dot.on { background: var(--amber); border-color: var(--amber); }
+/* action cost symbol: one amber dot per action, same amber as the top-bar action dots */
+.cost { display: inline-flex; gap: 3px; margin-left: 6px; vertical-align: middle; flex: none; }
+.cost-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 0 1px rgba(31,29,26,.35); }
+.tb-legend { display: inline-flex; align-items: center; font-size: 12px; color: #d8d1c2; white-space: nowrap; }
+.tb-legend .cost { margin: 0 4px 0 0; }
+.choice .cost { margin-left: 8px; }
 .tb-wallet { font-weight: 600; min-width: 48px; }
 .tb-room { color: #d8d1c2; font-family: ui-monospace, Menlo, monospace; }
 .tb-fx { background: #a3271f; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
@@ -72,7 +78,13 @@ button { font-family: inherit; }
   position: absolute; left: 0; top: -26px; white-space: nowrap; background: var(--ink); color: var(--panel);
   font-size: 12px; padding: 3px 8px; border-radius: 4px; opacity: 0; pointer-events: none; transition: opacity .12s;
 }
+.hs-label, .fig-label { display: inline-flex; align-items: center; }
 .hotspot:hover .hs-label, .hotspot:focus-visible .hs-label, .scene-box.reveal .hs-label { opacity: 1; }
+.fig-label {
+  position: absolute; left: 50%; top: 22px; transform: translateX(-50%); white-space: nowrap; background: var(--ink); color: var(--panel);
+  font-size: 12px; padding: 3px 8px; border-radius: 4px; opacity: 0; pointer-events: none; transition: opacity .12s; z-index: 1;
+}
+.figure:hover:not(:disabled) .fig-label, .figure:focus-visible .fig-label, .scene-box.reveal .fig-label { opacity: 1; }
 
 .figure { position: absolute; background: none; border: 0; padding: 0; cursor: pointer; }
 .figure img { position: relative; width: 100%; height: 100%; object-fit: contain; object-position: bottom; display: block; transition: filter .12s; }
@@ -88,16 +100,28 @@ button { font-family: inherit; }
 .scene-box.evening[data-lighting="outdoor"] .figure img { filter: brightness(.8) saturate(.9); }
 
 .pending {
-  position: absolute; right: 6px; top: 6px; z-index: 30; font: 500 10px var(--ui); letter-spacing: .03em;
-  background: rgba(31,29,26,.75); color: #f4f1ea; padding: 2px 6px; border-radius: 3px; pointer-events: none;
+  position: absolute; right: 6px; top: 6px; z-index: 30; font: 600 10px var(--ui); letter-spacing: .12em; text-transform: uppercase;
+  background: rgba(31,29,26,.72); color: var(--amber); padding: 2px 7px; border-radius: 3px; pointer-events: none;
 }
+/* a hotspot whose art is not in the background yet: always-visible dashed box with the word PLACEHOLDER */
+.hotspot.ph { border-color: rgba(217,164,65,.7); background: repeating-linear-gradient(135deg, rgba(31,29,26,.28) 0 10px, rgba(31,29,26,.16) 10px 20px); }
+.hotspot.ph .ph-mark {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); white-space: nowrap; max-width: 95%; overflow: hidden; text-overflow: ellipsis;
+  font: 600 10px var(--ui); letter-spacing: .12em; text-transform: uppercase; color: var(--amber); background: rgba(31,29,26,.72); padding: 3px 8px; border-radius: 3px;
+}
+/* a person painted into the background: hover outline follows the figure rules, not the amber prop box */
+.hotspot.talk { border-radius: 40% 40% 12px 12px / 30% 30% 12px 12px; }
+.hotspot.talk:hover:not(:disabled), .hotspot.talk:focus-visible, .hotspot.talk.speaking { border-color: var(--accent); background: rgba(31,111,107,.10); }
+.scene-box.reveal .hotspot.talk { border-color: var(--accent); }
 .figure .pending { right: 0; top: 0; }
 
 .tired {
-  position: absolute; inset: 0; z-index: 50; background: rgba(31,29,26,.62); color: var(--panel);
+  position: absolute; inset: 0; z-index: 1000; background: rgba(31,29,26,.62); color: var(--panel);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; font-size: 24px;
 }
 .tired p { margin: 0; }
+/* out of actions: figures (z 10 + slot y) and hotspots must not sit above or swallow clicks meant for the overlay */
+.scene-box.is-tired .hotspot, .scene-box.is-tired .figure { pointer-events: none; }
 .banner {
   position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 40; background: rgba(244,241,234,.95);
   border-left: 4px solid var(--amber); padding: 8px 12px; font-size: 14px; border-radius: 4px;
@@ -113,7 +137,8 @@ button { font-family: inherit; }
   display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-radius: 8px;
   border: 1.5px solid #cfc7b6; background: #fff; font-size: 17px; cursor: pointer; color: var(--ink); text-align: left;
 }
-.hub-exit:hover { border-color: var(--accent); }
+.hub-exit:hover:not(:disabled) { border-color: var(--accent); }
+.hub-exit:disabled { background: #ece7dc; color: var(--muted); border-style: dashed; cursor: not-allowed; }
 .hub-dest { color: var(--muted); font-size: 14px; }
 
 .strip { flex: 1; min-height: 188px; display: flex; align-items: center; gap: 16px; padding: 0 20px; background: #2f2b26; }
@@ -127,7 +152,9 @@ button { font-family: inherit; }
   display: flex; align-items: center; gap: 10px; padding: 12px 18px; background: var(--panel); color: var(--ink);
   border: 0; border-radius: 8px; font-size: 16px; cursor: pointer;
 }
-.exit:hover { background: #fff; }
+.exit:hover:not(:disabled) { background: #fff; }
+.exit:disabled { background: #4a453e; color: #a59d8f; cursor: not-allowed; }
+.exit:disabled .arrow { color: #8f8676; }
 .arrow { color: var(--accent); font-weight: 600; }
 .reveal-btn {
   flex: none; align-self: flex-end; margin-bottom: 16px; background: transparent; color: #e8e2d4; border: 1px solid #8f8676;

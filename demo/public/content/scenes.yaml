@@ -35,7 +35,7 @@ scenes:
         zone: { x: 0.89, y: 0.12, w: 0.08, h: 0.46 }
         action: { type: end_day }
     slots:
-      - { id: near, x: 0.80, y: 1.0, scale: 0.92 }      # a visitor standing just inside the room, conversational distance
+      - { id: near, x: 0.66, y: 1.0, scale: 0.92 }      # a visitor standing in the room, conversational distance (clear of the bedroom door zone)
       - { id: by_hall, x: 0.84, y: 0.80, scale: 0.62 }
       - { id: by_sofa, x: 0.30, y: 0.86, scale: 0.64 }
 

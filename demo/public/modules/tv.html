@@ -21,7 +21,7 @@
   <header><h1>Channel 4 Evening News</h1><span class="meta" id="meta"></span></header>
   <main id="main"><p class="muted">Tuning in…</p></main>
   <footer>
-    <button class="btn" id="more" hidden>Keep watching (1 action)</button>
+    <button class="btn" id="more" hidden>Keep watching</button>
     <button class="btn ghost" id="close">Turn off</button>
   </footer>
 </div>
@@ -29,6 +29,7 @@
 <script>
   let p = null, idx = 0, st = { actions: 0, wallet: 0 }, waiting = false;
   const main = document.getElementById('main'), more = document.getElementById('more'), meta = document.getElementById('meta');
+  GV.costLabel(more, 'Keep watching', 1);
   const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, attrs); kids.forEach((k) => e.append(k)); return e; };
   document.getElementById('close').onclick = () => GV.send({ type: 'close' });
   more.onclick = () => {
@@ -45,11 +46,11 @@
     const screen = el('div', { className: 'screen' });
     if (s.image) {
       const img = el('img', { src: s.image, alt: `${p.content.leaderName || 'The President'} on screen` });
-      img.onerror = () => img.replaceWith(el('span', { textContent: '[news still pending]' }));
+      img.onerror = () => img.replaceWith(el('span', { textContent: 'PLACEHOLDER' }));
       screen.append(img);
-    } else screen.append(el('span', { textContent: '[news still pending]' }));
+    } else screen.append(el('span', { textContent: 'PLACEHOLDER' }));
     screen.append(el('span', { className: 'live', textContent: 'LIVE' }), el('div', { className: 'ticker', textContent: s.headline }));
-    if (p.content.placeholder) screen.append(el('span', { className: 'pending', textContent: 'art pending' }));
+    if (p.content.placeholder) screen.append(el('span', { className: 'pending', textContent: 'PLACEHOLDER' }));
     main.replaceChildren(screen, el('div', {},
       el('div', { className: 'count', textContent: `Story ${idx + 1} of ${stories.length}` }),
       el('h2', { textContent: s.headline }),
