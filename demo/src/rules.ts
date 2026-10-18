@@ -8,6 +8,8 @@ export const DAY_ACTIONS = 8;
 export const START_WALLET = 1000;
 export const DEMO_DAYS = 5;
 export const DIALOGUE_COST = 1;
+/** A conversation whose opening row has depth below this is free (SPEC "Short conversations are free"). */
+export const FREE_DEPTH = 3;
 
 export function phaseOf(actions: number): Phase {
   if (actions >= 6) return 'morning';
@@ -178,4 +180,30 @@ export function eventMatches(ev: EventRow, c: EventCtx): boolean {
   if (ev.playerLean && !ev.playerLean.split('|').map((x) => x.trim()).includes(c.lean)) return false;
   if (ev.nationalLeader && !ev.nationalLeader.split('|').map((x) => x.trim()).includes(c.leader)) return false;
   return true;
+}
+
+/**
+ * depth(row) = 1 + max depth of the rows its choices' `next` point to (1 when no choice has a next).
+ * A cycle counts as depth FREE_DEPTH (3), so a looping conversation is never free. Results are capped at 3,
+ * which is all the cost rule needs. `cache` (keyed by row id) may be shared across calls on the same sheet.
+ */
+export function rowDepth(rows: DialogueRow[], row: DialogueRow, cache: Map<string, number> = new Map()): number {
+  const byId = new Map(rows.map((r) => [r.id, r]));
+  const stack = new Set<string>();
+  const visit = (r: DialogueRow): number => {
+    const hit = cache.get(r.id);
+    if (hit !== undefined) return hit;
+    if (stack.has(r.id)) return FREE_DEPTH; // back edge: a cycle
+    stack.add(r.id);
+    let deepest = 0;
+    for (const c of r.choices) {
+      const nx = c.next ? byId.get(c.next) : undefined;
+      if (nx) deepest = Math.max(deepest, visit(nx));
+    }
+    stack.delete(r.id);
+    const d = Math.min(FREE_DEPTH, 1 + deepest);
+    cache.set(r.id, d);
+    return d;
+  };
+  return visit(row);
 }

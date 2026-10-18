@@ -12,10 +12,23 @@ npm run dev          # http://localhost:5173
 
 - `/?dev=1` drops straight into day 1 at home (room `DEV1`, enforcement condition). Add `&reset=1` to wipe the save (the flag is then dropped from the address so a reload resumes), `&leader=inclusive`, `&culture=mx|in`, `&name=Alex`, `&eod=<url>` to load the end-of-day questionnaire from a URL (logged as `source: "room"`).
 - `/` is the participant entry: room code and password, then character setup.
-- `/researcher.html` creates rooms (randomised parameters, every field editable), lists rooms on this computer with their day reached, and exports a room's action log as JSON lines.
+- `/researcher.html` creates rooms (randomised parameters, every field editable), lists rooms on this computer with their day reached, exports a room's action log as JSON lines, and has the "Show debugging aids" switch.
 - `/?fixtures=1` loads a tiny built-in test world instead of the real content.
 
-In dev mode `window.gv` exposes helpers: `gv.goto('library')`, `gv.talk('us_neighbor')`, `gv.set('cn_leader_sep','rapport',2)`, `gv.lean(8,1)`, `gv.actions(0)`, `gv.endDay()`, `gv.present()`.
+In dev mode `window.gv` exposes helpers: `gv.goto('library')`, `gv.talk('us_neighbor')`, `gv.set('cn_leader_sep','rapport',2)`, `gv.lean(8,1)`, `gv.actions(0)`, `gv.endDay()`, `gv.present()`, `gv.cost('us_neighbor')` (0 = a short, free conversation), `gv.order('DN01')` (today's choice order), `gv.override()` (what the researcher override changed), `gv.place('cn_leader_sep','near')` (in memory only, never saved).
+
+### Researcher edits (overrides)
+
+`/editor.html` saves edits without a rebuild: text in `localStorage['gv:override:v1']` (`{ v:1, updated, dialogue:{<npcId>:<csv>}, news, events, npcs, scenes }`, each key optional and replacing that whole file) and images in IndexedDB `gv` / `images` under `portraits/<npcId>/<neutral|warm|guarded|worried>`, `figures/<figure asset id>`, `backgrounds/<bg id>`, `tv/<nat_enforcement|nat_inclusive>/<index>`, `cast/<castId>/<bust|tv>`. The game parses an override with the same parser and validation as the bundled file; a file that fails validation is skipped (console warning, the bundled file is used) and the "edited content" chip in the top bar turns red with the problem in its tooltip. The chip shows whenever an override is active. `&nooverride=1` loads the bundled files only. Overrides are per browser.
+
+### Rules added 2026-10-18
+
+- Choices are shown in a deterministic shuffled order per (room seed, row id, day); log lines keep `choice` = authored index and add `shown` = displayed position.
+- A conversation whose opening row has depth < 3 over the `next` chain (a cycle counts as 3) is free: no cost dot, 0 actions. Talking still needs at least one action left in the day.
+- NPC presence rolls are per (room seed, day, scene, NPC id, slot), so editing or reordering `npcs.yaml` never moves anyone else; when two people roll into one slot the lower roll wins.
+- An event from someone who is not in the scene is labelled by how it arrives ("Invitation from Dr. Helen Zhou", "Call from …"). An event on screen and the ones queued behind it survive a reload.
+- Cast (authority figures): `news.csv` `figure` and `events.csv` `portrait` name a cast id (`content/cast.yaml`). TV shows that person's still, print news shows the bust beside the headline, an event shows the bust in the portrait panel; without art each shows PLACEHOLDER.
+- Debugging aids (Show interactables and H, the rule/lean/phase line, rapport and valence in Contacts, figure guides) are off unless the researcher page's "Show debugging aids" switch is on (`localStorage['gv:settings'].debug`) or the URL has `?dev=1`.
 
 ## Check the content
 
@@ -32,7 +45,7 @@ Validates every sheet against the schema in `SPEC.md`, enumerates all 432 parame
 npm run assets       # node tools/assets/build.mjs
 ```
 
-Regenerates `public/assets/**` and `manifest.json` from `../image_generation/out/`. Characters without generated art get silhouette placeholders and are tagged "art pending" in the game. See `tools/assets/README.md` for the mapping.
+Regenerates `public/assets/**` and `manifest.json` from `../image_generation/out/`. Characters without generated art get silhouette placeholders and are tagged "art pending" in the game. Cast members (authority figures listed in `public/content/cast.yaml`) get `manifest.cast[<id>] = { name, role, bust, tv, ref }` from `cast_<id>_{ref,bust,tv}_A.png`. See `tools/assets/README.md` for the mapping.
 
 ## Where things live
 

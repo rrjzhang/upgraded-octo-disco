@@ -9,6 +9,7 @@ import os from 'node:os';
 import zlib from 'node:zlib';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { load as loadYaml } from 'js-yaml';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEMO = path.resolve(HERE, '..', '..');
@@ -54,6 +55,14 @@ const PLACEHOLDER_FIGURES = {
   ch_us_leader_seg_fig_stand: 'stand', ch_cn_stranger_b_fig_stand: 'stand', ch_cn_leader_int_fig_stand: 'stand',
 };
 const PROPS = ['prop_tv_A', 'prop_chessboard_A'];
+// Cast: authority figures named by news.csv `figure` and events.csv `portrait` (SPEC "Cast").
+// Sources: image_generation/out/cast_<id>_ref_A.png, cast_<id>_bust_A.png (1:1, transparent), cast_<id>_tv_A.png (16:9).
+// The content agent owns the names: public/content/cast.yaml (a list of { id, name, role }, or { cast: [...] }) is read
+// first and wins. This table is only the fallback; ids starting with "_" are examples and are skipped. Any
+// cast_<id>_*_A.png in the source folder also gets an entry (name = id) so new art shows up without editing this file.
+const CAST = {
+  _example_governor: { name: 'Governor Example', role: 'State governor' }, // example entry: copy without the leading _
+};
 const PORTRAIT = 640, FIG_H = 700, PROP_W = 600, BG_W = 1536, TV_W = 1280;
 
 // ---------------------------------------------------------------- PNG codec
@@ -305,9 +314,65 @@ if (exists('ch_nat_multi_tv_1_A')) {
   manifest.tvMeta = { ...(manifest.tvMeta || {}), nat_inclusive: { placeholder: false, ...dims(dest) } };
 }
 
+// ---------------------------------------------------------------- cast
+{
+  const table = Object.fromEntries(Object.entries(CAST).filter(([id]) => !id.startsWith('_')));
+  const castYaml = path.join(DEMO, 'public', 'content', 'cast.yaml');
+  if (fs.existsSync(castYaml)) {
+    try {
+      const doc = loadYaml(fs.readFileSync(castYaml, 'utf8'));
+      const list = Array.isArray(doc) ? doc : Array.isArray(doc?.cast) ? doc.cast : [];
+      for (const e of list) if (e?.id) table[String(e.id)] = { ...(table[e.id] ?? {}), name: e.name ?? table[e.id]?.name, role: e.role ?? table[e.id]?.role };
+    } catch (e) { warn.push(`public/content/cast.yaml: ${e.message}`); }
+  }
+  for (const f of fs.existsSync(SRC) ? fs.readdirSync(SRC) : []) {
+    const m = /^cast_(.+)_(ref|bust|tv)_A\.png$/.exec(f);
+    if (m && !table[m[1]] && !table[`cast_${m[1]}`]) table[m[1]] = {};
+  }
+  manifest.cast = {};
+  for (const [id, meta] of Object.entries(table)) {
+    const entry = { name: meta.name ?? id, role: meta.role ?? '', bust: null, tv: null, ref: null, placeholder: false, fromReference: false, sources: [] };
+    // SPEC names the files cast_<id>_<kind>_A.png; cast.yaml ids already carry the prefix (cast_governor), so a
+    // cast_governor_bust_A.png serves id cast_governor (and cast_cast_governor_bust_A.png would too)
+    const srcFor = (kind) => [`cast_${id}_${kind}_A`, `${id}_${kind}_A`].find(exists) ?? `cast_${id}_${kind}_A`;
+    const refId = srcFor('ref'), bustId = srcFor('bust'), tvId = srcFor('tv');
+    if (exists(refId)) {
+      const dest = out('cast', `${id}_ref.jpg`);
+      sips('-s', 'format', 'jpeg', '-s', 'formatOptions', '85', '--resampleWidth', '1024', src(refId), '--out', dest);
+      entry.ref = rel(dest); entry.sources.push(refId);
+    }
+    if (exists(bustId)) {
+      const dest = out('cast', `${id}_bust.png`), d0 = dims(src(bustId));
+      if (d0.w !== d0.h) {
+        // same square crop as the Round 3 busts: image-width square anchored just above the subject's alpha box
+        const img = decodePNG(src(bustId)), b = alphaBBox(img, 8, 0);
+        const side = Math.min(img.w, img.h), y = Math.max(0, Math.min(img.h - side, b.y - Math.round(side * 0.04)));
+        const x = Math.max(0, Math.min(img.w - side, Math.round(b.x + b.w / 2 - side / 2)));
+        const t = tmp(); encodePNG(crop(img, x, y, side, side), t, true);
+        sips('-z', String(PORTRAIT), String(PORTRAIT), t, '--out', dest);
+      } else sips('-z', String(PORTRAIT), String(PORTRAIT), src(bustId), '--out', dest);
+      entry.bust = rel(dest); entry.sources.push(bustId);
+    } else if (exists(refId)) {
+      const img = decodePNG(src(refId)), b = referenceBustBox(img), t = tmp(), dest = out('cast', `${id}_bust.png`);
+      encodePNG(crop(img, b.x, b.y, b.w, b.h), t, false);
+      sips('-z', String(PORTRAIT), String(PORTRAIT), t, '--out', dest);
+      entry.bust = rel(dest); entry.fromReference = true;
+    }
+    if (exists(tvId)) {
+      // like the president's still: JPEG q85, 1280 wide
+      const dest = out('cast', `${id}_tv.jpg`);
+      sips('-s', 'format', 'jpeg', '-s', 'formatOptions', '85', '--resampleWidth', String(TV_W), src(tvId), '--out', dest);
+      entry.tv = rel(dest); entry.sources.push(tvId);
+    }
+    // referenced but no art yet: the engine shows a silhouette / the leader's still with the word PLACEHOLDER
+    if (!entry.bust && !entry.tv) { entry.placeholder = true; warn.push(`cast ${id}: no ${id.startsWith('cast_') ? id : `cast_${id}`}_{ref,bust,tv}_A.png yet (placeholder)`); }
+    manifest.cast[id] = entry;
+  }
+}
+
 fs.writeFileSync(path.join(OUT, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
 fs.rmSync(TMP, { recursive: true, force: true });
 const c = o => Object.keys(o).length;
 console.log(`assets -> ${OUT}`);
-console.log(`backgrounds ${c(manifest.backgrounds)}, portraits ${c(manifest.portraits)}, figures ${c(manifest.figures)}, props ${c(manifest.props)}, tv ${c(manifest.tv)}`);
+console.log(`backgrounds ${c(manifest.backgrounds)}, portraits ${c(manifest.portraits)}, figures ${c(manifest.figures)}, props ${c(manifest.props)}, tv ${c(manifest.tv)}, cast ${c(manifest.cast)}`);
 for (const w of warn) console.warn('WARN', w);

@@ -1,7 +1,24 @@
 /** localStorage-backed rooms, game state and the append-only action log. */
 import type { Content, GameState, PlayerInfo, RoomConfig } from './types';
 import { DAY_ACTIONS, START_WALLET, leanOf } from './rules';
-import { isoNow, lsGet, lsSet } from './util';
+import { isDev, isoNow, lsGet, lsSet } from './util';
+
+/** Per-browser settings, written by the researcher page (SPEC "Debug toggle"). */
+export const SETTINGS_KEY = 'gv:settings';
+export interface Settings { debug?: boolean }
+export function getSettings(): Settings {
+  const s = lsGet<Settings | null>(SETTINGS_KEY, null);
+  return s && typeof s === 'object' ? s : {};
+}
+export function saveSettings(patch: Settings): Settings {
+  const next = { ...getSettings(), ...patch };
+  lsSet(SETTINGS_KEY, next);
+  return next;
+}
+/** Debugging aids are on with ?dev=1 (forced for that tab) or when the researcher switched them on; off by default. */
+export function debugEnabled(): boolean {
+  return isDev || getSettings().debug === true;
+}
 
 export const roomKey = (code: string) => `gv:room:${code}`;
 export const stateKey = (code: string) => `gv:state:${code}`;

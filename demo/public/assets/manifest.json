@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-18T04:45:53.418Z",
+  "generated": "2026-10-18T05:19:51.299Z",
   "source": "image_generation/out (_A set)",
   "backgrounds": {
     "bg_home_day": {
@@ -431,6 +431,108 @@
       "placeholder": false,
       "w": 1280,
       "h": 853
+    }
+  },
+  "cast": {
+    "cast_president_inclusive": {
+      "name": "President Lena Ortiz",
+      "role": "President of the United States (inclusive condition)",
+      "bust": null,
+      "tv": null,
+      "ref": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
+    },
+    "cast_governor": {
+      "name": "Governor Dale Whitaker",
+      "role": "State governor",
+      "bust": null,
+      "tv": null,
+      "ref": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
+    },
+    "cast_judge_ramos": {
+      "name": "Judge Daniel Ramos",
+      "role": "Federal district judge",
+      "bust": null,
+      "tv": null,
+      "ref": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
+    },
+    "cast_mayor": {
+      "name": "Mayor Denise Caldwell",
+      "role": "Mayor",
+      "bust": null,
+      "tv": null,
+      "ref": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
+    },
+    "cast_police_chief": {
+      "name": "Chief Ray Kowalski",
+      "role": "Police chief",
+      "bust": null,
+      "tv": null,
+      "ref": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
+    },
+    "cast_principal": {
+      "name": "Principal Karen Novak",
+      "role": "Principal, PS 21",
+      "bust": null,
+      "tv": null,
+      "ref": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
+    },
+    "cast_clinic_director": {
+      "name": "Dr. Nadia Haddad",
+      "role": "Director, Fifth Street Clinic",
+      "bust": null,
+      "tv": null,
+      "ref": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
+    },
+    "cast_agency_spokesperson": {
+      "name": "Craig Mullins",
+      "role": "Spokesperson, federal immigration agency",
+      "bust": null,
+      "tv": null,
+      "ref": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
+    },
+    "cast_council_member": {
+      "name": "Councilmember Kevin Tran",
+      "role": "City council member, Fifth Street district",
+      "bust": null,
+      "tv": null,
+      "ref": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
+    },
+    "cast_anchor": {
+      "name": "Jasmine Porter",
+      "role": "Local TV news anchor",
+      "bust": null,
+      "tv": null,
+      "ref": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
     }
   }
 }

@@ -3,6 +3,7 @@ import { load as loadYaml } from 'js-yaml';
 import Papa from 'papaparse';
 import type {
   Content, DialogueRow, Emotion, EventRow, Manifest, NewsRow, Npc, Questionnaire, Scene, Slot, Hotspot, CondField,
+  CastInfo, OverrideInfo,
 } from './types';
 import { COND_FIELDS } from './types';
 import { DEFAULT_STRINGS } from './strings';
@@ -23,6 +24,14 @@ export const EVENT_COLUMNS = [
   'nationalLeader', 'chance', 'cost', 'emotion', 'text', 'choice1', 'effect1', 'choice2', 'effect2',
 ];
 export const NEWS_COLUMNS = ['id', 'channel', 'nationalLeader', 'dayMin', 'valence', 'headline', 'body'];
+/** Optional columns (SPEC "Cast"): a cast id; blank or absent = unchanged behaviour. */
+export const EVENT_OPTIONAL_COLUMNS = ['portrait'];
+export const NEWS_OPTIONAL_COLUMNS = ['figure'];
+/** localStorage key of the researcher's text override (written by /editor.html). */
+export const OVERRIDE_KEY = 'gv:override:v1';
+/** IndexedDB database / object store of the researcher's image overrides. */
+export const OVERRIDE_DB = 'gv';
+export const OVERRIDE_STORE = 'images';
 const EMOTIONS: Emotion[] = ['neutral', 'warm', 'guarded', 'worried'];
 
 export function liveSource(): Source {
@@ -50,13 +59,15 @@ export function liveSource(): Source {
 
 class Reporter {
   errors: string[] = [];
+  /** quiet: collect errors without logging them (an override candidate; the caller warns once and falls back). */
+  constructor(private quiet = false) {}
   error(file: string, msg: string) {
     const m = `[content] ${file}: ${msg}`;
     this.errors.push(m);
-    console.error(m);
+    if (!this.quiet) console.error(m);
   }
   warn(file: string, msg: string) {
-    console.warn(`[content] ${file}: ${msg}`);
+    if (!this.quiet) console.warn(`[content] ${file}: ${msg}`);
   }
 }
 
@@ -68,11 +79,11 @@ const num = (v: unknown, d: number): number => {
   return Number.isFinite(n) ? n : d;
 };
 
-function parseCsv(r: Reporter, file: string, text: string, columns: string[]): Record<string, string>[] {
+function parseCsv(r: Reporter, file: string, text: string, columns: string[], optional: string[] = []): Record<string, string>[] {
   const res = Papa.parse<Record<string, string>>(text, { header: true, skipEmptyLines: 'greedy' });
   for (const e of res.errors) r.error(file, `CSV parse error at row ${(e.row ?? 0) + 2}: ${e.message}`);
   const fields = (res.meta.fields ?? []).map((f) => f.trim());
-  const unknown = fields.filter((f) => !columns.includes(f));
+  const unknown = fields.filter((f) => !columns.includes(f) && !optional.includes(f));
   const missing = columns.filter((c) => !fields.includes(c));
   if (unknown.length) r.error(file, `unknown column(s): ${unknown.join(', ')}`);
   if (missing.length) r.error(file, `missing column(s): ${missing.join(', ')}`);
@@ -265,7 +276,7 @@ function parseDialogue(r: Reporter, npcId: string, file: string, text: string): 
 }
 
 function parseEvents(r: Reporter, file: string, text: string, scenes: Map<string, Scene>, npcs: Map<string, Npc>): EventRow[] {
-  const rows = parseCsv(r, file, text, EVENT_COLUMNS);
+  const rows = parseCsv(r, file, text, EVENT_COLUMNS, EVENT_OPTIONAL_COLUMNS);
   const out: EventRow[] = [];
   rows.forEach((row, i) => {
     const rowNum = i + 2;
@@ -291,7 +302,7 @@ function parseEvents(r: Reporter, file: string, text: string, scenes: Map<string
       playerLean: row.playerLean, nationalLeader: row.nationalLeader,
       chance: num(row.chance, 1), cost: num(row.cost, 0),
       emotion: EMOTIONS.includes(emotion) ? emotion : 'neutral',
-      text: row.text, choices, rowNum,
+      text: row.text, choices, rowNum, portrait: row.portrait ?? '',
     });
   });
   const ids = new Set(out.map((e) => e.id));
@@ -303,14 +314,14 @@ function parseEvents(r: Reporter, file: string, text: string, scenes: Map<string
 }
 
 function parseNews(r: Reporter, file: string, text: string): NewsRow[] {
-  return parseCsv(r, file, text, NEWS_COLUMNS).flatMap((row, i) => {
+  return parseCsv(r, file, text, NEWS_COLUMNS, NEWS_OPTIONAL_COLUMNS).flatMap((row, i) => {
     const where = `row ${i + 2}${row.id ? ` (${row.id})` : ''}`;
     if (!row.id) return r.error(file, `${where}: missing id`), [];
     if (!['tv', 'print'].includes(row.channel)) r.error(file, `${where}: channel must be tv|print`);
     return [{
       id: row.id, channel: (row.channel === 'print' ? 'print' : 'tv') as NewsRow['channel'],
       nationalLeader: row.nationalLeader, dayMin: num(row.dayMin, 1), valence: row.valence,
-      headline: row.headline, body: row.body,
+      headline: row.headline, body: row.body, figure: row.figure ?? '',
     }];
   });
 }
@@ -351,7 +362,100 @@ function emptyManifest(): Manifest {
   return { backgrounds: {}, portraits: {}, figures: {}, props: {}, tv: {}, candidates: {} };
 }
 
-export async function loadContent(src: Source): Promise<Content> {
+// ------------------------------------------------------------------ researcher overrides (SPEC "Researcher editing, overrides and casting")
+/** Shape of localStorage['gv:override:v1']; every key optional, a present key replaces that whole file. */
+export interface OverrideText {
+  v: 1;
+  updated?: string;
+  dialogue?: Record<string, string>;
+  news?: string;
+  events?: string;
+  npcs?: string;
+  scenes?: string;
+}
+
+function readOverrideText(): OverrideText | null {
+  let raw: string | null = null;
+  try { raw = localStorage.getItem(OVERRIDE_KEY); } catch { return null; }
+  if (!raw) return null;
+  try {
+    const o = JSON.parse(raw);
+    if (!o || typeof o !== 'object' || Array.isArray(o)) throw new Error('not a JSON object');
+    if (o.v !== 1) throw new Error(`unsupported version ${JSON.stringify(o.v)} (expected 1)`);
+    return o as OverrideText;
+  } catch (e) {
+    console.warn(`[override] ${OVERRIDE_KEY} ignored: ${(e as Error).message}`);
+    return null;
+  }
+}
+
+/**
+ * Reads every image override from IndexedDB gv/images and makes an object URL for each. Never creates the
+ * database: if it does not exist yet the upgrade is aborted, so the editor's own first open still creates its store.
+ */
+export function loadImageOverrides(timeoutMs = 2000): Promise<Map<string, { url: string; w?: number; h?: number }>> {
+  const out = new Map<string, { url: string; w?: number; h?: number }>();
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = () => { if (!done) { done = true; resolve(out); } };
+    const timer = setTimeout(() => { console.warn('[override] image store did not answer in time; images not overridden'); finish(); }, timeoutMs);
+    const end = () => { clearTimeout(timer); finish(); };
+    let req: IDBOpenDBRequest;
+    try { req = indexedDB.open(OVERRIDE_DB); } catch { return end(); }
+    req.onupgradeneeded = (e) => {
+      if ((e as IDBVersionChangeEvent).oldVersion === 0) req.transaction?.abort(); // no database yet: leave it to the editor
+    };
+    req.onerror = (e) => { e.preventDefault(); end(); };
+    req.onblocked = () => end();
+    req.onsuccess = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(OVERRIDE_STORE)) { db.close(); return end(); }
+      try {
+        const st = db.transaction(OVERRIDE_STORE, 'readonly').objectStore(OVERRIDE_STORE);
+        const cur = st.openCursor();
+        cur.onsuccess = () => {
+          const c = cur.result;
+          if (!c) { db.close(); return end(); }
+          const v = c.value as { blob?: Blob; w?: number; h?: number } | Blob | undefined;
+          const blob = v instanceof Blob ? v : v?.blob;
+          if (typeof c.key === 'string' && blob instanceof Blob) {
+            out.set(c.key, { url: URL.createObjectURL(blob), w: v instanceof Blob ? undefined : v?.w, h: v instanceof Blob ? undefined : v?.h });
+          }
+          c.continue();
+        };
+        cur.onerror = (e) => { e.preventDefault(); db.close(); end(); };
+      } catch { db.close(); end(); }
+    };
+  });
+}
+
+/** Image override lookup by SPEC key, e.g. "portraits/us_neighbor/warm", "figures/ch_us_neighbor_fig_stand", "tv/nat_inclusive/0". */
+export function overrideImage(c: Pick<Content, 'imageOverrides'>, key: string): { url: string; w?: number; h?: number } | undefined {
+  return c.imageOverrides.get(key);
+}
+
+/** Override keys for an asset id under a section, tolerating the `ch_` prefix difference the manifest also tolerates. */
+export function overrideIds(id: string): string[] {
+  const bare = id.replace(/^ch_/, '');
+  return [...new Set([id, bare, 'ch_' + bare])];
+}
+
+function parseCast(r: Reporter, file: string, text: string): CastInfo[] {
+  let doc: any;
+  try { doc = loadYaml(text); } catch (e) { r.error(file, `YAML error: ${(e as Error).message}`); return []; }
+  const list = Array.isArray(doc) ? doc : Array.isArray(doc?.cast) ? doc.cast : [];
+  return list.flatMap((x: any, i: number) => {
+    if (!x?.id) return r.error(file, `entry #${i + 1}: missing id`), [];
+    return [{ id: str(x.id), name: str(x.name, x.id), role: str(x.role) }];
+  });
+}
+
+export interface LoadOptions {
+  /** apply the researcher override (default true for the live source; false with &nooverride=1) */
+  override?: boolean;
+}
+
+export async function loadContent(src: Source, opts: LoadOptions = {}): Promise<Content> {
   const r = new Reporter();
   const need = async (path: string) => {
     const t = await src.text(path);
@@ -359,25 +463,63 @@ export async function loadContent(src: Source): Promise<Content> {
     return t;
   };
 
-  const [scenesText, npcsText, eventsText, newsText, eodText, manifestText, stringsText] = await Promise.all([
-    need('content/scenes.yaml'),
-    need('content/npcs.yaml'),
-    need('content/events.csv'),
-    need('content/news.csv'),
+  const useOverride = (opts.override ?? true) && src.kind === 'live';
+  const ov = useOverride ? readOverrideText() : null;
+  const info: OverrideInfo = { applied: [], rejected: [], images: [], updated: ov?.updated, ignored: opts.override === false || undefined };
+  if (opts.override === false) {
+    try { if (localStorage.getItem(OVERRIDE_KEY)) console.info('[override] present but ignored (&nooverride=1)'); } catch { /* ignore */ }
+  }
+  /** Parses an override text with the bundled file's parser and validation; null (bundled file used) on any problem. */
+  const tryOverride = <T,>(key: string, file: string, text: unknown, parse: (q: Reporter, file: string, text: string) => T): T | null => {
+    if (text === undefined || text === null) return null;
+    const q = new Reporter(true);
+    let v: T | null = null;
+    if (typeof text !== 'string') q.error(file, 'override value is not a string');
+    else {
+      try { v = parse(q, file, text); } catch (e) { q.error(file, `parse failed: ${(e as Error).message}`); }
+    }
+    if (q.errors.length) {
+      console.warn(`[override] ${key} rejected, bundled ${file} used instead:\n  ${q.errors.join('\n  ')}`);
+      info.rejected.push({ key, problems: q.errors });
+      return null;
+    }
+    info.applied.push(key);
+    return v;
+  };
+
+  const [scenesText, npcsText, eventsText, newsText, eodText, manifestText, stringsText, castText, images] = await Promise.all([
+    ov?.scenes !== undefined ? src.text('content/scenes.yaml') : need('content/scenes.yaml'),
+    ov?.npcs !== undefined ? src.text('content/npcs.yaml') : need('content/npcs.yaml'),
+    ov?.events !== undefined ? src.text('content/events.csv') : need('content/events.csv'),
+    ov?.news !== undefined ? src.text('content/news.csv') : need('content/news.csv'),
     need('content/questionnaire/eod.json'),
     need('assets/manifest.json'),
     src.text('content/strings.en.json'),
+    src.text('content/cast.yaml'),
+    useOverride ? loadImageOverrides() : Promise.resolve(new Map<string, { url: string; w?: number; h?: number }>()),
   ]);
 
-  const scenes = scenesText ? parseScenes(r, 'content/scenes.yaml', scenesText) : [];
+  const SCENES = 'content/scenes.yaml', NPCS = 'content/npcs.yaml', EVENTS = 'content/events.csv', NEWS = 'content/news.csv';
+  const scenes = tryOverride('scenes', SCENES, ov?.scenes, parseScenes)
+    ?? (scenesText ? parseScenes(r, SCENES, scenesText) : (ov?.scenes !== undefined && r.error(SCENES, 'file missing or unreadable'), []));
   const sceneById = new Map(scenes.map((s) => [s.id, s]));
-  const npcs = npcsText ? parseNpcs(r, 'content/npcs.yaml', npcsText, sceneById) : [];
+  const npcs = tryOverride('npcs', NPCS, ov?.npcs, (q, f, t) => parseNpcs(q, f, t, sceneById))
+    ?? (npcsText ? parseNpcs(r, NPCS, npcsText, sceneById) : (ov?.npcs !== undefined && r.error(NPCS, 'file missing or unreadable'), []));
   const npcById = new Map(npcs.map((n) => [n.id, n]));
 
+  const ovDialogue = ov?.dialogue && typeof ov.dialogue === 'object' ? ov.dialogue : {};
+  for (const id of Object.keys(ovDialogue)) {
+    if (!npcById.has(id)) {
+      console.warn(`[override] dialogue/${id} rejected: no NPC "${id}" in npcs.yaml`);
+      info.rejected.push({ key: `dialogue/${id}`, problems: [`no NPC "${id}" in npcs.yaml`] });
+    }
+  }
   const dialogue = new Map<string, DialogueRow[]>();
   await Promise.all(
     npcs.map(async (n) => {
       const file = `content/dialogue/${n.id}.csv`;
+      const fromOv = tryOverride(`dialogue/${n.id}`, file, ovDialogue[n.id], (q, f, t) => parseDialogue(q, n.id, f, t));
+      if (fromOv) { dialogue.set(n.id, fromOv); return; }
       const t = await src.text(file);
       if (t === null) {
         // TV-only NPCs may legitimately have no sheet; warn instead of erroring.
@@ -390,8 +532,10 @@ export async function loadContent(src: Source): Promise<Content> {
     }),
   );
 
-  const events = eventsText ? parseEvents(r, 'content/events.csv', eventsText, sceneById, npcById) : [];
-  const news = newsText ? parseNews(r, 'content/news.csv', newsText) : [];
+  const events = tryOverride('events', EVENTS, ov?.events, (q, f, t) => parseEvents(q, f, t, sceneById, npcById))
+    ?? (eventsText ? parseEvents(r, EVENTS, eventsText, sceneById, npcById) : (ov?.events !== undefined && r.error(EVENTS, 'file missing or unreadable'), []));
+  const news = tryOverride('news', NEWS, ov?.news, parseNews)
+    ?? (newsText ? parseNews(r, NEWS, newsText) : (ov?.news !== undefined && r.error(NEWS, 'file missing or unreadable'), []));
 
   let eod = FALLBACK_EOD;
   if (eodText) {
@@ -413,14 +557,24 @@ export async function loadContent(src: Source): Promise<Content> {
       r.error('assets/manifest.json', `JSON error: ${(e as Error).message}`);
     }
   }
+  info.images = [...images.keys()].sort();
+  const hasImg = (section: string, id: string, variant?: string) =>
+    overrideIds(id).some((x) => images.has(variant === undefined ? `${section}/${x}` : `${section}/${x}/${variant}`));
   for (const s of scenes) {
-    if (s.background !== 'none' && !assetEntry(manifest, manifest.backgrounds, s.background)) r.warn('assets/manifest.json', `no background "${s.background}" for scene ${s.id} (flat panel shown)`);
+    if (s.background !== 'none' && !assetEntry(manifest, manifest.backgrounds, s.background) && !hasImg('backgrounds', s.background)) r.warn('assets/manifest.json', `no background "${s.background}" for scene ${s.id} (flat panel shown)`);
     for (const p of s.props) if (!assetEntry(manifest, manifest.props, p.asset)) r.warn('assets/manifest.json', `no prop "${p.asset}" for scene ${s.id}`);
   }
   for (const n of npcs) {
-    if (!assetEntry(manifest, manifest.portraits, n.portrait)) r.warn('assets/manifest.json', `no portrait "${n.portrait}" for ${n.id} (silhouette shown)`);
-    if (n.figure && !assetEntry(manifest, manifest.figures, n.figure)) r.warn('assets/manifest.json', `no figure "${n.figure}" for ${n.id} (silhouette shown)`);
+    if (!assetEntry(manifest, manifest.portraits, n.portrait) && !images.has(`portraits/${n.id}/neutral`)) r.warn('assets/manifest.json', `no portrait "${n.portrait}" for ${n.id} (silhouette shown)`);
+    if (n.figure && !assetEntry(manifest, manifest.figures, n.figure) && !hasImg('figures', n.figure)) r.warn('assets/manifest.json', `no figure "${n.figure}" for ${n.id} (silhouette shown)`);
   }
+
+  // cast: names from content/cast.yaml (content owns them), else from the manifest's copy
+  const cast = new Map<string, CastInfo>();
+  for (const [id, m] of Object.entries(manifest.cast ?? {})) cast.set(id, { id, name: m.name || id, role: m.role || '' });
+  if (castText) for (const ci of parseCast(r, 'content/cast.yaml', castText)) cast.set(ci.id, ci);
+  for (const nw of news) if (nw.figure && !cast.has(nw.figure)) r.warn(NEWS, `story ${nw.id}: figure "${nw.figure}" is not in cast.yaml or the manifest (PLACEHOLDER shown)`);
+  for (const ev of events) if (ev.portrait && !cast.has(ev.portrait)) r.warn(EVENTS, `event ${ev.id}: portrait "${ev.portrait}" is not in cast.yaml or the manifest (PLACEHOLDER shown)`);
 
   let strings = { ...DEFAULT_STRINGS };
   if (stringsText) {
@@ -433,10 +587,13 @@ export async function loadContent(src: Source): Promise<Content> {
 
   if (r.errors.length) console.error(`[content] ${r.errors.length} content error(s) from ${src.kind} source; see above.`);
   else console.info(`[content] loaded ${scenes.length} scenes, ${npcs.length} npcs, ${events.length} events, ${news.length} news from ${src.kind} source`);
+  if (info.applied.length || info.images.length || info.rejected.length) {
+    console.info(`[override] applied: ${info.applied.join(', ') || 'none'}; images: ${info.images.length}; rejected: ${info.rejected.map((x) => x.key).join(', ') || 'none'}`);
+  }
 
   return {
     source: src.kind, scenes, sceneById, npcs, npcById, dialogue, events, news, eod, manifest, strings,
-    assetUrl: src.assetUrl, errors: r.errors,
+    assetUrl: src.assetUrl, errors: r.errors, cast, override: info, imageOverrides: images,
   };
 }
 

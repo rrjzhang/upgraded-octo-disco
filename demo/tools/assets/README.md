@@ -47,3 +47,21 @@ Source preference (`BG_SOURCES` in build.mjs; first file present wins, otherwise
 When `source` is a `_tv_` file the room already shows the television, so the engine should not
 composite prop_tv on top of it (the prop stays in the manifest for the other scenes).
 Props: prop/prop_tv.png (600 x 342), prop/prop_chessboard.png (600 x 515).
+
+## Cast (authority figures)
+
+Named by `news.csv` `figure` and `events.csv` `portrait`. Ids, names and roles come from
+`public/content/cast.yaml` (content owns them: a list of `{ id, name, role }`, or `{ cast: [...] }`); the `CAST`
+table in `build.mjs` is only a fallback (entries starting with `_` are examples and skipped), and any
+`cast_<id>_*_A.png` in the source folder also gets an entry. Sources per id, any subset:
+
+| Source | Output | Processing |
+|---|---|---|
+| `cast_<id>_bust_A.png` (1:1, transparent) | `cast/<id>_bust.png` | 640 x 640; a non-square file gets the Round 3 square crop (image-width square just above the alpha box) |
+| `cast_<id>_tv_A.png` (16:9) | `cast/<id>_tv.jpg` | JPEG q85, 1280 wide, like the president's still |
+| `cast_<id>_ref_A.png` | `cast/<id>_ref.jpg` | JPEG q85, 1024 wide; also cropped to the bust (`fromReference: true`) when there is no bust file |
+
+The cast.yaml ids already carry the prefix (`cast_governor`), so `cast_governor_bust_A.png` serves id
+`cast_governor` (`cast_cast_governor_bust_A.png` would too). Manifest: `cast[<id>] = { name, role, bust, tv, ref,
+placeholder, fromReference, sources }`; `placeholder: true` with null files when nothing exists yet, and the game
+then shows a silhouette bust or a PLACEHOLDER TV screen with the person's name.

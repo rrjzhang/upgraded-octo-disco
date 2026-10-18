@@ -1,7 +1,7 @@
 /** researcher.html: create rooms, list them, export logs. */
 import './style.css';
 import { getSource, questionnaireProblems } from './content';
-import { listRooms, loadState, readLog, saveRoom, getRoom, type RoomRecord } from './store';
+import { getSettings, listRooms, loadState, readLog, saveRoom, saveSettings, getRoom, type RoomRecord } from './store';
 import type { Leader, Questionnaire, RoomConfig } from './types';
 import { downloadText, h, isFixtures, isoNow } from './util';
 
@@ -155,6 +155,18 @@ async function main(): Promise<void> {
     renderRooms();
   });
 
+  // SPEC "Debug toggle": one switch for this browser; off by default (rooms made here start without debugging aids)
+  const dbg = h('input', { id: 'dbg', type: 'checkbox', role: 'switch', checked: getSettings().debug === true });
+  const dbgMsg = h('span', { class: 'muted', 'aria-live': 'polite' });
+  dbg.addEventListener('change', () => {
+    saveSettings({ debug: dbg.checked });
+    dbgMsg.textContent = dbg.checked ? ' On: games opened in this browser show the debugging aids.' : ' Off.';
+  });
+  const settings = h('section', { class: 'card wide' },
+    h('h1', { text: 'Settings' }),
+    h('label', { class: 'check', for: 'dbg' }, dbg, ' Show debugging aids', dbgMsg),
+    h('p', { class: 'muted', text: 'Interactables button and H key, the rule / lean / phase line under the dialogue, rapport and last-talk valence in Contacts, and the figure-size guides. Applies to every game opened in this browser; ?dev=1 always shows them.' }));
+
   app.replaceChildren(h('div', { class: 'researcher' },
     form,
     h('section', { class: 'card wide' },
@@ -162,7 +174,8 @@ async function main(): Promise<void> {
       h('div', { class: 'table-wrap' }, h('table', {},
         h('thead', {}, h('tr', {}, ...['Code', 'Password', 'Leader', 'Created', 'Status', 'Log lines', ''].map((t) => h('th', { text: t })))),
         table)),
-      h('p', { class: 'muted', text: 'Rooms, saves and logs live in this browser\'s localStorage until a server is added.' }))));
+      h('p', { class: 'muted', text: 'Rooms, saves and logs live in this browser\'s localStorage until a server is added.' })),
+    settings));
   renderRooms();
   window.addEventListener('storage', renderRooms);
 }

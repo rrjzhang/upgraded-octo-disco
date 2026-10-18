@@ -87,7 +87,8 @@ function roomForm(content: Content): void {
 }
 
 async function main(): Promise<void> {
-  const content = await loadContent(await getSource(isFixtures));
+  // researcher edits (SPEC "Researcher editing, overrides and casting"); &nooverride=1 loads the bundled files only
+  const content = await loadContent(await getSource(isFixtures), { override: params.get('nooverride') !== '1' });
   if (!content.scenes.length || !content.sceneById.has('home')) {
     fatal('Content failed to load (see the browser console for file and row details).', content.errors);
     return;

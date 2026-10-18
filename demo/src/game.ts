@@ -3,12 +3,12 @@ import type {
   Content, DialogueRow, Questionnaire, Emotion, EventRow, GameState, Hotspot, ModuleId, NewsRow, Npc, Scene, Slot,
 } from './types';
 import {
-  DAY_ACTIONS, DEMO_DAYS, DIALOGUE_COST, applyEffects, dayPhaseOf, eventMatches, leanOf, phaseOf, selectRow,
+  DAY_ACTIONS, DEMO_DAYS, DIALOGUE_COST, FREE_DEPTH, applyEffects, dayPhaseOf, eventMatches, leanOf, phaseOf, rowDepth, selectRow,
   type Delta,
 } from './rules';
-import { appendLog, getRoom, readLog, saveState } from './store';
-import { assetEntry, figureHeight, questionnaireProblems } from './content';
-import { SILHOUETTE_BUST, downloadText, h, isDev, seeded, silhouetteFigure, subst } from './util';
+import { appendLog, debugEnabled, getRoom, readLog, saveState } from './store';
+import { assetEntry, figureHeight, overrideIds, questionnaireProblems } from './content';
+import { SILHOUETTE_BUST, downloadText, h, seeded, silhouetteFigure, subst } from './util';
 
 const CULTURE_NAMES: Record<string, string> = { cn: 'Chinese', mx: 'Mexican', in: 'Indian' };
 const CULTURE_PACK_NAMES: Record<string, string> = { cn: 'China', mx: 'Mexico', in: 'India' };
@@ -19,7 +19,7 @@ type Panel =
   | { kind: 'idle'; note?: string }
   | { kind: 'dialogue'; npc: string; row: DialogueRow; tie: string[] }
   | { kind: 'event'; ev: EventRow }
-  | { kind: 'text'; title?: string; text: string; rule?: string }
+  | { kind: 'text'; title?: string; text: string; rule?: string; figure?: string }
   | { kind: 'bed'; hs: string }; // going to bed with actions left: confirm first
 
 // slot null = the NPC is painted into the background (scene.painted); no figure is drawn and a `talk` hotspot stands for them
@@ -47,8 +47,15 @@ export class Game {
   private phoneEl!: HTMLElement;
   private journalDraft: string | null = null;
   private surveyLoading = false;
-  /** Dev only: gv.place() puts an NPC on a slot of a scene, for checking sizes. */
+  /**
+   * Dev only: gv.place() puts an NPC on a slot of a scene, for checking sizes. Lives in memory only (never saved,
+   * gone on reload) and is ignored by event rolls, so a placement can never change the saved game.
+   */
   private devPlaced = new Map<string, { npc: string; slot: string }[]>();
+  /** Debugging aids (SPEC "Debug toggle"): reveal button and H, status line, rapport/valence, dev guides. */
+  private debug = debugEnabled();
+  /** rowDepth caches per NPC sheet */
+  private depthCache = new Map<string, Map<string, number>>();
 
   constructor(host: HTMLElement, private c: Content, private s: GameState) {
     this.stage = h('div', { class: 'stage', id: 'stage' });
@@ -72,7 +79,15 @@ export class Game {
     // a conversation open when the page went away (reload, closed tab) is closed as "left", timed to its last turn
     if (this.s.convo) this.endConvo('left', this.s.convo.last);
     if (this.s.dayStartDone < this.s.day) this.beginDay();
-    else this.render();
+    else {
+      // an event on screen (already fired and paid for) and the ones queued behind it survive a reload
+      const ev = (id?: string) => (id ? this.c.events.find((e) => e.id === id) : undefined);
+      const open = ev(this.s.openEvent);
+      this.queue = (this.s.queuedEvents ?? []).map((id) => ev(id)).filter((e): e is EventRow => !!e);
+      if (open) this.panel = { kind: 'event', ev: open };
+      if (!open && this.queue.length) this.nextQueued();
+      else this.render();
+    }
     // The survey window lives only in the DOM; a page reload (dev-server HMR, F5, crash) used to drop it silently
     // and leave the player at home on the same day. The open survey is persisted, so it comes back.
     if (this.s.surveyDay === this.s.day) this.endDay();
@@ -116,6 +131,8 @@ export class Game {
   }
 
   private save(): void {
+    this.s.openEvent = this.panel.kind === 'event' ? this.panel.ev.id : undefined;
+    this.s.queuedEvents = this.queue.length ? this.queue.map((e) => e.id) : undefined;
     saveState(this.s);
   }
 
@@ -182,30 +199,40 @@ export class Game {
   private paintedActive(sc: Scene): boolean {
     const p = sc.painted;
     if (!p) return false;
-    if (!assetEntry(this.c.manifest, this.c.manifest.backgrounds, p.background)) return false;
+    if (!this.hasBg(p.background)) return false;
     return p.npcs.every((id) => { const n = this.c.npcById.get(id); return !!n && this.inRoster(n); });
   }
 
-  presentIn(sceneId: string): Presence[] {
+  /**
+   * Who is in a scene today. Each appearance rolls on its own hash of (room seed, day, scene, NPC id, slot), so the
+   * answer does not depend on the order of npcs.yaml or on which other NPCs exist: editing one NPC's appearances
+   * never moves anybody else. Two NPCs rolling into the same slot: the lower roll wins (ties by id), again order-free.
+   * `dev` adds gv.place() placements (rendering only; event rolls pass false).
+   */
+  presentIn(sceneId: string, dev = true): Presence[] {
     const sc = this.c.sceneById.get(sceneId);
     if (!sc) return [];
-    const rng = seeded(this.s.config.seed, this.s.day, sceneId);
-    const used = new Set<string>();
     const out: Presence[] = [];
     if (this.paintedActive(sc)) for (const id of sc.painted!.npcs) out.push({ npc: this.c.npcById.get(id)!, slot: null });
+    const cands: { npc: Npc; slot: Slot; roll: number }[] = [];
     for (const n of this.c.npcs) {
+      if (!this.inRoster(n)) continue;
       for (const a of n.appearances) {
         if (a.scene !== sceneId) continue;
-        const roll = rng(); // always draw so presence is stable regardless of roster
-        if (!this.inRoster(n) || roll >= a.chance || used.has(a.slot)) continue;
-        if (out.some((p) => p.npc.id === n.id)) continue;
+        const roll = seeded(this.s.config.seed, 'presence', this.s.day, sceneId, n.id, a.slot)();
+        if (roll >= a.chance) continue;
         const slot = sc.slots.find((x) => x.id === a.slot);
-        if (!slot) continue;
-        used.add(a.slot);
-        out.push({ npc: n, slot });
+        if (slot) cands.push({ npc: n, slot, roll });
       }
     }
-    for (const pl of this.devPlaced.get(sceneId) ?? []) {
+    cands.sort((a, b) => a.roll - b.roll || (a.npc.id < b.npc.id ? -1 : a.npc.id > b.npc.id ? 1 : 0));
+    const used = new Set<string>();
+    for (const cd of cands) {
+      if (used.has(cd.slot.id) || out.some((p) => p.npc.id === cd.npc.id)) continue;
+      used.add(cd.slot.id);
+      out.push({ npc: cd.npc, slot: cd.slot });
+    }
+    if (dev) for (const pl of this.devPlaced.get(sceneId) ?? []) {
       const n = this.c.npcById.get(pl.npc);
       const slot = sc.slots.find((x) => x.id === pl.slot);
       if (!n || !slot) continue;
@@ -218,12 +245,27 @@ export class Game {
   private eventCtx(sceneId: string, requirePresence: boolean) {
     return {
       scene: sceneId,
-      present: new Set(this.presentIn(sceneId).map((p) => p.npc.id)),
+      present: new Set(this.presentIn(sceneId, false).map((p) => p.npc.id)),
       lean: leanOf(this.s.spent),
       leader: this.s.config.nationalLeader,
       npcs: this.s.npcs,
       requirePresence,
     };
+  }
+
+  // ---- image resolution: researcher override (IndexedDB gv/images, SPEC key scheme) first, manifest second
+  /** Override image for `<section>/<id>` or `<section>/<id>/<variant>`, tolerating the ch_ prefix difference. */
+  private ovImg(section: string, id: string | undefined, variant?: string): { url: string; w?: number; h?: number } | undefined {
+    if (!id) return undefined;
+    for (const x of overrideIds(id)) {
+      const hit = this.c.imageOverrides.get(variant === undefined ? `${section}/${x}` : `${section}/${x}/${variant}`);
+      if (hit) return hit;
+    }
+    return undefined;
+  }
+
+  private hasBg(id: string): boolean {
+    return !!this.ovImg('backgrounds', id) || !!assetEntry(this.c.manifest, this.c.manifest.backgrounds, id);
   }
 
   private bgFor(sc: Scene): { url: string; placeholder: boolean; id: string } | null {
@@ -232,8 +274,10 @@ export class Game {
     let id = this.paintedActive(sc) ? sc.painted!.background : sc.background;
     if (phaseOf(this.s.actions) === 'evening') {
       const eve = id.includes('_day') ? id.replace('_day', '_eve') : `${id}_eve`;
-      if (assetEntry(this.c.manifest, m, eve)) id = eve;
+      if (this.hasBg(eve)) id = eve;
     }
+    const o = this.ovImg('backgrounds', id);
+    if (o) return { url: o.url, placeholder: false, id };
     const e = assetEntry(this.c.manifest, m, id);
     return e ? { url: this.c.assetUrl(e.file), placeholder: !!e.placeholder, id } : { url: '', placeholder: true, id };
   }
@@ -241,16 +285,50 @@ export class Game {
   private portraitFor(n: Npc, emotion: Emotion): { url: string; placeholder: boolean } {
     const pick = this.s.config.rosterPicks?.[n.id];
     const man = this.c.manifest;
+    // SPEC key portraits/<npcId>/<expression>; the portrait base id without ch_ is the same id by convention, accept both
+    const ids = [...new Set([n.id, n.portrait.replace(/^ch_/, '')])];
+    const ov = (e: Emotion) => ids.map((id) => this.c.imageOverrides.get(`portraits/${id}/${e}`)?.url).find(Boolean);
     const p = (pick && assetEntry(man, man.portraits, pick)) || assetEntry(man, man.portraits, n.portrait);
-    const file = p?.[emotion] || p?.neutral;
-    if (!p || !file) return { url: SILHOUETTE_BUST, placeholder: true };
-    return { url: this.c.assetUrl(file), placeholder: !!p.placeholder };
+    // the requested expression beats a neutral fallback, whichever side each comes from
+    const exact = ov(emotion) ?? (p?.[emotion] ? this.c.assetUrl(p[emotion]!) : undefined);
+    if (exact) return { url: exact, placeholder: !ov(emotion) && !!p?.placeholder };
+    const neutral = ov('neutral') ?? (p?.neutral ? this.c.assetUrl(p.neutral) : undefined);
+    if (!neutral) return { url: SILHOUETTE_BUST, placeholder: true };
+    return { url: neutral, placeholder: !ov('neutral') && !!p?.placeholder };
   }
 
   private figureFor(n: Npc): { url: string; placeholder: boolean; aspect: number } {
+    const o = this.ovImg('figures', n.figure);
+    if (o) return { url: o.url, placeholder: false, aspect: o.w && o.h ? o.w / o.h : 0.45 };
     const f = assetEntry(this.c.manifest, this.c.manifest.figures, n.figure);
     if (!f?.file) return { url: silhouetteFigure(n.seated), placeholder: true, aspect: n.seated ? 300 / 500 : 300 / 700 };
     return { url: this.c.assetUrl(f.file), placeholder: !!f.placeholder, aspect: f.w && f.h ? f.w / f.h : 0.45 };
+  }
+
+  /** A cast member's bust or TV still: override `cast/<id>/<bust|tv>`, then manifest.cast; url '' when missing. */
+  private castImage(id: string, variant: 'bust' | 'tv'): { url: string; placeholder: boolean; name: string; role: string } {
+    const info = this.c.cast.get(id);
+    const name = info?.name || this.c.manifest.cast?.[id]?.name || id;
+    const role = info?.role || this.c.manifest.cast?.[id]?.role || '';
+    const o = this.c.imageOverrides.get(`cast/${id}/${variant}`);
+    if (o) return { url: o.url, placeholder: false, name, role };
+    const m = this.c.manifest.cast?.[id];
+    const file = m?.[variant];
+    return file ? { url: this.c.assetUrl(file), placeholder: !!m?.placeholder, name, role } : { url: '', placeholder: true, name, role };
+  }
+
+  /** The leader's TV stills: manifest list, with `tv/<leaderId>/<i>` overrides replacing or extending it. */
+  private tvImages(leaderId: string): { urls: string[]; overridden: boolean } {
+    const urls = (assetEntry(this.c.manifest, this.c.manifest.tv, leaderId) ?? []).map((f) => this.c.assetUrl(f));
+    let overridden = false;
+    for (let i = 0; i < Math.max(urls.length + 1, 8); i++) {
+      const o = this.c.imageOverrides.get(`tv/${leaderId}/${i}`);
+      if (!o) continue;
+      overridden = true;
+      if (i < urls.length) urls[i] = o.url;
+      else urls.push(o.url);
+    }
+    return { urls, overridden };
   }
 
   // ------------------------------------------------------------------ actions
@@ -360,29 +438,57 @@ export class Game {
     return out;
   }
 
+  /** depth of a row over its sheet's `next` DAG (cycle = 3), cached per sheet. */
+  private depthOf(row: DialogueRow): number {
+    let cache = this.depthCache.get(row.npc);
+    if (!cache) this.depthCache.set(row.npc, (cache = new Map()));
+    return rowDepth(this.c.dialogue.get(row.npc) ?? [], row, cache);
+  }
+
+  /**
+   * What talking to `n` costs right now. The row that would open the conversation is a pure function of state, so
+   * it is selected here at label time: a short conversation (depth < 3) is free, anything longer costs DIALOGUE_COST.
+   */
+  talkCost(n: Npc): number {
+    const sel = this.pickRow(n, true);
+    return sel && this.depthOf(sel.row) < FREE_DEPTH ? 0 : DIALOGUE_COST;
+  }
+
+  /** A talk needs at least one action left even when free (no conversations after the day's actions run out). */
+  private canTalk(cost: number): boolean {
+    return !this.tired() && this.s.actions > 0 && this.s.actions >= cost;
+  }
+
+  /** "Talk to Dana (1 action)" / "(free)" / "(no actions left)": the same words for aria-label and hover title. */
+  private talkLabel(n: Npc, cost: number): string {
+    const why = this.s.actions <= 0 ? this.str('ui.noActionsShort') : cost ? this.costWords(cost) : this.str('ui.free');
+    return `${this.str('ui.talkTo', { name: n.name })} (${why})`;
+  }
+
   talkTo(npcId: string): void {
     const n = this.c.npcById.get(npcId);
     if (!n) return;
     this.endConvo('left'); // talking to someone else (or the same person afresh) leaves the current conversation
-    if (this.s.actions < DIALOGUE_COST) {
-      this.panel = { kind: 'idle', note: this.str('ui.notEnough') };
+    const cost = this.talkCost(n);
+    if (!this.canTalk(cost)) {
+      this.panel = { kind: 'idle', note: this.str(this.tired() ? 'ui.tired' : 'ui.notEnough') };
       return this.render();
     }
     const before = this.s.actions;
-    this.spend(DIALOGUE_COST);
+    this.spend(cost);
     const row = this.pickRow(n);
     if (!row) {
       this.panel = { kind: 'idle', note: `(No dialogue for ${n.name} yet.)` };
     } else {
       this.panel = { kind: 'dialogue', npc: n.id, row: row.row, tie: row.tie };
-      appendLog(this.s, { type: 'dialogue', target: n.id, rule: row.row.id, delta: { actions: [before, this.s.actions] } });
+      appendLog(this.s, { type: 'dialogue', target: n.id, rule: row.row.id, cost, delta: { actions: [before, this.s.actions] } });
       this.startConvo(n.id, row.row.id);
     }
     this.save();
     this.render();
   }
 
-  private pickRow(n: Npc): { row: DialogueRow; tie: string[] } | null {
+  private pickRow(n: Npc, quiet = false): { row: DialogueRow; tie: string[] } | null {
     const rows = this.c.dialogue.get(n.id) ?? [];
     const ns = this.s.npcs[n.id] ?? { ...n.initial };
     const sel = selectRow(rows, {
@@ -392,19 +498,34 @@ export class Game {
       dayPhase: dayPhaseOf(this.s.day),
     });
     if (!sel.row) {
-      console.error(`[dialogue] ${n.id}: no row matched (missing fallback?)`);
+      if (!quiet) console.error(`[dialogue] ${n.id}: no row matched (missing fallback?)`);
       return null;
     }
-    if (sel.tie.length) {
+    if (sel.tie.length && !quiet) {
       console.warn(`[dialogue] ${n.id}: tie between ${[sel.row.id, ...sel.tie.map((r) => r.id)].join(', ')}; taking ${sel.row.id}`);
     }
     return { row: sel.row, tie: sel.tie.map((r) => r.id) };
   }
 
-  private chooseDialogue(row: DialogueRow, idx: number): void {
+  /**
+   * Display order of a row's choices: a deterministic shuffle per (room seed, row id, day), so the exit or the
+   * low-valence option is not always last. Returns authored indices in display order.
+   */
+  choiceOrder(rowId: string, n: number): number[] {
+    const idx = Array.from({ length: n }, (_, i) => i);
+    const rng = seeded(this.s.config.seed, 'choices', rowId, this.s.day);
+    for (let i = n - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [idx[i], idx[j]] = [idx[j], idx[i]];
+    }
+    return idx;
+  }
+
+  /** idx = authored index (0-based); shown = displayed position (1-based). The log keeps both. */
+  private chooseDialogue(row: DialogueRow, idx: number, shown: number): void {
     const ch = row.choices[idx];
     const delta = this.effects(row.npc, ch.effect, `${row.npc}/${row.id}`);
-    appendLog(this.s, { type: 'choice', target: row.npc, rule: row.id, choice: idx + 1, delta, next: ch.next || undefined });
+    appendLog(this.s, { type: 'choice', target: row.npc, rule: row.id, choice: idx + 1, shown, delta, next: ch.next || undefined });
     if (ch.next) {
       const nx = (this.c.dialogue.get(row.npc) ?? []).find((r) => r.id === ch.next);
       if (nx) {
@@ -424,11 +545,11 @@ export class Game {
     this.render();
   }
 
-  private chooseEvent(ev: EventRow, idx: number | null): void {
+  private chooseEvent(ev: EventRow, idx: number | null, shown?: number): void {
     if (idx !== null) {
       const ch = ev.choices[idx];
       const delta = this.effects(ev.npc || null, ch.effect, `event ${ev.id}`);
-      appendLog(this.s, { type: 'choice', target: ev.npc || undefined, rule: ev.id, choice: idx + 1, delta, event: true });
+      appendLog(this.s, { type: 'choice', target: ev.npc || undefined, rule: ev.id, choice: idx + 1, shown, delta, event: true });
     }
     this.panel = { kind: 'idle' };
     this.save();
@@ -471,7 +592,7 @@ export class Game {
         const story = this.pickNews('print')[0];
         if (story) {
           this.s.seenNews.push(story.id);
-          this.panel = { kind: 'text', title: this.str('ui.newsTitle'), text: `**${story.headline}**\n\n${story.body}`, rule: story.id };
+          this.panel = { kind: 'text', title: this.str('ui.newsTitle'), text: `**${story.headline}**\n\n${story.body}`, rule: story.id, figure: story.figure || undefined };
         } else {
           this.panel = { kind: 'text', title: this.str('ui.newsTitle'), text: this.str('ui.noNews') };
         }
@@ -520,14 +641,26 @@ export class Game {
       .map((x) => x.n);
   }
 
+  /**
+   * The TV module's content. A story with a `figure` shows that cast member's still when it exists; until then the
+   * screen shows PLACEHOLDER with their name. Stories without a figure show the national leader's still as before.
+   */
   private tvContent() {
     const leaderId = `nat_${this.s.config.nationalLeader}`;
-    const imgs = (assetEntry(this.c.manifest, this.c.manifest.tv, leaderId) ?? []).map((f) => this.c.assetUrl(f));
-    const placeholder = !!this.c.manifest.tvMeta?.[leaderId]?.placeholder;
-    const stories = this.pickNews('tv').slice(0, 2).map((n, i) => ({
-      id: n.id, valence: n.valence, headline: this.t(n.headline), body: this.t(n.body), image: imgs.length ? imgs[i % imgs.length] : null,
-    }));
-    return { leaderId, leaderName: this.vars().leaderName, placeholder, stories };
+    const { urls: imgs, overridden } = this.tvImages(leaderId);
+    const placeholder = !overridden && !!this.c.manifest.tvMeta?.[leaderId]?.placeholder;
+    const leaderName = this.vars().leaderName;
+    const stories = this.pickNews('tv').slice(0, 2).map((n, i) => {
+      const leaderImg = imgs.length ? imgs[i % imgs.length] : null;
+      const base = { id: n.id, valence: n.valence, headline: this.t(n.headline), body: this.t(n.body) };
+      if (!n.figure) return { ...base, image: leaderImg, placeholder, figure: null, figureName: leaderName };
+      const ci = this.castImage(n.figure, 'tv');
+      return ci.url
+        ? { ...base, image: ci.url, placeholder: ci.placeholder, figure: n.figure, figureName: ci.name, figureRole: ci.role }
+        // no still for this person yet: a PLACEHOLDER screen, not the leader's face under someone else's name
+        : { ...base, image: null, placeholder: true, pendingNote: `${ci.name} still`, figure: n.figure, figureName: ci.name, figureRole: ci.role };
+    });
+    return { leaderId, leaderName, placeholder, stories };
   }
 
   endDay(): void {
@@ -687,7 +820,7 @@ export class Game {
   private onKey(e: KeyboardEvent): void {
     const tag = (e.target as HTMLElement)?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-    if ((e.key === 'h' || e.key === 'H') && !e.metaKey && !e.ctrlKey && !this.win) this.reveal();
+    if ((e.key === 'h' || e.key === 'H') && !e.metaKey && !e.ctrlKey && !this.win && this.debug) this.reveal();
     if (e.key === 'Escape') {
       if (this.win) this.closeWindow(true);
       else if (this.phoneOpen) { this.phoneOpen = false; this.renderPhone(); }
@@ -747,8 +880,22 @@ export class Game {
         dots,
         h('span', { class: 'tb-wallet', 'aria-label': this.str('ui.wallet'), text: `$${s.wallet}` }),
         h('span', { class: 'tb-room', text: `${this.str('ui.room')} ${s.room}` }),
+        this.overrideChip(),
         this.c.source === 'fixtures' ? h('span', { class: 'tb-fx', text: 'FIXTURES' }) : null),
     );
+  }
+
+  /** "edited content" chip while a researcher override is active; the tooltip lists what changed and any rejection. */
+  private overrideChip(): HTMLElement | null {
+    const o = this.c.override;
+    if (!o.applied.length && !o.images.length && !o.rejected.length) return null;
+    const lines: string[] = [];
+    if (o.applied.length) lines.push(`Edited: ${o.applied.join(', ')}`);
+    if (o.images.length) lines.push(`Images: ${o.images.join(', ')}`);
+    for (const r of o.rejected) lines.push(`Rejected ${r.key} (bundled file used): ${r.problems.slice(0, 5).map((p) => p.replace(/^\[content\] /, '')).join('; ')}${r.problems.length > 5 ? ` (+${r.problems.length - 5} more)` : ''}`);
+    if (o.updated) lines.push(`Saved ${o.updated}`);
+    const tip = lines.join('\n');
+    return h('span', { class: `tb-edited${o.rejected.length ? ' warn' : ''}`, title: tip, 'aria-label': `${this.str('ui.edited')}. ${tip}`, tabindex: 0, text: this.str('ui.edited') + (o.rejected.length ? ' !' : '') });
   }
 
   private pendingTag(): HTMLElement {
@@ -803,11 +950,11 @@ export class Game {
       // a talk zone only exists while its NPC is painted into the current background
       const talkNpc = a.type === 'talk' ? present.find((p) => p.npc.id === a.npc && p.slot === null)?.npc : undefined;
       if (a.type === 'talk' && !talkNpc) continue;
-      const cost = a.type === 'talk' ? DIALOGUE_COST : a.cost ?? (a.type === 'window' || a.type === 'news' ? 1 : 0);
+      const cost = talkNpc ? this.talkCost(talkNpc) : a.cost ?? (a.type === 'window' || a.type === 'news' ? 1 : 0);
       const blockedMove = a.type === 'move' && this.moveBlocked(String(a.to));
-      const disabled = tired || cost > this.s.actions || blockedMove;
+      const disabled = talkNpc ? !this.canTalk(cost) : tired || cost > this.s.actions || blockedMove;
       const label = talkNpc ? this.str('ui.talkTo', { name: talkNpc.name }) : hs.label;
-      const costTxt = cost ? ` (${this.costWords(cost)})` : blockedMove ? ` (${this.str('ui.tired')})` : '';
+      const costTxt = talkNpc ? this.talkLabel(talkNpc, cost).slice(label.length) : cost ? ` (${this.costWords(cost)})` : blockedMove ? ` (${this.str('ui.tired')})` : '';
       const speaking = !!talkNpc && ((this.panel.kind === 'dialogue' && this.panel.npc === talkNpc.id) || (this.panel.kind === 'event' && this.panel.ev.npc === talkNpc.id));
       const b = h('button', {
         class: `hotspot${hs.placeholder ? ' ph' : ''}${talkNpc ? ' talk' : ''}${speaking ? ' speaking' : ''}`,
@@ -828,25 +975,26 @@ export class Game {
       const left = slot.x * IMG_W - wid / 2;
       const top = slot.y * IMG_H - hgt;
       const speaking = (this.panel.kind === 'dialogue' && this.panel.npc === npc.id) || (this.panel.kind === 'event' && this.panel.ev.npc === npc.id);
-      const talkLabel = `${this.str('ui.talkTo', { name: npc.name })} (${this.costWords(DIALOGUE_COST)})`;
+      const cost = this.talkCost(npc);
+      const talkLabel = this.talkLabel(npc, cost);
       const btn = h('button', {
-        class: `figure${speaking ? ' speaking' : ''}${npc.seated ? ' seated' : ''}`, 'data-fk': `npc:${npc.id}`,
-        'aria-label': talkLabel, title: talkLabel,
-        disabled: tired || this.s.actions < DIALOGUE_COST, onclick: () => this.talkTo(npc.id),
+        class: `figure${speaking ? ' speaking' : ''}${npc.seated ? ' seated' : ''}${cost ? '' : ' free'}`, 'data-fk': `npc:${npc.id}`,
+        'aria-label': talkLabel, title: talkLabel, 'data-cost': cost,
+        disabled: !this.canTalk(cost), onclick: () => this.talkTo(npc.id),
         style: `left:${left}px;top:${top}px;width:${wid}px;height:${hgt}px;z-index:${10 + Math.round(slot.y * 100)};`,
       },
       h('span', { class: 'shadow', style: `width:${wid * (npc.seated ? 0.9 : 0.7)}px;height:${Math.max(8, hgt * 0.05)}px;` }),
       h('img', { src: fig.url, alt: '', draggable: 'false' }),
-      h('span', { class: 'fig-label', 'aria-hidden': 'true' }, npc.name, this.costDots(DIALOGUE_COST)),
+      h('span', { class: 'fig-label', 'aria-hidden': 'true' }, npc.name, this.costDots(cost)),
       fig.placeholder ? this.pendingTag() : null);
       const img = btn.querySelector('img')!;
       img.addEventListener('error', () => { img.src = silhouetteFigure(npc.seated); });
       box.append(btn);
       // dev guide (shown with H): where this figure's head lands, to compare with the horizon line
-      if (isDev) box.append(h('div', { class: 'dev-guide dev-head', style: `top:${top}px;left:${left - 12}px;width:${wid + 24}px;`, title: `${npc.name}: feet ${slot.y}, ${slot.scale ? 'scale override' : 'horizon formula'}` },
+      if (this.debug) box.append(h('div', { class: 'dev-guide dev-head', style: `top:${top}px;left:${left - 12}px;width:${wid + 24}px;`, title: `${npc.name}: feet ${slot.y}, ${slot.scale ? 'scale override' : 'horizon formula'}` },
         h('span', { text: `${npc.name} ${(hgt / IMG_H).toFixed(2)}${slot.scale ? ' (scale)' : ''}` })));
     }
-    if (isDev) box.append(h('div', { class: 'dev-guide dev-horizon', style: `top:${sc.horizon * IMG_H}px;` },
+    if (this.debug) box.append(h('div', { class: 'dev-guide dev-horizon', style: `top:${sc.horizon * IMG_H}px;` },
       h('span', { text: `horizon ${+sc.horizon.toFixed(3)} · camera ${sc.cameraHeight} m` })));
 
     if (tired) {
@@ -912,10 +1060,27 @@ export class Game {
         h('span', { class: 'phone-icon', 'aria-hidden': 'true' }), this.str('ui.phone'),
         this.ringing() ? h('span', { class: 'phone-badge', 'aria-hidden': 'true', text: '1' }) : null),
       exits,
-      sc.background !== 'none'
+      sc.background !== 'none' && this.debug
         ? h('button', { class: 'reveal-btn', 'data-fk': 'reveal', onclick: () => this.reveal(), text: this.str('ui.showInteractables') })
         : '',
     );
+  }
+
+  /**
+   * How an event's NPC reaches the player when they are not standing in the current scene: an invitation arrives
+   * as an invitation, a day-start event as a call. Without this an invitation at home reads as a visit.
+   */
+  private viaLabel(ev: EventRow, name: string): string | null {
+    if (!ev.npc) return null;
+    if (this.presentIn(this.s.scene).some((p) => p.npc.id === ev.npc)) return null;
+    const key = ev.trigger === 'invite' ? 'ui.via.invite' : ev.trigger === 'day_start' ? 'ui.via.call' : 'ui.via.message';
+    return this.str(key, { name });
+  }
+
+  private bustImg(url: string, alt: string): HTMLImageElement {
+    const img = h('img', { class: 'bust', src: url || SILHOUETTE_BUST, alt });
+    img.addEventListener('error', () => { img.src = SILHOUETTE_BUST; });
+    return img;
   }
 
   private renderRight(): void {
@@ -926,15 +1091,23 @@ export class Game {
     if (p.kind === 'event' && p.ev.npc) { npc = this.c.npcById.get(p.ev.npc); emotion = p.ev.emotion; }
 
     const portrait = h('div', { class: 'portrait' });
-    if (npc) {
+    let via: string | null = null;
+    if (p.kind === 'event' && p.ev.portrait) {
+      // a cast member (authority figure) speaks: their bust, their name and role
+      const ci = this.castImage(p.ev.portrait, 'bust');
+      via = npc ? this.viaLabel(p.ev, npc.name) : null;
+      portrait.append(this.bustImg(ci.url, ci.name),
+        h('span', { class: 'who', text: ci.role ? `${ci.name} · ${ci.role}` : ci.name }),
+        ci.placeholder ? this.pendingTag() : '');
+    } else if (npc) {
       const pi = this.portraitFor(npc, emotion);
-      const img = h('img', { class: 'bust', src: pi.url, alt: `${npc.name}, ${emotion}` });
-      img.addEventListener('error', () => { img.src = SILHOUETTE_BUST; });
-      portrait.append(img,
+      via = p.kind === 'event' ? this.viaLabel(p.ev, npc.name) : null;
+      portrait.append(this.bustImg(pi.url, `${npc.name}, ${emotion}`),
         h('span', { class: `chip chip-${emotion}`, text: emotion }),
-        h('span', { class: 'who', text: npc.name }),
+        h('span', { class: 'who', text: via ?? npc.name }),
         pi.placeholder ? this.pendingTag() : '');
     }
+    if (via) portrait.classList.add('remote');
 
     const desc = h('p', { class: 'desc', text: this.t(this.scene.description) });
     const body = h('div', { class: 'dialogue' });
@@ -943,18 +1116,25 @@ export class Game {
 
     if (p.kind === 'dialogue') {
       body.append(h('p', { class: 'line', text: this.t(p.row.line) }));
-      p.row.choices.forEach((ch, i) => choices.append(this.choiceBtn(i, this.t(ch.text), this.choiceCost(ch.effect), () => this.chooseDialogue(p.row, i))));
+      this.choiceOrder(p.row.id, p.row.choices.length).forEach((i, pos) => {
+        const ch = p.row.choices[i];
+        choices.append(this.choiceBtn(i, this.t(ch.text), this.choiceCost(ch.effect), () => this.chooseDialogue(p.row, i, pos + 1)));
+      });
       if (!p.row.choices.length) {
         choices.append(h('button', { class: 'choice', 'data-fk': 'ch:cont', onclick: () => { this.endConvo('ended'); this.panel = { kind: 'idle' }; this.render(); }, text: this.str('ui.continue') }));
       }
-      status = `rule ${p.row.id} · ${p.npc} · p${p.row.priority} s${p.row.specificity}${p.tie.length ? ` · TIE with ${p.tie.join(',')}` : ''}`;
+      status = `rule ${p.row.id} · ${p.npc} · p${p.row.priority} s${p.row.specificity} · depth ${this.depthOf(p.row)}${p.tie.length ? ` · TIE with ${p.tie.join(',')}` : ''}`;
     } else if (p.kind === 'event') {
+      if (via) body.append(h('h3', { class: 'text-title via', text: via }));
       body.append(h('p', { class: 'line', text: this.t(p.ev.text) }));
-      p.ev.choices.forEach((ch, i) => choices.append(this.choiceBtn(i, this.t(ch.text), this.choiceCost(ch.effect), () => this.chooseEvent(p.ev, i))));
+      this.choiceOrder(p.ev.id, p.ev.choices.length).forEach((i, pos) => {
+        const ch = p.ev.choices[i];
+        choices.append(this.choiceBtn(i, this.t(ch.text), this.choiceCost(ch.effect), () => this.chooseEvent(p.ev, i, pos + 1)));
+      });
       if (!p.ev.choices.length) {
         choices.append(h('button', { class: 'choice', 'data-fk': 'ch:cont', onclick: () => this.chooseEvent(p.ev, null), text: this.str('ui.continue') }));
       }
-      status = `event ${p.ev.id} · ${p.ev.trigger}${p.ev.npc ? ` · ${p.ev.npc}` : ''}`;
+      status = `event ${p.ev.id} · ${p.ev.trigger}${p.ev.npc ? ` · ${p.ev.npc}` : ''}${p.ev.portrait ? ` · cast ${p.ev.portrait}` : ''}`;
     } else if (p.kind === 'bed') {
       body.append(h('p', { class: 'line', text: this.str('ui.bed.prompt', { actions: this.costWords(this.s.actions) }) }));
       const pick = (n: 1 | 2 | 3) => {
@@ -970,12 +1150,21 @@ export class Game {
         h('button', { class: 'choice', 'data-fk': 'ch:2', onclick: () => pick(3), text: this.str('ui.bed.stay') }));
     } else if (p.kind === 'text') {
       if (p.title) body.append(h('h3', { class: 'text-title', text: p.title }));
+      let first = true;
       for (const para of this.t(p.text).split(/\n\n+/)) {
         const bold = /^\*\*(.+)\*\*$/.exec(para.trim());
-        body.append(bold ? h('p', { class: 'headline', text: bold[1] }) : h('p', { class: 'line', text: para }));
+        if (bold && first && p.figure) {
+          // print news with a cast figure: their bust beside the headline
+          const ci = this.castImage(p.figure, 'bust');
+          body.append(h('div', { class: 'news-head' },
+            h('figure', { class: 'news-bust' }, this.bustImg(ci.url, ci.name), ci.placeholder ? this.pendingTag() : null,
+              h('figcaption', { text: ci.role ? `${ci.name}, ${ci.role}` : ci.name })),
+            h('p', { class: 'headline', text: bold[1] })));
+        } else body.append(bold ? h('p', { class: 'headline', text: bold[1] }) : h('p', { class: 'line', text: para }));
+        first = false;
       }
       choices.append(h('button', { class: 'choice', 'data-fk': 'ch:cont', onclick: () => { this.panel = { kind: 'idle' }; this.render(); }, text: this.str('ui.close') }));
-      status = p.rule ? `story ${p.rule}` : '';
+      status = p.rule ? `story ${p.rule}${p.figure ? ` · cast ${p.figure}` : ''}` : '';
     } else {
       if (p.note) body.append(h('p', { class: 'note', text: p.note }));
       else if (this.s.actions <= 0) body.append(h('p', { class: 'note', text: this.str('ui.noActions') }));
@@ -983,7 +1172,7 @@ export class Game {
       status = `lean ${leanOf(this.s.spent)} · ${dayPhaseOf(this.s.day)}`;
     }
 
-    this.right.replaceChildren(portrait, desc, body, choices, h('div', { class: 'status', text: status }));
+    this.right.replaceChildren(portrait, desc, body, choices, this.debug ? h('div', { class: 'status', text: status }) : '');
   }
 
   private choiceBtn(i: number, text: string, cost: number, onclick: () => void): HTMLElement {
@@ -1052,7 +1241,7 @@ export class Game {
           h('img', { src: pi.url, alt: '' }),
           h('div', {},
             h('div', { class: 'ct-name', text: n.name }),
-            h('div', { class: 'ct-meta', text: `${'●'.repeat(ns.rapport)}${'○'.repeat(3 - ns.rapport)} · last talk: ${ns.lastValence}` }),
+            this.debug ? h('div', { class: 'ct-meta ct-debug', text: `${'●'.repeat(ns.rapport)}${'○'.repeat(3 - ns.rapport)} · last talk: ${ns.lastValence}` }) : null,
             h('div', { class: 'ct-meta ct-talk', text: this.talkSummary(totals.get(n.id)) }))));
       }
       pane.append(ul);
@@ -1104,7 +1293,7 @@ export class Game {
       talk: (npc: string) => this.talkTo(npc),
       present: (scene?: string) => this.presentIn(scene ?? this.s.scene).map((p) => `${p.npc.id}@${p.slot ? p.slot.id : 'painted'}`),
       panel: () => this.panel,
-      /** Puts an NPC on a slot of the current scene (dev, for checking figure sizes); gv.place() clears. */
+      /** Puts an NPC on a slot of the current scene (dev, for checking figure sizes); gv.place() clears. In memory only: never saved. */
       place: (npc?: string, slot?: string) => {
         if (!npc) this.devPlaced.clear();
         else this.devPlaced.set(this.s.scene, [...(this.devPlaced.get(this.s.scene) ?? []), { npc, slot: slot ?? 'near' }]);
@@ -1112,6 +1301,18 @@ export class Game {
         return this.presentIn(this.s.scene).map((p) => `${p.npc.id}@${p.slot ? p.slot.id : 'painted'}`);
       },
       reveal: (on = true) => { this.sceneBox.classList.toggle('reveal', on); },
+      /** What the researcher override changed for this load (text keys, image keys, rejections). */
+      override: () => {
+        const o = this.c.override;
+        console.info(`[override] ${o.ignored ? 'IGNORED (&nooverride=1)' : o.applied.length || o.images.length ? 'active' : 'none'}`
+          + `\n  text: ${o.applied.join(', ') || '-'}\n  images: ${o.images.join(', ') || '-'}`
+          + `\n  rejected: ${o.rejected.map((r) => `${r.key} (${r.problems.length} problem(s))`).join(', ') || '-'}${o.updated ? `\n  saved ${o.updated}` : ''}`);
+        return o;
+      },
+      /** Choice display order for a row/event id today (authored indices, 0-based). */
+      order: (id: string, n = 3) => this.choiceOrder(id, n),
+      /** Cost of talking to an NPC now (0 = a short, free conversation). */
+      cost: (npc: string) => { const n = this.c.npcById.get(npc); return n ? this.talkCost(n) : `no npc ${npc}`; },
       endDay: () => this.endDay(),
     };
   }

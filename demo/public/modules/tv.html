@@ -13,6 +13,8 @@
   h2 { font-family: 'Source Serif 4', Georgia, serif; font-size: 28px; line-height: 1.25; margin: 0 0 12px; }
   .body { font-family: 'Source Serif 4', Georgia, serif; font-size: 19px; line-height: 1.55; }
   .pending { position: absolute; right: 8px; top: 8px; font-size: 10px; background: rgba(31,29,26,.75); color: #f4f1ea; padding: 2px 6px; border-radius: 3px; }
+  .ph-screen { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #d9a441; background: rgba(31,29,26,.72); padding: 4px 10px; border-radius: 3px; }
+  .lower { position: absolute; left: 12px; bottom: 52px; background: rgba(31,111,107,.92); color: #fff; font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 3px; }
   .count { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
 </style>
 </head>
@@ -44,13 +46,17 @@
     const s = stories[idx];
     if (!s) { main.replaceChildren(el('p', { className: 'muted', textContent: 'Nothing but reruns right now.' })); more.hidden = true; return; }
     const screen = el('div', { className: 'screen' });
+    // a story with a cast `figure` shows that person's still; figureName is the leader otherwise
+    const who = s.figureName || p.content.leaderName || 'The President';
     if (s.image) {
-      const img = el('img', { src: s.image, alt: `${p.content.leaderName || 'The President'} on screen` });
+      const img = el('img', { src: s.image, alt: `${who} on screen` });
       img.onerror = () => img.replaceWith(el('span', { textContent: 'PLACEHOLDER' }));
       screen.append(img);
-    } else screen.append(el('span', { textContent: 'PLACEHOLDER' }));
+    } else screen.append(el('span', { className: 'ph-screen', textContent: s.pendingNote ? `PLACEHOLDER · ${s.pendingNote}` : 'PLACEHOLDER' }));
     screen.append(el('span', { className: 'live', textContent: 'LIVE' }), el('div', { className: 'ticker', textContent: s.headline }));
-    if (p.content.placeholder) screen.append(el('span', { className: 'pending', textContent: 'PLACEHOLDER' }));
+    const pending = s.placeholder !== undefined ? s.placeholder : p.content.placeholder;
+    if (pending && s.image) screen.append(el('span', { className: 'pending', textContent: s.pendingNote ? `PLACEHOLDER · ${s.pendingNote}` : 'PLACEHOLDER' }));
+    if (s.figure && s.figureName) screen.append(el('span', { className: 'lower', textContent: s.figureRole ? `${s.figureName} · ${s.figureRole}` : s.figureName }));
     main.replaceChildren(screen, el('div', {},
       el('div', { className: 'count', textContent: `Story ${idx + 1} of ${stories.length}` }),
       el('h2', { textContent: s.headline }),

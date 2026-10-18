@@ -102,6 +102,8 @@ export interface EventRow {
   text: string;
   choices: { text: string; effect: string }[];
   rowNum: number;
+  /** optional cast id (manifest.cast / content/cast.yaml): that bust is shown on the right panel */
+  portrait: string;
 }
 
 export interface NewsRow {
@@ -112,6 +114,8 @@ export interface NewsRow {
   valence: string;
   headline: string;
   body: string;
+  /** optional cast id: TV shows that figure's still, print shows the bust beside the headline */
+  figure: string;
 }
 
 export interface QItem {
@@ -138,6 +142,27 @@ export interface Manifest {
   /** optional: alternate id -> canonical id (e.g. ch_us_neighbor -> us_neighbor) */
   aliases?: Record<string, string>;
   tvMeta?: Record<string, { placeholder?: boolean; w?: number; h?: number }>;
+  /** authority figures referenced by news.csv `figure` and events.csv `portrait` */
+  cast?: Record<string, ManifestCast>;
+}
+export interface ManifestCast {
+  name?: string; role?: string;
+  bust?: string | null; tv?: string | null; ref?: string | null;
+  placeholder?: boolean; fromReference?: boolean;
+}
+
+export interface CastInfo { id: string; name: string; role: string }
+
+/** What the researcher override (localStorage gv:override:v1 + IndexedDB gv/images) changed for this load. */
+export interface OverrideInfo {
+  /** text keys applied, e.g. "dialogue/us_neighbor", "news", "events", "npcs", "scenes" */
+  applied: string[];
+  /** text keys rejected (validation failed; bundled file used instead), with their problems */
+  rejected: { key: string; problems: string[] }[];
+  /** image keys with an object URL, e.g. "portraits/us_neighbor/warm" */
+  images: string[];
+  updated?: string;
+  ignored?: boolean; // &nooverride=1
 }
 
 export interface Content {
@@ -154,6 +179,11 @@ export interface Content {
   strings: Record<string, string>;
   assetUrl: (file: string) => string;
   errors: string[];
+  /** cast id -> display name and role (content/cast.yaml, falling back to the manifest) */
+  cast: Map<string, CastInfo>;
+  override: OverrideInfo;
+  /** image override key -> object URL (see SPEC "Researcher editing, overrides and casting") */
+  imageOverrides: Map<string, { url: string; w?: number; h?: number }>;
 }
 
 export interface RoomConfig {
@@ -168,6 +198,8 @@ export interface RoomConfig {
   questionnaire?: Questionnaire;
   /** Or a URL to fetch that questionnaire from (used when `questionnaire` is absent). */
   questionnaireUrl?: string;
+  /** A pinned override snapshot (SPEC); not applied by the demo engine yet: overrides are per browser. */
+  override?: { text: unknown; imageKeys: string[] };
 }
 
 export interface PlayerInfo {
@@ -200,6 +232,9 @@ export interface GameState {
   dayStartDone: number; // day whose day_start processing has run
   /** The conversation in progress; persisted so a reload closes it (exit "left") instead of losing it. */
   convo?: { npc: string; scene: string; started: number; last: number; turns: number; rules: string[] };
+  /** The event on screen (already fired and paid for) and the ones queued behind it, so a reload shows them again. */
+  openEvent?: string;
+  queuedEvents?: string[];
   surveyDay?: number; // day whose end-of-day survey is open; a reload reopens it instead of dropping it
   finished: boolean;
   started: string;

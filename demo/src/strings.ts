@@ -47,4 +47,10 @@ export const DEFAULT_STRINGS: Record<string, string> = {
   'ui.costLegendTitle': 'Each amber dot next to something you can do is one action it costs.',
   'ui.newsTitle': 'Newspaper',
   'ui.noNews': 'Nothing new in the paper today.',
+  'ui.edited': 'edited content',
+  'ui.free': 'free',
+  'ui.noActionsShort': 'no actions left',
+  'ui.via.invite': 'Invitation from {name}',
+  'ui.via.call': 'Call from {name}',
+  'ui.via.message': 'Message from {name}',
 };
