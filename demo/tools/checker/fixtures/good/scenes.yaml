@@ -1,0 +1,16 @@
+scenes:
+  - id: home
+    name: Home
+    community: neutral
+    background: bg_home_day
+    lighting: warm_indoor
+    description: "A small test room."
+    exits: []
+    hotspots:
+      - id: bed
+        label: "Bed"
+        zone: { x: 0.80, y: 0.40, w: 0.15, h: 0.30 }
+        action: { type: end_day }
+    slots:
+      - { id: left, x: 0.25, y: 0.90, scale: 0.5 }
+      - { id: right, x: 0.70, y: 0.90, scale: 0.5 }

@@ -1,0 +1,11 @@
+id,met,rapport,lastValence,nationalLeader,playerLean,dayPhase,priority,emotion,line,choice1,effect1,next1,choice2,effect2,next2,choice3,effect3,next3
+NE01,no,,,,,,10,guarded,Good evening. I'm President Thomas Garrity. Tonight I'm signing an order that puts the law back in charge of our borders and our cities.,Keep watching.,met yes; lastValence none,NE09,Turn it off.,met yes; lastValence negative,,,,
+NE09,yes,,,,,,-1,guarded,"Every city that takes federal money will verify who it serves. If you're here lawfully, you have nothing to worry about.",Leave it on in the background.,lastValence none,,Turn it off.,lastValence negative,,,,
+NE02,yes,,,,,early,1,neutral,"We have hired four thousand new agents, and we are not done.",Keep watching.,lastValence none,,Change the channel.,lastValence negative,,,,
+NE03,yes,2+,,,,,6,warm,"To every American who feels forgotten: I hear you, and I keep my promises.",He's doing what he said he'd do.,rapport +1; lastValence positive,,Change the channel.,lastValence none,,,,
+NE04,yes,,,enforcement,,mid,4,guarded,"Starting next month, public clinics and schools will report enrollment numbers to the Department of Homeland Security.",Keep watching.,lastValence none,,Turn it off.,lastValence negative,,,,
+NE05,yes,,,inclusive,,mid,4,guarded,"Former president Garrity, at a rally in Ohio: ""This administration has opened the doors, and you are paying for it.""",Keep watching.,lastValence none,,Change the channel.,lastValence negative,,,,
+NE06,yes,,,,home-leaning,late,4,guarded,"Some neighborhoods have walled themselves off, with their own language and their own rules. That ends now.",Keep watching.,lastValence none,,Turn it off.,lastValence negative,,,,
+NE07,yes,,,,us-leaning,late,4,neutral,Assimilation is not a dirty word. It is how every great wave of newcomers became American.,He's not wrong about that part.,rapport +1; lastValence positive,,Change the channel.,lastValence none,,,,
+NE08,yes,,negative,,,,8,guarded,"Garrity again, mid-sentence: ""...and we will not apologize for it.""",Mute it.,,,Listen for a minute.,lastValence none,,,,
+NE10,,,,,,,0,neutral,"""...and that is what law and order means.""",Keep watching.,,,,,,,,

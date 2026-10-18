@@ -1,0 +1,169 @@
+# Great Vote demo roster (12). Appearances: present with probability `chance` per (room seed, day, scene).
+# National leaders have no figure and no appearances: they are seen only on TV (home, clinic) and in news.
+npcs:
+  - id: us_neighbor
+    name: Dana
+    pack: shared
+    community: us
+    role: neighbor
+    stance: none
+    portrait: ch_us_neighbor
+    figure: ch_us_neighbor_fig_stand
+    seated: false
+    appearances:
+      - { scene: library, slot: desk, chance: 0.8 }
+      - { scene: park, slot: path_far, chance: 0.3 }
+      - { scene: home, slot: by_hall, chance: 0.15 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: us_stranger_a
+    name: Walt
+    pack: shared
+    community: us
+    role: stranger
+    stance: none
+    portrait: ch_us_stranger_a
+    figure: ch_us_stranger_a_fig_sit
+    seated: true
+    appearances:
+      - { scene: park, slot: chess_right, chance: 0.85 }
+      - { scene: library, slot: reading_seat, chance: 0.3 }
+      - { scene: clinic, slot: waiting_seat, chance: 0.15 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: us_stranger_b
+    name: Kelsey
+    pack: shared
+    community: us
+    role: stranger
+    stance: none
+    portrait: ch_us_stranger_b
+    figure: ch_us_stranger_b_fig_stand
+    seated: false
+    appearances:
+      - { scene: clinic, slot: front_desk, chance: 0.5 }
+      - { scene: park, slot: path, chance: 0.4 }
+      - { scene: library, slot: armchair, chance: 0.25 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: us_leader_int
+    name: Ruth Hale
+    pack: shared
+    community: us
+    role: local_leader
+    stance: integration
+    portrait: ch_us_leader_int
+    figure: ch_us_leader_int_fig_stand
+    seated: false
+    appearances:
+      - { scene: library, slot: reading_table, chance: 0.7 }
+      - { scene: clinic, slot: by_table, chance: 0.25 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: us_leader_seg
+    name: Gary Pruitt
+    pack: shared
+    community: us
+    role: local_leader
+    stance: separation
+    portrait: ch_us_leader_seg
+    figure: ch_us_leader_seg_fig_stand
+    seated: false
+    appearances:
+      - { scene: clinic, slot: by_cooler, chance: 0.5 }
+      - { scene: library, slot: by_shelves, chance: 0.4 }
+      - { scene: park, slot: by_fence, chance: 0.2 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: nat_enforcement
+    name: President Thomas Garrity
+    pack: shared
+    community: us
+    role: national_leader
+    stance: separation
+    portrait: ch_nat_enforcement
+    seated: false
+    appearances: []
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: nat_inclusive
+    name: President Lena Ortiz
+    pack: shared
+    community: us
+    role: national_leader
+    stance: integration
+    portrait: ch_nat_inclusive
+    seated: false
+    appearances: []
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: cn_neighbor
+    name: Mrs. Chen
+    pack: cn
+    community: home
+    role: neighbor
+    stance: none
+    portrait: ch_cn_neighbor
+    figure: ch_cn_neighbor_fig_stand
+    seated: false
+    appearances:
+      - { scene: center_cn, slot: by_table, chance: 0.7 }
+      - { scene: park, slot: by_tables, chance: 0.35 }
+      - { scene: home, slot: by_sofa, chance: 0.2 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: cn_stranger_a
+    name: Mr. Lin
+    pack: cn
+    community: home
+    role: stranger
+    stance: none
+    portrait: ch_cn_stranger_a
+    figure: ch_cn_stranger_a_fig_sit
+    seated: true
+    appearances:
+      - { scene: park, slot: chess_left, chance: 0.85 }
+      - { scene: center_cn, slot: seated_hall, chance: 0.4 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: cn_stranger_b
+    name: Jia
+    pack: cn
+    community: bicultural
+    role: stranger
+    stance: none
+    portrait: ch_cn_stranger_b
+    figure: ch_cn_stranger_b_fig_stand
+    seated: false
+    appearances:
+      - { scene: work, slot: desk_left, chance: 0.75 }
+      - { scene: center_cn, slot: near_chairs, chance: 0.3 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: cn_leader_int
+    name: Dr. Helen Zhou
+    pack: cn
+    community: home
+    role: local_leader
+    stance: integration
+    portrait: ch_cn_leader_int
+    figure: ch_cn_leader_int_fig_stand
+    seated: false
+    appearances:
+      - { scene: center_cn, slot: by_board, chance: 0.6 }
+      - { scene: clinic, slot: by_chairs, chance: 0.4 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: cn_leader_sep
+    name: Mr. Guo
+    pack: cn
+    community: home
+    role: local_leader
+    stance: separation
+    portrait: ch_cn_leader_sep
+    figure: ch_cn_leader_sep_fig_stand
+    seated: false
+    appearances:
+      - { scene: center_cn, slot: by_kitchen, chance: 0.75 }
+      - { scene: park, slot: by_lamp, chance: 0.2 }
+    initial: { met: false, rapport: 0, lastValence: none }

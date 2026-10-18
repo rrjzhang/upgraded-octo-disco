@@ -1,0 +1,21 @@
+{
+  "ui.phone": "Phone",
+  "ui.journal": "Journal",
+  "ui.contacts": "Contacts",
+  "ui.wallet": "Wallet",
+  "ui.call": "Call",
+  "ui.showInteractables": "Show interactables",
+  "ui.continue": "Continue",
+  "ui.tooTired": "Too tired, go home",
+  "ui.bed": "Go to bed",
+  "ui.export": "Export log",
+  "ui.packNotInDemo": "This culture pack is not in the demo yet. Using the {homeCulture} roster.",
+  "phase.morning": "Morning",
+  "phase.afternoon": "Afternoon",
+  "phase.evening": "Evening",
+  "culture.cn": "Chinese",
+  "culture.mx": "Mexican",
+  "culture.in": "Indian",
+  "end.title": "That is the end of the demo week.",
+  "end.body": "Thank you for playing. Please export your log and hand it to the researcher."
+}

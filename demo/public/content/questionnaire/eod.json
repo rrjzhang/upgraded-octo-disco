@@ -1,0 +1,133 @@
+{
+  "id": "eod-v0",
+  "title": "Evening check-in",
+  "intro": "A few questions about today. There are no right answers. Placeholder items are marked and will be replaced by the real instrument.",
+  "pages": [
+    {
+      "items": [
+        {
+          "id": "bii_1",
+          "type": "likert",
+          "text": "[PLACEHOLDER: Bicultural Identity Integration item 1; real instrument to be dropped in]",
+          "scale": {
+            "min": 1,
+            "max": 5,
+            "minLabel": "Strongly disagree",
+            "maxLabel": "Strongly agree"
+          }
+        },
+        {
+          "id": "bii_2",
+          "type": "likert",
+          "text": "[PLACEHOLDER: Bicultural Identity Integration item 2; real instrument to be dropped in]",
+          "scale": {
+            "min": 1,
+            "max": 5,
+            "minLabel": "Strongly disagree",
+            "maxLabel": "Strongly agree"
+          }
+        },
+        {
+          "id": "bii_3",
+          "type": "likert",
+          "text": "[PLACEHOLDER: Bicultural Identity Integration item 3; real instrument to be dropped in]",
+          "scale": {
+            "min": 1,
+            "max": 5,
+            "minLabel": "Strongly disagree",
+            "maxLabel": "Strongly agree"
+          }
+        },
+        {
+          "id": "bii_4",
+          "type": "likert",
+          "text": "[PLACEHOLDER: Bicultural Identity Integration item 4; real instrument to be dropped in]",
+          "scale": {
+            "min": 1,
+            "max": 5,
+            "minLabel": "Strongly disagree",
+            "maxLabel": "Strongly agree"
+          }
+        },
+        {
+          "id": "bii_5",
+          "type": "likert",
+          "text": "[PLACEHOLDER: Bicultural Identity Integration item 5; real instrument to be dropped in]",
+          "scale": {
+            "min": 1,
+            "max": 5,
+            "minLabel": "Strongly disagree",
+            "maxLabel": "Strongly agree"
+          }
+        },
+        {
+          "id": "bii_6",
+          "type": "likert",
+          "text": "[PLACEHOLDER: Bicultural Identity Integration item 6; real instrument to be dropped in]",
+          "scale": {
+            "min": 1,
+            "max": 5,
+            "minLabel": "Strongly disagree",
+            "maxLabel": "Strongly agree"
+          }
+        },
+        {
+          "id": "bii_7",
+          "type": "likert",
+          "text": "[PLACEHOLDER: Bicultural Identity Integration item 7; real instrument to be dropped in]",
+          "scale": {
+            "min": 1,
+            "max": 5,
+            "minLabel": "Strongly disagree",
+            "maxLabel": "Strongly agree"
+          }
+        },
+        {
+          "id": "bii_8",
+          "type": "likert",
+          "text": "[PLACEHOLDER: Bicultural Identity Integration item 8; real instrument to be dropped in]",
+          "scale": {
+            "min": 1,
+            "max": 5,
+            "minLabel": "Strongly disagree",
+            "maxLabel": "Strongly agree"
+          }
+        }
+      ]
+    },
+    {
+      "items": [
+        {
+          "id": "mood",
+          "type": "choice",
+          "text": "Which word comes closest to how today felt?",
+          "options": [
+            "Settled",
+            "Busy",
+            "Torn",
+            "Lonely",
+            "Good"
+          ]
+        },
+        {
+          "id": "belong_today",
+          "type": "choice",
+          "text": "Where did you feel most like yourself today?",
+          "options": [
+            "At home",
+            "At work",
+            "At the community center",
+            "At the library or clinic",
+            "In the park",
+            "Nowhere in particular"
+          ]
+        },
+        {
+          "id": "note",
+          "type": "text",
+          "text": "Anything from today you want to remember? (optional)"
+        }
+      ]
+    }
+  ]
+}

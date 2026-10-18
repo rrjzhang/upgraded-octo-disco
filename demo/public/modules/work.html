@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Work: sort the mail</title>
+<link rel="stylesheet" href="module.css" />
+<style>
+  .center { display: flex; flex-direction: column; align-items: center; gap: 18px; text-align: center; }
+  .letter { width: 420px; height: 220px; background: #fff; border: 1.5px solid #cfc7b6; border-radius: 6px; position: relative;
+    box-shadow: 0 4px 14px rgba(0,0,0,.08); display: flex; flex-direction: column; justify-content: center; padding: 0 36px; text-align: left; }
+  .letter .stamp { position: absolute; right: 18px; top: 16px; width: 54px; height: 64px; border: 3px dashed; border-radius: 4px; }
+  .letter .addr { font-family: 'Source Serif 4', Georgia, serif; font-size: 22px; line-height: 1.4; }
+  .bins { display: flex; gap: 18px; }
+  .bin { width: 200px; padding: 18px 10px; border-radius: 10px; border: 3px solid; background: #fff; font-size: 17px; font-weight: 600; cursor: pointer; }
+  .bin small { display: block; font-weight: 400; color: var(--muted); margin-top: 4px; }
+  .timer { font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .score { font-size: 16px; color: var(--muted); }
+  .flash-ok { animation: ok .25s; } .flash-bad { animation: bad .25s; }
+  @keyframes ok { from { background: #d7efe9; } } @keyframes bad { from { background: #f6d9d4; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><h1>Sorting office · mail shift</h1><span class="meta" id="meta"></span></header>
+  <main class="center" id="main"></main>
+  <footer><button class="btn ghost" id="close">Close</button></footer>
+</div>
+<script src="bridge.js"></script>
+<script>
+  const SHIFT_COST = 2, SHIFT_PAY = 40, SHIFT_SECONDS = 20;
+  const DISTRICTS = [
+    { id: 0, name: 'North', streets: ['Elm St', 'Birch Ave', 'Oak Ct'], color: '#1F6F6B' },
+    { id: 1, name: 'Central', streets: ['Main St', 'Market St', 'Union Sq'], color: '#B07A1E' },
+    { id: 2, name: 'South', streets: ['River Rd', 'Mill Ln', 'Harbor Way'], color: '#7C3A5A' },
+  ];
+  const NAMES = ['R. Alvarez', 'K. Okafor', 'M. Chen', 'D. Novak', 'S. Patel', 'J. Moreau', 'T. Kim', 'L. Rossi', 'A. Haddad', 'P. Walsh'];
+  let st = { actions: 0, wallet: 0 };
+  let pending = null, timer = null;
+  const main = document.getElementById('main'), meta = document.getElementById('meta');
+  const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, attrs); kids.forEach((k) => e.append(k)); return e; };
+  const showMeta = () => { meta.textContent = `Actions left ${st.actions} · Wallet $${st.wallet}`; };
+  document.getElementById('close').onclick = () => { clearInterval(timer); GV.send({ type: 'close' }); };
+
+  function intro(msg) {
+    clearInterval(timer);
+    main.replaceChildren(
+      el('p', { className: 'serif', style: 'font-size:20px;max-width:640px', textContent: 'Sort each letter into its district bin by street name. A shift lasts 20 seconds and pays $40 no matter how fast you are.' }),
+      el('p', { className: 'muted', textContent: `One shift costs ${SHIFT_COST} actions.` }),
+      msg ? el('p', { className: 'err', role: 'alert', textContent: msg }) : '',
+    );
+    const b = el('button', { className: 'btn', textContent: `Start shift (${SHIFT_COST} actions)` });
+    b.disabled = st.actions < SHIFT_COST;
+    b.onclick = () => { b.disabled = true; pending = 'start'; GV.send({ type: 'spend', actions: SHIFT_COST }); };
+    main.append(b);
+    if (st.actions < SHIFT_COST) main.append(el('p', { className: 'muted', textContent: 'Not enough actions left today for a shift.' }));
+    b.focus();
+  }
+
+  function play() {
+    let left = SHIFT_SECONDS, sorted = 0, wrong = 0, cur;
+    const t = el('div', { className: 'timer', textContent: `0:${String(left).padStart(2, '0')}` });
+    const score = el('div', { className: 'score', textContent: 'Sorted 0' });
+    const letter = el('div', { className: 'letter' });
+    const bins = el('div', { className: 'bins' });
+    DISTRICTS.forEach((d, i) => {
+      const b = el('button', { className: 'bin' }, `${i + 1}. ${d.name}`, el('small', { textContent: d.streets.join(' · ') }));
+      b.style.borderColor = d.color; b.style.color = d.color;
+      b.setAttribute('aria-label', `${d.name} bin: ${d.streets.join(', ')} (key ${i + 1})`);
+      b.onclick = () => drop(i);
+      bins.append(b);
+    });
+    const next = () => {
+      const d = DISTRICTS[Math.floor(Math.random() * 3)];
+      cur = d.id;
+      const st = d.streets[Math.floor(Math.random() * 3)];
+      letter.replaceChildren(el('span', { className: 'stamp' }),
+        el('div', { className: 'addr', textContent: `${NAMES[Math.floor(Math.random() * NAMES.length)]}\n` }),
+        el('div', { className: 'addr', textContent: `${10 + Math.floor(Math.random() * 890)} ${st}` }));
+      letter.querySelector('.stamp').style.color = '#9b958a';
+      letter.setAttribute('aria-label', `Letter to ${st}`);
+    };
+    const drop = (i) => {
+      if (left <= 0) return;
+      const ok = i === cur;
+      ok ? sorted++ : wrong++;
+      letter.classList.remove('flash-ok', 'flash-bad'); void letter.offsetWidth;
+      letter.classList.add(ok ? 'flash-ok' : 'flash-bad');
+      score.textContent = `Sorted ${sorted}${wrong ? ` · misfiled ${wrong}` : ''}`;
+      next();
+    };
+    const keys = (e) => { if (['1', '2', '3'].includes(e.key)) drop(+e.key - 1); };
+    document.addEventListener('keydown', keys);
+    next();
+    main.replaceChildren(t, letter, bins, score);
+    bins.querySelector('button').focus();
+    timer = setInterval(() => {
+      left--;
+      t.textContent = `0:${String(Math.max(0, left)).padStart(2, '0')}`;
+      if (left <= 0) {
+        clearInterval(timer);
+        document.removeEventListener('keydown', keys);
+        GV.send({ type: 'earn', amount: SHIFT_PAY });
+        st.wallet += SHIFT_PAY; showMeta();
+        done(sorted, wrong);
+      }
+    }, 1000);
+  }
+
+  function done(sorted, wrong) {
+    const again = el('button', { className: 'btn', textContent: `Another shift (${SHIFT_COST} actions)` });
+    again.disabled = st.actions < SHIFT_COST;
+    again.onclick = () => { again.disabled = true; pending = 'start'; GV.send({ type: 'spend', actions: SHIFT_COST }); };
+    main.replaceChildren(
+      el('p', { className: 'serif', style: 'font-size:24px', textContent: `Shift over. You sorted ${sorted} letter${sorted === 1 ? '' : 's'}${wrong ? ` (${wrong} misfiled)` : ''}.` }),
+      el('p', { textContent: `+$${SHIFT_PAY} paid to your wallet.` }), again);
+    again.disabled ? document.getElementById('close').focus() : again.focus();
+  }
+
+  GV.on('init', (p) => { st = { actions: p.actions ?? 0, wallet: p.wallet ?? 0 }; showMeta(); intro(); });
+  GV.on('state', (p) => {
+    st.actions = p.actions ?? st.actions; st.wallet = p.wallet ?? st.wallet; showMeta();
+    if (pending === 'start') { pending = null; p.ok ? play() : intro('Not enough actions left for a shift.'); }
+  });
+  GV.fallback({});
+</script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+id,met,rapport,lastValence,nationalLeader,playerLean,dayPhase,priority,emotion,line,choice1,effect1,next1,choice2,effect2,next2,choice3,effect3,next3
+F,,,,,,,0,neutral,Bob studies the board.,Leave,,,,,,,,
+B1,no,,,,,,0,neutral,Do you play?,A little,met yes,,,,,,,
+B2,yes,,,,,late,0,warm,One more game?,Play a long game,rapport +1; actions -1,,,,,,,

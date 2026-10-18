@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Evening check-in</title>
+<link rel="stylesheet" href="module.css" />
+<style>
+  main { max-width: 960px; margin: 0 auto; width: 100%; }
+  .intro { font-family: 'Source Serif 4', Georgia, serif; font-size: 18px; color: var(--muted); margin-top: 0; }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0 20px; }
+  th, td { padding: 10px 8px; border-bottom: 1px solid #ddd5c5; text-align: center; font-size: 14px; }
+  th.q, td.q { text-align: left; width: 46%; font-size: 16px; }
+  thead th { color: var(--muted); font-weight: 500; vertical-align: bottom; }
+  td label { display: block; cursor: pointer; padding: 4px; }
+  input[type=radio] { width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer; }
+  fieldset { border: 0; padding: 0; margin: 0 0 22px; }
+  legend { font-size: 17px; font-weight: 500; margin-bottom: 8px; }
+  .opts label { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 16px; cursor: pointer; }
+  textarea { width: 100%; min-height: 110px; font: 16px/1.5 'Source Serif 4', Georgia, serif; padding: 10px; border: 1.5px solid #cfc7b6; border-radius: 8px; }
+  tr.missing td.q, fieldset.missing legend { color: #8a2a1f; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .progress { font-size: 14px; color: var(--muted); margin-right: auto; align-self: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><h1 id="title">Evening check-in</h1><span class="meta" id="meta"></span></header>
+  <main id="main"><p class="muted">Loading…</p></main>
+  <footer>
+    <span class="progress" id="progress"></span>
+    <button class="btn ghost" id="later">Not yet</button>
+    <button class="btn ghost" id="back">Back</button>
+    <button class="btn" id="next">Next</button>
+  </footer>
+</div>
+<script src="bridge.js"></script>
+<script>
+  let q = null, page = 0;
+  const answers = {};
+  const main = document.getElementById('main'), nextB = document.getElementById('next'), backB = document.getElementById('back');
+  const err = document.createElement('p'); err.className = 'err'; err.setAttribute('role', 'alert');
+  const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, attrs); kids.forEach((k) => e.append(k)); return e; };
+  document.getElementById('later').onclick = () => GV.send({ type: 'close' });
+  backB.onclick = () => { if (page > 0) { page--; render(); } };
+  nextB.onclick = () => {
+    const missing = q.pages[page].items.filter((it) => it.type !== 'text' && (answers[it.id] === undefined || answers[it.id] === ''));
+    main.querySelectorAll('.missing').forEach((n) => n.classList.remove('missing'));
+    if (missing.length) {
+      missing.forEach((it) => main.querySelector(`[data-item="${CSS.escape(it.id)}"]`)?.classList.add('missing'));
+      err.textContent = `Please answer ${missing.length === 1 ? 'the highlighted question' : `the ${missing.length} highlighted questions`}.`;
+      main.querySelector('.missing input')?.focus();
+      return;
+    }
+    if (page < q.pages.length - 1) { page++; render(); return; }
+    nextB.disabled = true;
+    GV.send({ type: 'submit', answers: { ...answers } });
+  };
+
+  function likertMatrix(items) {
+    const sc = items[0].scale || { min: 1, max: 5 };
+    const vals = []; for (let v = sc.min; v <= sc.max; v++) vals.push(v);
+    const head = el('tr', {}, el('th', { className: 'q', textContent: '' }));
+    vals.forEach((v, i) => head.append(el('th', { textContent: i === 0 ? `${v} ${sc.minLabel || ''}` : i === vals.length - 1 ? `${v} ${sc.maxLabel || ''}` : String(v) })));
+    const body = el('tbody');
+    items.forEach((it) => {
+      const s = it.scale || sc;
+      const tr = el('tr', { role: 'radiogroup' }); tr.dataset.item = it.id;
+      tr.setAttribute('aria-label', it.text);
+      tr.append(el('td', { className: 'q', textContent: it.text }));
+      for (let v = s.min; v <= s.max; v++) {
+        const inp = el('input', { type: 'radio', name: it.id, value: String(v), checked: answers[it.id] === v });
+        inp.setAttribute('aria-label', `${v}${v === s.min && s.minLabel ? ` (${s.minLabel})` : ''}${v === s.max && s.maxLabel ? ` (${s.maxLabel})` : ''}`);
+        inp.onchange = () => { answers[it.id] = v; tr.classList.remove('missing'); };
+        tr.append(el('td', {}, el('label', {}, inp)));
+      }
+      body.append(tr);
+    });
+    return el('table', {}, el('thead', {}, head), body);
+  }
+
+  function render() {
+    err.textContent = '';
+    const items = q.pages[page].items || [];
+    const nodes = [];
+    if (page === 0 && q.intro) nodes.push(el('p', { className: 'intro', textContent: q.intro }));
+    let run = [];
+    const flush = () => { if (run.length) { nodes.push(likertMatrix(run)); run = []; } };
+    for (const it of items) {
+      if (it.type === 'likert') { if (run.length && JSON.stringify(run[0].scale) !== JSON.stringify(it.scale)) flush(); run.push(it); continue; }
+      flush();
+      if (it.type === 'choice') {
+        const fs = el('fieldset', {}, el('legend', { textContent: it.text })); fs.dataset.item = it.id;
+        const opts = el('div', { className: 'opts' });
+        (it.options || []).forEach((o) => {
+          const inp = el('input', { type: 'radio', name: it.id, value: o, checked: answers[it.id] === o });
+          inp.onchange = () => { answers[it.id] = o; fs.classList.remove('missing'); };
+          opts.append(el('label', {}, inp, o));
+        });
+        fs.append(opts); nodes.push(fs);
+      } else if (it.type === 'text') {
+        const id = `t_${it.id}`;
+        const ta = el('textarea', { id, value: answers[it.id] || '' });
+        ta.oninput = () => { answers[it.id] = ta.value; };
+        const wrap = el('div', {}, el('label', { htmlFor: id, textContent: it.text, style: 'display:block;font-size:17px;font-weight:500;margin-bottom:8px' }), ta);
+        wrap.dataset.item = it.id; nodes.push(wrap);
+      }
+    }
+    flush();
+    nodes.push(err);
+    main.replaceChildren(...nodes);
+    backB.hidden = page === 0;
+    nextB.textContent = page === q.pages.length - 1 ? 'Submit' : 'Next';
+    document.getElementById('progress').textContent = `Page ${page + 1} of ${q.pages.length}`;
+    main.scrollTop = 0;
+    (main.querySelector('input, textarea') || nextB).focus();
+  }
+
+  GV.on('init', (p) => {
+    q = p.content && Array.isArray(p.content.pages) ? p.content : { title: 'Evening check-in', pages: [{ items: [] }] };
+    document.getElementById('title').textContent = q.title || 'Evening check-in';
+    document.getElementById('meta').textContent = `Day ${p.day}`;
+    page = 0; render();
+  });
+  GV.fallback({ day: 1, content: { id: 'preview', title: 'Evening check-in (preview)', intro: 'Opened outside the game.', pages: [
+    { items: [ { id: 'a', type: 'likert', text: 'Placeholder A', scale: { min: 1, max: 5, minLabel: 'Strongly disagree', maxLabel: 'Strongly agree' } },
+               { id: 'b', type: 'likert', text: 'Placeholder B', scale: { min: 1, max: 5, minLabel: 'Strongly disagree', maxLabel: 'Strongly agree' } } ] },
+    { items: [ { id: 'mood', type: 'choice', text: 'Mood?', options: ['Good', 'Okay', 'Hard'] }, { id: 'note', type: 'text', text: 'Anything else?' } ] } ] } });
+</script>
+</body>
+</html>

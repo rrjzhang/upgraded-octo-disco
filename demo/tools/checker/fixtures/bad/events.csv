@@ -1,0 +1,2 @@
+id,source,target,valence,proximity,trigger,scene,npc,minRapport,playerLean,nationalLeader,chance,cost,emotion,text,choice1,effect1,choice2,effect2
+E1,us,home,positive,proximal,enter,home,carol,,,,0.5,,warm,Carol waves.,,,,

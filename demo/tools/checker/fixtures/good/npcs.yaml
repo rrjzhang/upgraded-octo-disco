@@ -1,0 +1,25 @@
+npcs:
+  - id: alice
+    name: Alice
+    pack: shared
+    community: us
+    role: neighbor
+    stance: none
+    portrait: ch_alice
+    figure: ch_alice_fig_stand
+    seated: false
+    appearances:
+      - { scene: home, slot: left, chance: 1.0 }
+    initial: { met: false, rapport: 0, lastValence: none }
+  - id: bob
+    name: Bob
+    pack: cn
+    community: home
+    role: stranger
+    stance: none
+    portrait: ch_bob
+    figure: ch_bob_fig_stand
+    seated: true
+    appearances:
+      - { scene: home, slot: right, chance: 0.5 }
+    initial: { met: false, rapport: 0, lastValence: none }

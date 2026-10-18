@@ -1,0 +1,18 @@
+{
+  "backgrounds": {
+    "bg_fx_home_day": { "file": "fx:bg_fx_home_day.svg", "w": 1536, "h": 1024, "lighting": "warm_indoor" },
+    "bg_fx_home_eve": { "file": "fx:bg_fx_home_eve.svg", "w": 1536, "h": 1024, "lighting": "warm_indoor" }
+  },
+  "portraits": {
+    "ch_fx_dana": { "neutral": "fx:bust_fx_dana_neutral.svg", "warm": "fx:bust_fx_dana_warm.svg", "guarded": null, "worried": null, "placeholder": false },
+    "ch_fx_lin": { "neutral": "fx:bust_placeholder.svg", "warm": null, "guarded": null, "worried": null, "placeholder": true }
+  },
+  "figures": {
+    "ch_fx_lin_fig_sit": { "file": "fx:fig_fx_lin_sit.svg", "w": 300, "h": 420, "seated": true, "placeholder": false }
+  },
+  "props": {
+    "prop_fx_tv": { "file": "fx:prop_fx_tv.svg", "w": 600, "h": 600 }
+  },
+  "tv": { "nat_enforcement": ["fx:tv_fx.svg"], "nat_inclusive": ["fx:tv_fx.svg"] },
+  "candidates": { "fx_lin": ["ch_fx_lin", "ch_fx_lin_alt"] }
+}

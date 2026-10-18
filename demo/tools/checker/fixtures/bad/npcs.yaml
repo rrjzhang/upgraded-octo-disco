@@ -1,0 +1,23 @@
+npcs:
+  - id: carol
+    name: Carol
+    pack: shared
+    community: us
+    role: neighbor
+    stance: none
+    portrait: ch_carol
+    figure: ch_carol_fig_stand
+    appearances:
+      - { scene: home, slot: left, chance: 1.0 }
+    initial: { met: false, rapport: 0, lastValence: none }
+  - id: dave
+    name: Dave
+    pack: shared
+    community: us
+    role: stranger
+    stance: none
+    portrait: ch_dave
+    figure: ch_dave_fig_stand
+    appearances:
+      - { scene: home, slot: right, chance: 1.0 }
+    initial: { met: false, rapport: 0, lastValence: none }
