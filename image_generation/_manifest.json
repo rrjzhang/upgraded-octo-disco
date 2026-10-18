@@ -1,6 +1,6 @@
 {
   "budget": 50,
-  "planned": 199,
+  "planned": 235,
   "reserved_for_retries": 5,
   "items": [
     {
@@ -3466,6 +3466,654 @@
       "save_prompt_used_as": "out/bg_home_in_eve_A.prompt.txt",
       "status": "pending",
       "file": "199_bg_home_in_eve_A.md"
+    },
+    {
+      "id": "ch_us_neighbor_guarded_A",
+      "order": 200,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_us_neighbor_A",
+      "depends_on": [
+        "ch_us_neighbor_ref_A"
+      ],
+      "attach": "out/ch_us_neighbor_ref_A.png",
+      "save_image_as": "out/ch_us_neighbor_guarded_A.png",
+      "save_prompt_used_as": "out/ch_us_neighbor_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "200_ch_us_neighbor_guarded_A.md"
+    },
+    {
+      "id": "ch_us_neighbor_worried_A",
+      "order": 201,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_us_neighbor_A",
+      "depends_on": [
+        "ch_us_neighbor_ref_A"
+      ],
+      "attach": "out/ch_us_neighbor_ref_A.png",
+      "save_image_as": "out/ch_us_neighbor_worried_A.png",
+      "save_prompt_used_as": "out/ch_us_neighbor_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "201_ch_us_neighbor_worried_A.md"
+    },
+    {
+      "id": "ch_us_stranger_a_warm_A",
+      "order": 202,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_us_stranger_a_A",
+      "depends_on": [
+        "ch_us_stranger_a_ref_A"
+      ],
+      "attach": "out/ch_us_stranger_a_ref_A.png",
+      "save_image_as": "out/ch_us_stranger_a_warm_A.png",
+      "save_prompt_used_as": "out/ch_us_stranger_a_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "202_ch_us_stranger_a_warm_A.md"
+    },
+    {
+      "id": "ch_us_stranger_a_guarded_A",
+      "order": 203,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_us_stranger_a_A",
+      "depends_on": [
+        "ch_us_stranger_a_ref_A"
+      ],
+      "attach": "out/ch_us_stranger_a_ref_A.png",
+      "save_image_as": "out/ch_us_stranger_a_guarded_A.png",
+      "save_prompt_used_as": "out/ch_us_stranger_a_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "203_ch_us_stranger_a_guarded_A.md"
+    },
+    {
+      "id": "ch_us_stranger_a_worried_A",
+      "order": 204,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_us_stranger_a_A",
+      "depends_on": [
+        "ch_us_stranger_a_ref_A"
+      ],
+      "attach": "out/ch_us_stranger_a_ref_A.png",
+      "save_image_as": "out/ch_us_stranger_a_worried_A.png",
+      "save_prompt_used_as": "out/ch_us_stranger_a_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "204_ch_us_stranger_a_worried_A.md"
+    },
+    {
+      "id": "ch_us_stranger_b_worried_A",
+      "order": 205,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_us_stranger_b_A",
+      "depends_on": [
+        "ch_us_stranger_b_ref_A"
+      ],
+      "attach": "out/ch_us_stranger_b_ref_A.png",
+      "save_image_as": "out/ch_us_stranger_b_worried_A.png",
+      "save_prompt_used_as": "out/ch_us_stranger_b_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "205_ch_us_stranger_b_worried_A.md"
+    },
+    {
+      "id": "ch_us_leader_int_worried_A",
+      "order": 206,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_us_leader_int_A",
+      "depends_on": [
+        "ch_us_leader_int_ref_A"
+      ],
+      "attach": "out/ch_us_leader_int_ref_A.png",
+      "save_image_as": "out/ch_us_leader_int_worried_A.png",
+      "save_prompt_used_as": "out/ch_us_leader_int_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "206_ch_us_leader_int_worried_A.md"
+    },
+    {
+      "id": "ch_us_leader_seg_worried_A",
+      "order": 207,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_us_leader_seg_A",
+      "depends_on": [
+        "ch_us_leader_seg_ref_A"
+      ],
+      "attach": "out/ch_us_leader_seg_ref_A.png",
+      "save_image_as": "out/ch_us_leader_seg_worried_A.png",
+      "save_prompt_used_as": "out/ch_us_leader_seg_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "207_ch_us_leader_seg_worried_A.md"
+    },
+    {
+      "id": "ch_nat_anti_warm_A",
+      "order": 208,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_nat_anti_A",
+      "depends_on": [
+        "ch_nat_anti_ref_A"
+      ],
+      "attach": "out/ch_nat_anti_ref_A.png",
+      "save_image_as": "out/ch_nat_anti_warm_A.png",
+      "save_prompt_used_as": "out/ch_nat_anti_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "208_ch_nat_anti_warm_A.md"
+    },
+    {
+      "id": "ch_nat_anti_guarded_A",
+      "order": 209,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_nat_anti_A",
+      "depends_on": [
+        "ch_nat_anti_ref_A"
+      ],
+      "attach": "out/ch_nat_anti_ref_A.png",
+      "save_image_as": "out/ch_nat_anti_guarded_A.png",
+      "save_prompt_used_as": "out/ch_nat_anti_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "209_ch_nat_anti_guarded_A.md"
+    },
+    {
+      "id": "ch_nat_anti_worried_A",
+      "order": 210,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_nat_anti_A",
+      "depends_on": [
+        "ch_nat_anti_ref_A"
+      ],
+      "attach": "out/ch_nat_anti_ref_A.png",
+      "save_image_as": "out/ch_nat_anti_worried_A.png",
+      "save_prompt_used_as": "out/ch_nat_anti_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "210_ch_nat_anti_worried_A.md"
+    },
+    {
+      "id": "cast_president_inclusive_warm_A",
+      "order": 211,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "cast_president_inclusive_A",
+      "depends_on": [
+        "cast_president_inclusive_ref_A"
+      ],
+      "attach": "out/cast_president_inclusive_ref_A.png",
+      "save_image_as": "out/cast_president_inclusive_warm_A.png",
+      "save_prompt_used_as": "out/cast_president_inclusive_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "211_cast_president_inclusive_warm_A.md"
+    },
+    {
+      "id": "cast_president_inclusive_guarded_A",
+      "order": 212,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "cast_president_inclusive_A",
+      "depends_on": [
+        "cast_president_inclusive_ref_A"
+      ],
+      "attach": "out/cast_president_inclusive_ref_A.png",
+      "save_image_as": "out/cast_president_inclusive_guarded_A.png",
+      "save_prompt_used_as": "out/cast_president_inclusive_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "212_cast_president_inclusive_guarded_A.md"
+    },
+    {
+      "id": "cast_president_inclusive_worried_A",
+      "order": 213,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "cast_president_inclusive_A",
+      "depends_on": [
+        "cast_president_inclusive_ref_A"
+      ],
+      "attach": "out/cast_president_inclusive_ref_A.png",
+      "save_image_as": "out/cast_president_inclusive_worried_A.png",
+      "save_prompt_used_as": "out/cast_president_inclusive_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "213_cast_president_inclusive_worried_A.md"
+    },
+    {
+      "id": "ch_cn_neighbor_worried_A",
+      "order": 214,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_cn_neighbor_A",
+      "depends_on": [
+        "ch_cn_neighbor_ref_A"
+      ],
+      "attach": "out/ch_cn_neighbor_ref_A.png",
+      "save_image_as": "out/ch_cn_neighbor_worried_A.png",
+      "save_prompt_used_as": "out/ch_cn_neighbor_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "214_ch_cn_neighbor_worried_A.md"
+    },
+    {
+      "id": "ch_cn_stranger_a_warm_A",
+      "order": 215,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_cn_stranger_a_A",
+      "depends_on": [
+        "ch_cn_stranger_a_ref_A"
+      ],
+      "attach": "out/ch_cn_stranger_a_ref_A.png",
+      "save_image_as": "out/ch_cn_stranger_a_warm_A.png",
+      "save_prompt_used_as": "out/ch_cn_stranger_a_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "215_ch_cn_stranger_a_warm_A.md"
+    },
+    {
+      "id": "ch_cn_stranger_a_guarded_A",
+      "order": 216,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_cn_stranger_a_A",
+      "depends_on": [
+        "ch_cn_stranger_a_ref_A"
+      ],
+      "attach": "out/ch_cn_stranger_a_ref_A.png",
+      "save_image_as": "out/ch_cn_stranger_a_guarded_A.png",
+      "save_prompt_used_as": "out/ch_cn_stranger_a_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "216_ch_cn_stranger_a_guarded_A.md"
+    },
+    {
+      "id": "ch_cn_stranger_a_worried_A",
+      "order": 217,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_cn_stranger_a_A",
+      "depends_on": [
+        "ch_cn_stranger_a_ref_A"
+      ],
+      "attach": "out/ch_cn_stranger_a_ref_A.png",
+      "save_image_as": "out/ch_cn_stranger_a_worried_A.png",
+      "save_prompt_used_as": "out/ch_cn_stranger_a_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "217_ch_cn_stranger_a_worried_A.md"
+    },
+    {
+      "id": "ch_cn_stranger_b_worried_A",
+      "order": 218,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_cn_stranger_b_A",
+      "depends_on": [
+        "ch_cn_stranger_b_ref_A"
+      ],
+      "attach": "out/ch_cn_stranger_b_ref_A.png",
+      "save_image_as": "out/ch_cn_stranger_b_worried_A.png",
+      "save_prompt_used_as": "out/ch_cn_stranger_b_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "218_ch_cn_stranger_b_worried_A.md"
+    },
+    {
+      "id": "ch_cn_leader_int_worried_A",
+      "order": 219,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_cn_leader_int_A",
+      "depends_on": [
+        "ch_cn_leader_int_ref_A"
+      ],
+      "attach": "out/ch_cn_leader_int_ref_A.png",
+      "save_image_as": "out/ch_cn_leader_int_worried_A.png",
+      "save_prompt_used_as": "out/ch_cn_leader_int_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "219_ch_cn_leader_int_worried_A.md"
+    },
+    {
+      "id": "ch_cn_leader_sep_warm_A",
+      "order": 220,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_cn_leader_sep_A",
+      "depends_on": [
+        "ch_cn_leader_sep_ref_A_1"
+      ],
+      "attach": "out/ch_cn_leader_sep_ref_A_1.png",
+      "save_image_as": "out/ch_cn_leader_sep_warm_A.png",
+      "save_prompt_used_as": "out/ch_cn_leader_sep_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "220_ch_cn_leader_sep_warm_A.md"
+    },
+    {
+      "id": "ch_cn_leader_sep_worried_A",
+      "order": 221,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_cn_leader_sep_A",
+      "depends_on": [
+        "ch_cn_leader_sep_ref_A_1"
+      ],
+      "attach": "out/ch_cn_leader_sep_ref_A_1.png",
+      "save_image_as": "out/ch_cn_leader_sep_worried_A.png",
+      "save_prompt_used_as": "out/ch_cn_leader_sep_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "221_ch_cn_leader_sep_worried_A.md"
+    },
+    {
+      "id": "ch_us_leader_asm_worried_A",
+      "order": 222,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_us_leader_asm_A",
+      "depends_on": [
+        "ch_us_leader_asm_ref_A"
+      ],
+      "attach": "out/ch_us_leader_asm_ref_A.png",
+      "save_image_as": "out/ch_us_leader_asm_worried_A.png",
+      "save_prompt_used_as": "out/ch_us_leader_asm_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "222_ch_us_leader_asm_worried_A.md"
+    },
+    {
+      "id": "ch_cn_leader_asm_worried_A",
+      "order": 223,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_cn_leader_asm_A",
+      "depends_on": [
+        "ch_cn_leader_asm_ref_A"
+      ],
+      "attach": "out/ch_cn_leader_asm_ref_A.png",
+      "save_image_as": "out/ch_cn_leader_asm_worried_A.png",
+      "save_prompt_used_as": "out/ch_cn_leader_asm_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "223_ch_cn_leader_asm_worried_A.md"
+    },
+    {
+      "id": "ch_mx_neighbor_worried_A",
+      "order": 224,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_neighbor_A",
+      "depends_on": [
+        "ch_mx_neighbor_ref_A"
+      ],
+      "attach": "out/ch_mx_neighbor_ref_A.png",
+      "save_image_as": "out/ch_mx_neighbor_worried_A.png",
+      "save_prompt_used_as": "out/ch_mx_neighbor_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "224_ch_mx_neighbor_worried_A.md"
+    },
+    {
+      "id": "ch_mx_stranger_a_worried_A",
+      "order": 225,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_stranger_a_A",
+      "depends_on": [
+        "ch_mx_stranger_a_ref_A"
+      ],
+      "attach": "out/ch_mx_stranger_a_ref_A.png",
+      "save_image_as": "out/ch_mx_stranger_a_worried_A.png",
+      "save_prompt_used_as": "out/ch_mx_stranger_a_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "225_ch_mx_stranger_a_worried_A.md"
+    },
+    {
+      "id": "ch_mx_stranger_b_worried_A",
+      "order": 226,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_stranger_b_A",
+      "depends_on": [
+        "ch_mx_stranger_b_ref_A"
+      ],
+      "attach": "out/ch_mx_stranger_b_ref_A.png",
+      "save_image_as": "out/ch_mx_stranger_b_worried_A.png",
+      "save_prompt_used_as": "out/ch_mx_stranger_b_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "226_ch_mx_stranger_b_worried_A.md"
+    },
+    {
+      "id": "ch_mx_leader_asm_worried_A",
+      "order": 227,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_asm_A",
+      "depends_on": [
+        "ch_mx_leader_asm_ref_A"
+      ],
+      "attach": "out/ch_mx_leader_asm_ref_A.png",
+      "save_image_as": "out/ch_mx_leader_asm_worried_A.png",
+      "save_prompt_used_as": "out/ch_mx_leader_asm_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "227_ch_mx_leader_asm_worried_A.md"
+    },
+    {
+      "id": "ch_mx_leader_int_worried_A",
+      "order": 228,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_int_A",
+      "depends_on": [
+        "ch_mx_leader_int_ref_A_v2"
+      ],
+      "attach": "out/ch_mx_leader_int_ref_A_v2.png",
+      "save_image_as": "out/ch_mx_leader_int_worried_A.png",
+      "save_prompt_used_as": "out/ch_mx_leader_int_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "228_ch_mx_leader_int_worried_A.md"
+    },
+    {
+      "id": "ch_mx_leader_sep_worried_A",
+      "order": 229,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_sep_A",
+      "depends_on": [
+        "ch_mx_leader_sep_ref_A_v2"
+      ],
+      "attach": "out/ch_mx_leader_sep_ref_A_v2.png",
+      "save_image_as": "out/ch_mx_leader_sep_worried_A.png",
+      "save_prompt_used_as": "out/ch_mx_leader_sep_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "229_ch_mx_leader_sep_worried_A.md"
+    },
+    {
+      "id": "ch_in_neighbor_worried_A",
+      "order": 230,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_neighbor_A",
+      "depends_on": [
+        "ch_in_neighbor_ref_A"
+      ],
+      "attach": "out/ch_in_neighbor_ref_A.png",
+      "save_image_as": "out/ch_in_neighbor_worried_A.png",
+      "save_prompt_used_as": "out/ch_in_neighbor_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "230_ch_in_neighbor_worried_A.md"
+    },
+    {
+      "id": "ch_in_stranger_a_worried_A",
+      "order": 231,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_stranger_a_A",
+      "depends_on": [
+        "ch_in_stranger_a_ref_A"
+      ],
+      "attach": "out/ch_in_stranger_a_ref_A.png",
+      "save_image_as": "out/ch_in_stranger_a_worried_A.png",
+      "save_prompt_used_as": "out/ch_in_stranger_a_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "231_ch_in_stranger_a_worried_A.md"
+    },
+    {
+      "id": "ch_in_stranger_b_worried_A",
+      "order": 232,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_stranger_b_A",
+      "depends_on": [
+        "ch_in_stranger_b_ref_A"
+      ],
+      "attach": "out/ch_in_stranger_b_ref_A.png",
+      "save_image_as": "out/ch_in_stranger_b_worried_A.png",
+      "save_prompt_used_as": "out/ch_in_stranger_b_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "232_ch_in_stranger_b_worried_A.md"
+    },
+    {
+      "id": "ch_in_leader_asm_worried_A",
+      "order": 233,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_leader_asm_A",
+      "depends_on": [
+        "ch_in_leader_asm_ref_A"
+      ],
+      "attach": "out/ch_in_leader_asm_ref_A.png",
+      "save_image_as": "out/ch_in_leader_asm_worried_A.png",
+      "save_prompt_used_as": "out/ch_in_leader_asm_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "233_ch_in_leader_asm_worried_A.md"
+    },
+    {
+      "id": "ch_in_leader_int_worried_A",
+      "order": 234,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_leader_int_A",
+      "depends_on": [
+        "ch_in_leader_int_ref_A"
+      ],
+      "attach": "out/ch_in_leader_int_ref_A.png",
+      "save_image_as": "out/ch_in_leader_int_worried_A.png",
+      "save_prompt_used_as": "out/ch_in_leader_int_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "234_ch_in_leader_int_worried_A.md"
+    },
+    {
+      "id": "ch_in_leader_sep_worried_A",
+      "order": 235,
+      "part": 15,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_leader_sep_A",
+      "depends_on": [
+        "ch_in_leader_sep_ref_A"
+      ],
+      "attach": "out/ch_in_leader_sep_ref_A.png",
+      "save_image_as": "out/ch_in_leader_sep_worried_A.png",
+      "save_prompt_used_as": "out/ch_in_leader_sep_worried_A.prompt.txt",
+      "status": "pending",
+      "file": "235_ch_in_leader_sep_worried_A.md"
     }
   ]
 }
