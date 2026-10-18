@@ -46,9 +46,15 @@ Regenerates `public/assets/**` and `manifest.json` from `../image_generation/out
 | `tools/checker/` | Completeness and reachability checker, fixtures, HTML report |
 | `tools/assets/` | Asset build script |
 
+## Art conventions
+
+- The word **PLACEHOLDER** appears wherever an image is missing: grey silhouettes for people, a dashed box over a hotspot flagged `placeholder: true` (the living-room and clinic TVs until the Round 2 backgrounds land), the TV still, and a flat panel for a missing background.
+- Each scene has a `near` slot for the person the player is there to talk to (about 90% of the frame height); overheard or incidental people use the smaller slots further back.
+- A scene can declare a `painted` background variant with some NPCs generated into the image (the park with its two chess players). It switches on by itself once `bg_park_chess_day` exists in the manifest; the NPCs are then reached through `talk` hotspots. Adjust those zones to the generated figures.
+- End-of-day survey: BIIS-2 (Bicultural Identity Integration Scale, version 2), 17 items, scored in the module and logged with each submission; see `public/content/questionnaire/README.md`.
+
 ## Known gaps
 
 - No server. Rooms, saves and the action log live in `localStorage`; the engine already attempts `POST /api/log` and ignores failures, so a server can be added without touching the client.
 - Seven roster characters (Kelsey, Ruth Hale, Gary Pruitt, Mrs. Chen, Jia, Dr. Zhou, the inclusive-condition president) have no generated art yet and show as silhouettes.
-- The survey items are placeholders; drop the real instrument into `questionnaire/eod.json`.
 - Mexico and India packs are selectable but fall back to the China roster with a banner.

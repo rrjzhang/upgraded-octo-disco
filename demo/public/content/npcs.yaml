@@ -11,9 +11,9 @@ npcs:
     figure: ch_us_neighbor_fig_stand
     seated: false
     appearances:
-      - { scene: library, slot: desk, chance: 0.8 }
+      - { scene: library, slot: near, chance: 0.8 }
       - { scene: park, slot: path_far, chance: 0.3 }
-      - { scene: home, slot: by_hall, chance: 0.15 }
+      - { scene: home, slot: near, chance: 0.15 }
     initial: { met: false, rapport: 0, lastValence: none }
 
   - id: us_stranger_a
@@ -70,7 +70,7 @@ npcs:
     figure: ch_us_leader_seg_fig_stand
     seated: false
     appearances:
-      - { scene: clinic, slot: by_cooler, chance: 0.5 }
+      - { scene: clinic, slot: near, chance: 0.5 }
       - { scene: library, slot: by_shelves, chance: 0.4 }
       - { scene: park, slot: by_fence, chance: 0.2 }
     initial: { met: false, rapport: 0, lastValence: none }
@@ -136,8 +136,8 @@ npcs:
     figure: ch_cn_stranger_b_fig_stand
     seated: false
     appearances:
-      - { scene: work, slot: desk_left, chance: 0.75 }
-      - { scene: center_cn, slot: near_chairs, chance: 0.3 }
+      - { scene: work, slot: near, chance: 0.75 }
+      - { scene: center_cn, slot: mid_right, chance: 0.3 }
     initial: { met: false, rapport: 0, lastValence: none }
 
   - id: cn_leader_int
@@ -164,6 +164,6 @@ npcs:
     figure: ch_cn_leader_sep_fig_stand
     seated: false
     appearances:
-      - { scene: center_cn, slot: by_kitchen, chance: 0.75 }
+      - { scene: center_cn, slot: near, chance: 0.75 }
       - { scene: park, slot: by_lamp, chance: 0.2 }
     initial: { met: false, rapport: 0, lastValence: none }

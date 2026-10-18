@@ -33,5 +33,17 @@ Manifest `portraits` is keyed by content id; `aliases` maps `ch_<id>` and the so
 | in_neighbor | ch_in_neighbor_ref_A | portrait/in_neighbor_neutral.png (fromReference) | no |
 
 Backgrounds (`bg/<id>.jpg`, 1536 x 1024): bg_home_day, bg_home_eve, bg_center_cn_day, bg_center_mx_day,
-bg_center_in_day, bg_library_day (warm_indoor); bg_clinic_day, bg_work_day (cool_indoor); bg_park_day (outdoor).
+bg_center_in_day, bg_library_day (warm_indoor); bg_clinic_day, bg_work_day (cool_indoor); bg_park_day,
+bg_park_chess_day (outdoor). Each manifest entry records `source`, the `_A` file it was built from.
+Source preference (`BG_SOURCES` in build.mjs; first file present wins, otherwise `<id>_A`):
+
+| Background id | Preferred source (Round 2) | Fallback |
+|---|---|---|
+| bg_home_day | bg_home_tv_day_A (TV painted in) | bg_home_day_A |
+| bg_home_eve | bg_home_tv_eve_A (TV painted in) | bg_home_eve_A |
+| bg_clinic_day | bg_clinic_tv_day_A (TV painted in) | bg_clinic_day_A |
+| bg_park_chess_day | bg_park_chess_day_A (two seated chess players painted in) | none: skipped with a warning |
+
+When `source` is a `_tv_` file the room already shows the television, so the engine should not
+composite prop_tv on top of it (the prop stays in the manifest for the other scenes).
 Props: prop/prop_tv.png (600 x 342), prop/prop_chessboard.png (600 x 515).

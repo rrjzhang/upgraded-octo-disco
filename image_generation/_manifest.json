@@ -1,6 +1,6 @@
 {
   "budget": 50,
-  "planned": 45,
+  "planned": 50,
   "reserved_for_retries": 5,
   "items": [
     {
@@ -756,6 +756,94 @@
       "save_prompt_used_as": "out/bg_work_day_A.prompt.txt",
       "status": "done",
       "file": "45_bg_work_day_A.md"
+    },
+    {
+      "id": "bg_home_tv_day_A",
+      "order": 46,
+      "part": 6,
+      "style": "A",
+      "kind": "background",
+      "aspect": "3:2",
+      "transparent_background": false,
+      "chat_group": "bg_home_A",
+      "depends_on": [
+        "bg_home_day_A"
+      ],
+      "attach": "out/bg_home_day_A.png",
+      "save_image_as": "out/bg_home_tv_day_A.png",
+      "save_prompt_used_as": "out/bg_home_tv_day_A.prompt.txt",
+      "status": "done",
+      "file": "46_bg_home_tv_day_A.md"
+    },
+    {
+      "id": "bg_home_tv_eve_A",
+      "order": 47,
+      "part": 6,
+      "style": "A",
+      "kind": "background",
+      "aspect": "3:2",
+      "transparent_background": false,
+      "chat_group": "bg_home_A",
+      "depends_on": [
+        "bg_home_eve_A"
+      ],
+      "attach": "out/bg_home_eve_A.png",
+      "save_image_as": "out/bg_home_tv_eve_A.png",
+      "save_prompt_used_as": "out/bg_home_tv_eve_A.prompt.txt",
+      "status": "done",
+      "file": "47_bg_home_tv_eve_A.md"
+    },
+    {
+      "id": "bg_clinic_tv_day_A",
+      "order": 48,
+      "part": 6,
+      "style": "A",
+      "kind": "background",
+      "aspect": "3:2",
+      "transparent_background": false,
+      "chat_group": "bg_clinic_A",
+      "depends_on": [
+        "bg_clinic_day_A"
+      ],
+      "attach": "out/bg_clinic_day_A.png",
+      "save_image_as": "out/bg_clinic_tv_day_A.png",
+      "save_prompt_used_as": "out/bg_clinic_tv_day_A.prompt.txt",
+      "status": "done",
+      "file": "48_bg_clinic_tv_day_A.md"
+    },
+    {
+      "id": "bg_park_chess_day_A",
+      "order": 49,
+      "part": 6,
+      "style": "A",
+      "kind": "background",
+      "aspect": "3:2",
+      "transparent_background": false,
+      "chat_group": "bg_park_A",
+      "depends_on": [
+        "park_chess_base"
+      ],
+      "attach": "ref/park_chess_base.png",
+      "save_image_as": "out/bg_park_chess_day_A.png",
+      "save_prompt_used_as": "out/bg_park_chess_day_A.prompt.txt",
+      "status": "done",
+      "file": "49_bg_park_chess_day_A.md"
+    },
+    {
+      "id": "bg_park_chess_day_alt_A",
+      "order": 50,
+      "part": 6,
+      "style": "A",
+      "kind": "background",
+      "aspect": "3:2",
+      "transparent_background": false,
+      "chat_group": "bg_park_chess_alt_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/bg_park_chess_day_alt_A.png",
+      "save_prompt_used_as": "out/bg_park_chess_day_alt_A.prompt.txt",
+      "status": "done",
+      "file": "50_bg_park_chess_day_alt_A.md"
     }
   ]
 }

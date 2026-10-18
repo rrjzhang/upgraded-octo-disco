@@ -1,60 +1,76 @@
 {
-  "generated": "2026-10-18T01:54:09.238Z",
+  "generated": "2026-10-18T03:58:26.915Z",
   "source": "image_generation/out (_A set)",
   "backgrounds": {
     "bg_home_day": {
       "file": "bg/bg_home_day.jpg",
       "w": 1536,
       "h": 1024,
-      "lighting": "warm_indoor"
+      "lighting": "warm_indoor",
+      "source": "bg_home_tv_day_A"
     },
     "bg_home_eve": {
       "file": "bg/bg_home_eve.jpg",
       "w": 1536,
       "h": 1024,
-      "lighting": "warm_indoor"
+      "lighting": "warm_indoor",
+      "source": "bg_home_tv_eve_A"
     },
     "bg_center_cn_day": {
       "file": "bg/bg_center_cn_day.jpg",
       "w": 1536,
       "h": 1024,
-      "lighting": "warm_indoor"
+      "lighting": "warm_indoor",
+      "source": "bg_center_cn_day_A"
     },
     "bg_center_mx_day": {
       "file": "bg/bg_center_mx_day.jpg",
       "w": 1536,
       "h": 1024,
-      "lighting": "warm_indoor"
+      "lighting": "warm_indoor",
+      "source": "bg_center_mx_day_A"
     },
     "bg_center_in_day": {
       "file": "bg/bg_center_in_day.jpg",
       "w": 1536,
       "h": 1024,
-      "lighting": "warm_indoor"
+      "lighting": "warm_indoor",
+      "source": "bg_center_in_day_A"
     },
     "bg_library_day": {
       "file": "bg/bg_library_day.jpg",
       "w": 1536,
       "h": 1024,
-      "lighting": "warm_indoor"
+      "lighting": "warm_indoor",
+      "source": "bg_library_day_A"
     },
     "bg_clinic_day": {
       "file": "bg/bg_clinic_day.jpg",
       "w": 1536,
       "h": 1024,
-      "lighting": "cool_indoor"
+      "lighting": "cool_indoor",
+      "source": "bg_clinic_tv_day_A"
     },
     "bg_work_day": {
       "file": "bg/bg_work_day.jpg",
       "w": 1536,
       "h": 1024,
-      "lighting": "cool_indoor"
+      "lighting": "cool_indoor",
+      "source": "bg_work_day_A"
     },
     "bg_park_day": {
       "file": "bg/bg_park_day.jpg",
       "w": 1536,
       "h": 1024,
-      "lighting": "outdoor"
+      "lighting": "outdoor",
+      "source": "bg_park_day_A"
+    },
+    "bg_park_chess_day": {
+      "file": "bg/bg_park_chess_day.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "outdoor",
+      "source": "bg_park_chess_day_A"
     }
   },
   "portraits": {

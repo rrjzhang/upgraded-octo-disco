@@ -22,6 +22,14 @@ const BACKGROUNDS = {
   bg_home_day: 'warm_indoor', bg_home_eve: 'warm_indoor',
   bg_center_cn_day: 'warm_indoor', bg_center_mx_day: 'warm_indoor', bg_center_in_day: 'warm_indoor',
   bg_library_day: 'warm_indoor', bg_clinic_day: 'cool_indoor', bg_work_day: 'cool_indoor', bg_park_day: 'outdoor',
+  bg_park_chess_day: 'outdoor',
+};
+// background id -> source _A files in order of preference (default: [`${id}_A`]). Round 2 images
+// with the TV painted in replace the plain rooms when present.
+const BG_SOURCES = {
+  bg_home_day: ['bg_home_tv_day_A', 'bg_home_day_A'],
+  bg_home_eve: ['bg_home_tv_eve_A', 'bg_home_eve_A'],
+  bg_clinic_day: ['bg_clinic_tv_day_A', 'bg_clinic_day_A'],
 };
 // content id -> source base (null = no art at all)
 const CHARACTERS = {
@@ -198,10 +206,11 @@ const manifest = { generated: new Date().toISOString(), source: 'image_generatio
 const warn = [];
 
 for (const [id, lighting] of Object.entries(BACKGROUNDS)) {
-  if (!exists(id + '_A')) { warn.push(`missing background ${id}_A`); continue; }
+  const choices = BG_SOURCES[id] ?? [id + '_A'], sid = choices.find(exists);
+  if (!sid) { warn.push(`missing background ${choices.join(' / ')}`); continue; }
   const dest = out('bg', id + '.jpg');
-  sips('-s', 'format', 'jpeg', '-s', 'formatOptions', '85', '--resampleWidth', String(BG_W), src(id + '_A'), '--out', dest);
-  manifest.backgrounds[id] = { file: rel(dest), ...dims(dest), lighting };
+  sips('-s', 'format', 'jpeg', '-s', 'formatOptions', '85', '--resampleWidth', String(BG_W), src(sid), '--out', dest);
+  manifest.backgrounds[id] = { file: rel(dest), ...dims(dest), lighting, source: sid };
 }
 
 const placeholderBust = out('portrait', 'placeholder_neutral.png');

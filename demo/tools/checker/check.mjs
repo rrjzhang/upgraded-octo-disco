@@ -28,7 +28,7 @@ const BUDGET = 40;
 const EMOTIONS = ['neutral', 'warm', 'guarded', 'worried'];
 const COMMUNITY_SCENE = ['home', 'us', 'neutral'];
 const LIGHTING = ['warm_indoor', 'cool_indoor', 'outdoor'];
-const ACTION_TYPES = ['window', 'news', 'end_day', 'move', 'look'];
+const ACTION_TYPES = ['window', 'news', 'end_day', 'move', 'look', 'talk'];
 const MODULES = ['tv', 'work', 'survey'];
 const PACKS = ['shared', 'cn', 'mx', 'in'];
 const NPC_COMMUNITY = ['us', 'home', 'other', 'bicultural'];
@@ -234,7 +234,17 @@ function validateScenes(content, diag, assets) {
       if (!ACTION_TYPES.includes(a.type)) diag.error('BAD_VALUE', rel, loc(`${hp}.action.type`), `action type "${a.type}"; expected ${ACTION_TYPES.join('|')}`);
       if (a.type === 'window' && !MODULES.includes(a.module)) diag.error('BAD_VALUE', rel, loc(`${hp}.action.module`), `module "${a.module}"; expected ${MODULES.join('|')}`);
       if (a.type === 'look' && !a.text) diag.error('SCHEMA', rel, loc(`${hp}.action.text`), 'look action needs text');
+      if (a.type === 'talk' && !a.npc) diag.error('SCHEMA', rel, loc(`${hp}.action.npc`), 'talk action needs npc');
+      if (h.placeholder != null && typeof h.placeholder !== 'boolean') diag.error('BAD_VALUE', rel, loc(`${hp}.placeholder`), 'placeholder must be true or false');
       if (a.cost != null && !(Number.isInteger(a.cost) && a.cost >= 0)) diag.error('BAD_VALUE', rel, loc(`${hp}.action.cost`), `cost must be a non-negative integer, got ${JSON.stringify(a.cost)}`);
+    }
+    if (sc.painted != null) {
+      const pt = sc.painted;
+      if (!pt || typeof pt !== 'object' || !pt.background) diag.error('SCHEMA', rel, loc('painted'), 'painted needs { background, npcs }');
+      else {
+        if (assets && !hasAsset(assets, 'backgrounds', pt.background)) diag.warn('UNKNOWN_ASSET', rel, loc('painted.background'), `painted background "${pt.background}" not in assets/manifest.json (the plain background is used until it is)`);
+        if (!Array.isArray(pt.npcs) || !pt.npcs.length) diag.error('SCHEMA', rel, loc('painted.npcs'), 'painted needs a non-empty npcs list');
+      }
     }
     for (const [j, sl] of (sc.slots || []).entries()) {
       if (!sl || !sl.id) { diag.error('SCHEMA', rel, loc(`slots[${j}]`), 'slot needs id'); continue; }
@@ -632,6 +642,12 @@ export function check(contentDir) {
   if (fs.existsSync(manifest)) { try { assets = JSON.parse(fs.readFileSync(manifest, 'utf8')); } catch (e) { diag.warn('MANIFEST', 'assets/manifest.json', {}, `could not parse: ${e.message}`); } }
   const scenes = validateScenes(content, diag, assets);
   const npcs = validateNpcs(content, diag, scenes, assets);
+  // cross-file: talk hotspots and painted casts must name real NPCs
+  for (const sc of scenes.values()) {
+    const rel = 'scenes.yaml';
+    for (const h of sc.hotspots || []) if (h?.action?.type === 'talk' && h.action.npc && !npcs.has(h.action.npc)) diag.error('UNKNOWN_NPC', rel, { path: `scenes.${sc.id}.hotspots.${h.id}.action.npc` }, `talk hotspot names unknown npc "${h.action.npc}"`);
+    for (const id of (sc.painted && Array.isArray(sc.painted.npcs) ? sc.painted.npcs : [])) if (!npcs.has(id)) diag.error('UNKNOWN_NPC', rel, { path: `scenes.${sc.id}.painted.npcs` }, `painted cast names unknown npc "${id}"`);
+  }
   const { events, ids: eventIds } = validateEvents(content, diag, scenes, npcs);
   validateNews(content, diag);
 

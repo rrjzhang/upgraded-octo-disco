@@ -1,5 +1,7 @@
 # Great Vote demo scenes. Zones, props and slots are fractions of the 1536 x 1024 background, origin top-left.
 # Slot x,y = feet anchor (for seated figures: bottom of the stool); scale = figure height / image height.
+# Every scene has a `near` slot (scale ~0.9, feet at the bottom edge) for the person the player is clearly there to talk to;
+# overheard or incidental people use the smaller slots further back, or are painted into the background (`painted`).
 # Prop x,y = top-left of the prop image; w = fraction of image width; height follows the prop's aspect
 # unless an optional h is given (used only for the chessboard, which must be foreshortened onto the table top).
 scenes:
@@ -11,12 +13,10 @@ scenes:
     description: "Your living room. The radiator ticks. The TV on the far wall is still on from last night."
     exits:
       - { to: street, label: "Front door" }
-    props:
-      - { asset: prop_tv, x: 0.05, y: 0.08, w: 0.18 }
     hotspots:
       - id: tv
         label: "TV"
-        zone: { x: 0.055, y: 0.14, w: 0.17, h: 0.15 }
+        zone: { x: 0.04, y: 0.09, w: 0.19, h: 0.29 }   # the wall-mounted TV generated into bg_home_tv_day/eve (Round 2, files 46/47)
         action: { type: window, module: tv, cost: 1 }
       - id: newspaper
         label: "Newspaper"
@@ -35,6 +35,7 @@ scenes:
         zone: { x: 0.89, y: 0.12, w: 0.08, h: 0.46 }
         action: { type: end_day }
     slots:
+      - { id: near, x: 0.80, y: 1.0, scale: 0.92 }      # a visitor standing just inside the room, conversational distance
       - { id: by_hall, x: 0.84, y: 0.80, scale: 0.62 }
       - { id: by_sofa, x: 0.30, y: 0.86, scale: 0.64 }
 
@@ -60,6 +61,7 @@ scenes:
         zone: { x: 0.87, y: 0.00, w: 0.13, h: 0.38 }
         action: { type: look, text: "The back of the clinic on Fifth, and past it the roof of the community center on Grand." }
     slots:
+      - { id: near, x: 0.24, y: 1.0, scale: 0.92 }
       - { id: desk_left, x: 0.30, y: 0.80, scale: 0.60 }
       - { id: by_cabinet, x: 0.78, y: 0.74, scale: 0.56 }
 
@@ -71,12 +73,10 @@ scenes:
     description: "The waiting room smells of hand sanitizer. A TV in the corner plays the news with captions on."
     exits:
       - { to: street, label: "Back to the street" }
-    props:
-      - { asset: prop_tv, x: 0.02, y: 0.02, w: 0.14 }
     hotspots:
       - id: tv
         label: "TV"
-        zone: { x: 0.024, y: 0.068, w: 0.132, h: 0.114 }
+        zone: { x: 0.03, y: 0.02, w: 0.14, h: 0.17 }   # the corner TV generated into bg_clinic_tv_day (Round 2, file 48)
         action: { type: window, module: tv, cost: 1 }
       - id: magazines
         label: "Magazines and local paper"
@@ -91,6 +91,7 @@ scenes:
         zone: { x: 0.01, y: 0.23, w: 0.08, h: 0.40 }
         action: { type: look, text: "Paper cones, the kind that go soft if you hold them too long." }
     slots:
+      - { id: near, x: 0.30, y: 1.0, scale: 0.92 }
       - { id: front_desk, x: 0.78, y: 0.80, scale: 0.60 }
       - { id: by_cooler, x: 0.17, y: 0.80, scale: 0.60 }
       - { id: by_chairs, x: 0.62, y: 0.70, scale: 0.50 }
@@ -123,9 +124,10 @@ scenes:
         zone: { x: 0.32, y: 0.12, w: 0.39, h: 0.30 }
         action: { type: look, text: "Bare trees and the church steeple on Grand. It looks colder out there than it is." }
     slots:
+      - { id: near, x: 0.30, y: 1.0, scale: 0.92 }      # on the open floor in front of the left shelves, facing the player
       - { id: desk, x: 0.66, y: 0.88, scale: 0.62 }
       - { id: reading_table, x: 0.53, y: 0.67, scale: 0.40 }
-      - { id: by_shelves, x: 0.22, y: 0.82, scale: 0.60 }
+      - { id: by_shelves, x: 0.12, y: 0.76, scale: 0.50 }
       - { id: armchair, x: 0.28, y: 0.56, scale: 0.30 }
       - { id: reading_seat, x: 0.45, y: 0.68, scale: 0.30 }   # seated, at the near end of the long table
 
@@ -133,6 +135,12 @@ scenes:
     name: Riverside Park
     community: neutral
     background: bg_park_day
+    # Round 2 variant with the two chess players painted into the image. Used automatically once the asset exists
+    # (and both players are in the roster); the two `talk` zones below then stand for them. Otherwise the plain
+    # park is shown and the cut-out figures sit in chess_left / chess_right as before.
+    painted:
+      background: bg_park_chess_day
+      npcs: [cn_stranger_a, us_stranger_a]
     lighting: outdoor
     description: "The chess tables by the path. Leaves on the paving, a lamppost, regulars who nod but don't say much."
     exits:
@@ -140,6 +148,14 @@ scenes:
     props:
       - { asset: prop_chessboard, x: 0.235, y: 0.515, w: 0.165, h: 0.065 }
     hotspots:
+      - id: chess_left_player
+        label: "Mr. Lin"
+        zone: { x: 0.12, y: 0.41, w: 0.16, h: 0.45 }   # measured on bg_park_chess_day (Round 2, file 49)
+        action: { type: talk, npc: cn_stranger_a }
+      - id: chess_right_player
+        label: "Walt"
+        zone: { x: 0.37, y: 0.42, w: 0.17, h: 0.45 }
+        action: { type: talk, npc: us_stranger_a }
       - id: chess_table
         label: "Chess table"
         zone: { x: 0.17, y: 0.53, w: 0.29, h: 0.30 }
@@ -187,11 +203,12 @@ scenes:
         zone: { x: 0.85, y: 0.21, w: 0.14, h: 0.28 }
         action: { type: look, text: "Two big pots on the stove. A handwritten sign: 'Wash your own bowl. This means you.'" }
     slots:
+      - { id: near, x: 0.24, y: 1.0, scale: 0.92 }      # in front of the stacked chairs, conversational distance
       - { id: by_table, x: 0.50, y: 0.74, scale: 0.56 }
       - { id: by_board, x: 0.74, y: 0.64, scale: 0.46 }
       - { id: by_kitchen, x: 0.88, y: 0.60, scale: 0.42 }
-      - { id: near_chairs, x: 0.12, y: 0.88, scale: 0.62 }
-      - { id: seated_hall, x: 0.30, y: 0.70, scale: 0.42 }   # seated, on the open floor near the stacked chairs
+      - { id: mid_right, x: 0.60, y: 0.90, scale: 0.62 }
+      - { id: seated_hall, x: 0.44, y: 0.72, scale: 0.42 }   # seated, on the open floor left of the long table
 
   - id: street
     name: Street

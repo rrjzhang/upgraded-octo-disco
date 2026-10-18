@@ -60,7 +60,7 @@ Survey answers go in a `survey` line with `answers:{itemId:value}`. Journal save
 
 ## Window host API (engine builds modules too)
 
-Modules are static HTML under `public/modules/` loaded in an iframe. Host sends `postMessage({type:'init', payload:{day, actions, wallet, condition, content}})` after load, where `content` is module-specific (TV: the chosen news story; survey: the questionnaire JSON). Module sends `{type:'earn', amount}`, `{type:'spend', actions}`, `{type:'submit', answers}`, `{type:'close'}`. Host ignores anything else. Three modules: `work.html` (placeholder: a 20-second "sort the mail" click game; one shift costs 2 actions and pays $40), `tv.html` (shows the news still image and the story; Keep watching costs 1 action and shows a second story if any), `survey.html` (renders the questionnaire JSON: likert matrix, single choice, short text; Next/Submit).
+Modules are static HTML under `public/modules/` loaded in an iframe. Host sends `postMessage({type:'init', payload:{day, actions, wallet, condition, homeCulture, content}})` after load, where `content` is module-specific (TV: the chosen news story; survey: the questionnaire JSON). Module sends `{type:'earn', amount}`, `{type:'spend', actions}`, `{type:'submit', answers}`, `{type:'close'}`. Host ignores anything else. Three modules: `work.html` (placeholder: a 20-second "sort the mail" click game; one shift costs 2 actions and pays $40), `tv.html` (shows the news still image and the story; Keep watching costs 1 action and shows a second story if any), `survey.html` (renders the questionnaire JSON: likert matrix, single choice, short text; Next/Submit).
 
 ## Content schemas (content agent)
 
@@ -93,7 +93,11 @@ scenes:
     slots:                     # where NPC figures stand: feet anchor as fractions, scale = figure height / image height
       - { id: by_door, x: 0.80, y: 0.90, scale: 0.55 }
 ```
-Action types: `window` (module tv|work|survey), `news`, `end_day`, `move` (to scene), `look` (shows `text` in the right panel, free). `street` is a hub scene with no background art: the engine renders it as a simple map card listing exits; give it `background: none`.
+Action types: `window` (module tv|work|survey), `news`, `end_day`, `move` (to scene), `look` (shows `text` in the right panel, free), `talk` (`npc: <id>`; a click zone standing for a person painted into the background, costs the dialogue cost, rendered only while that NPC is present through `painted`). A hotspot may carry `placeholder: true`: the engine then draws an always-visible dashed box with the word PLACEHOLDER over the zone, for art that is not in the background yet (the living-room TV until the Round 2 background lands).
+
+Staging convention: every scene has a `near` slot (scale about 0.9, feet on the bottom edge) for the person the player is clearly there to talk to; incidental or overheard people take the smaller slots further back, or are painted into the background. A scene may declare `painted: { background: <asset id>, npcs: [<id>, ...] }`: when that asset exists in the manifest and every listed NPC is in the roster, the engine shows that background instead, skips the scene's composited props, treats the listed NPCs as present without drawing a figure, and reaches them through the scene's `talk` hotspots. Otherwise the plain background and cut-out figures are used, so content never waits on art.
+
+Placeholders: wherever art is missing (background, figure, bust, TV still, placeholder hotspot) the engine shows the word PLACEHOLDER in small amber capitals on a dark chip, plus a grey silhouette for people. `street` is a hub scene with no background art: the engine renders it as a simple map card listing exits; give it `background: none`.
 
 Scenes for the demo and their backgrounds: `home` (bg_home_day/eve), `work` (bg_work_day), `clinic` (bg_clinic_day, community us), `library` (bg_library_day, us), `park` (bg_park_day, neutral, the integrated space), `center_cn` (bg_center_cn_day, home), `street` (hub). Composite the TV prop (`prop_tv`) into home and clinic as a `prop` entry: `props: [{ asset: prop_tv, x: 0.06, y: 0.10, w: 0.16 }]`, and the chessboard into park. Look at the actual images in `image_generation/out/` to place zones and slots on real furniture.
 
