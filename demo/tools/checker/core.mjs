@@ -3,14 +3,15 @@
 // shared by the CLI (check.mjs) and the researcher editor (src/editor). See README.md and demo/SPEC.md.
 import * as yaml from 'js-yaml';
 import Papa from 'papaparse';
+import { checkPacks } from './packs.mjs';
 
 // ---------------------------------------------------------------- vocabulary
 export const DIALOGUE_COLUMNS = 'id,met,rapport,lastValence,nationalLeader,playerLean,dayPhase,priority,emotion,line,choice1,effect1,next1,choice2,effect2,next2,choice3,effect3,next3'.split(',');
 export const EVENT_COLUMNS = 'id,source,target,valence,proximity,trigger,scene,npc,minRapport,playerLean,nationalLeader,chance,cost,emotion,text,choice1,effect1,choice2,effect2'.split(',');
 export const NEWS_COLUMNS = 'id,channel,nationalLeader,dayMin,valence,headline,body'.split(',');
 // optional trailing columns (SPEC 2026-10-18, cast): accepted when present, never required
-export const EVENT_OPTIONAL = ['portrait', 'medium'];
-export const NEWS_OPTIONAL = ['figure'];
+export const EVENT_OPTIONAL = ['portrait', 'medium', 'pack'];
+export const NEWS_OPTIONAL = ['figure', 'pack'];
 // optional dialogue column (SPEC 2026-10-18 "Dialogue location"), placed after dayPhase: blank = anywhere, else scene ids joined by |
 export const DIALOGUE_OPTIONAL = ['scene'];
 /** SPEC "Conversation limit": default conversations per NPC per day, and the demo length the limit is spread over. */
@@ -269,7 +270,8 @@ function validateScenes(files, diag, assets) {
         else {
           // the backgrounds this scene can draw: its own, the painted variant, and the evening render of either
           const eve = (id) => (id.includes('_day') ? id.replace('_day', '_eve') : `${id}_eve`);
-          const own = [sc.background, sc.painted && sc.painted.background].filter((b) => b && b !== 'none');
+          const packBgs = sc.byPack && typeof sc.byPack === 'object' ? Object.values(sc.byPack).flatMap((v) => (v && typeof v === 'object' ? [v.background, v.evening] : [])) : [];
+          const own = [sc.background, sc.painted && sc.painted.background, ...packBgs].filter((b) => typeof b === 'string' && b && b !== 'none');
           const sceneBgs = new Set(own.flatMap((b) => [b, eve(b)]));
           for (const [bg, bq] of Object.entries(pr.byBackground)) {
             if (!isPropQuad(bq)) diag.error('BAD_VALUE', rel, loc(`props[${j}].byBackground.${bg}`), 'expected four [x, y] fraction pairs');
@@ -294,6 +296,17 @@ function validateScenes(files, diag, assets) {
       if (!ACTION_TYPES.includes(a.type)) diag.error('BAD_VALUE', rel, loc(`${hp}.action.type`), `action type "${a.type}"; expected ${ACTION_TYPES.join('|')}`);
       if (a.type === 'window' && !MODULES.includes(a.module)) diag.error('BAD_VALUE', rel, loc(`${hp}.action.module`), `module "${a.module}"; expected ${MODULES.join('|')}`);
       if (a.type === 'look' && !a.text) diag.error('SCHEMA', rel, loc(`${hp}.action.text`), 'look action needs text');
+      // SPEC "Content schemas": textByPack { cn|mx|in: text } on a look action; `text` stays the fallback
+      if (a.textByPack != null) {
+        if (typeof a.textByPack !== 'object' || Array.isArray(a.textByPack)) diag.error('SCHEMA', rel, loc(`${hp}.action.textByPack`), 'textByPack must map cn | mx | in to text');
+        else {
+          if (a.type !== 'look') diag.error('SCHEMA', rel, loc(`${hp}.action.textByPack`), 'textByPack is only read on look actions');
+          for (const [k, v] of Object.entries(a.textByPack)) {
+            if (!SCENE_PACKS.includes(k)) diag.error('BAD_VALUE', rel, loc(`${hp}.action.textByPack.${k}`), `textByPack key "${k}"; expected ${SCENE_PACKS.join('|')}`);
+            else if (typeof v !== 'string' || !v.trim()) diag.error('BAD_VALUE', rel, loc(`${hp}.action.textByPack.${k}`), 'expected non-empty text');
+          }
+        }
+      }
       if (a.type === 'talk' && !a.npc) diag.error('SCHEMA', rel, loc(`${hp}.action.npc`), 'talk action needs npc');
       if (h.placeholder != null && typeof h.placeholder !== 'boolean') diag.error('BAD_VALUE', rel, loc(`${hp}.placeholder`), 'placeholder must be true or false');
       if (a.cost != null && !(Number.isInteger(a.cost) && a.cost >= 0)) diag.error('BAD_VALUE', rel, loc(`${hp}.action.cost`), `cost must be a non-negative integer, got ${JSON.stringify(a.cost)}`);
@@ -324,6 +337,19 @@ function validateScenes(files, diag, assets) {
           if (!convex || sign < 0) diag.error('BAD_VALUE', rel, loc(`screens[${j}].quad`), 'quad corners must go top-left, top-right, bottom-right, bottom-left (clockwise on screen) and form a convex shape');
         }
       });
+    }
+    // SPEC "Content schemas": byPack { cn|mx|in: { background, evening? } }, per-pack background variants used once the
+    // asset exists. A missing asset is an info PENDING_ASSET (the base background is drawn meanwhile), as events' medium.
+    if (sc.byPack != null) {
+      if (typeof sc.byPack !== 'object' || Array.isArray(sc.byPack)) diag.error('SCHEMA', rel, loc('byPack'), 'byPack must map cn | mx | in to { background, evening? }');
+      else for (const [k, v] of Object.entries(sc.byPack)) {
+        if (!SCENE_PACKS.includes(k)) { diag.error('BAD_VALUE', rel, loc(`byPack.${k}`), `byPack key "${k}"; expected ${SCENE_PACKS.join('|')}`); continue; }
+        if (!v || typeof v !== 'object' || typeof v.background !== 'string' || !v.background) { diag.error('SCHEMA', rel, loc(`byPack.${k}`), 'byPack entry needs { background, evening? }'); continue; }
+        if (v.evening != null && (typeof v.evening !== 'string' || !v.evening)) diag.error('BAD_VALUE', rel, loc(`byPack.${k}.evening`), 'evening must be a background asset id');
+        for (const f of ['background', 'evening']) {
+          if (typeof v[f] === 'string' && v[f] && assets && !hasAsset(assets, 'backgrounds', v[f])) diag.info('PENDING_ASSET', rel, loc(`byPack.${k}.${f}`), `pack background "${v[f]}" not in assets/manifest.json yet (the scene's own background is drawn until it is)`);
+        }
+      }
     }
     if (sc.painted != null) {
       const pt = sc.painted;
@@ -972,7 +998,7 @@ export function checkContent(input) {
     }
   }
   const { events, ids: eventIds } = validateEvents(files, diag, scenes, npcs, assets, castIds);
-  validateNews(files, diag, assets, castIds);
+  const newsRows = validateNews(files, diag, assets, castIds);
 
   const sheetFiles = Object.keys(files).filter(k => k.startsWith('dialogue/') && k.endsWith('.csv') && files[k] != null).map(k => k.slice('dialogue/'.length));
   for (const f of sheetFiles) {
@@ -1008,6 +1034,9 @@ export function checkContent(input) {
     if (e.trigger === 'invite' && !inviteSources.has(e.id)) diag.warn('NEVER_INVITED', 'events.csv', { line: e.__line, row: e.id, column: 'trigger' }, 'trigger is invite but no dialogue or event effect invites it');
     if (e.trigger !== 'invite' && inviteSources.has(e.id)) diag.warn('INVITE_TRIGGER', 'events.csv', { line: e.__line, row: e.id, column: 'trigger' }, `event is invited (by ${[...inviteSources.get(e.id)].join(', ')}) but its trigger is "${e.trigger}", not invite`);
   }
+
+  // SPEC "Packs": the pack column of events/news, per-pack strings and placeholders, PACK_LEAK (packs.mjs)
+  checkPacks({ files, diag, scenes, npcs, events, news: newsRows, sheets });
 
   const npcResults = [];
   for (const [id, npc] of npcs) {

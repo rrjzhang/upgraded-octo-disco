@@ -85,7 +85,7 @@ export function check(contentDir, opts = {}) {
   const content = path.resolve(contentDir);
   const files = {};
   const read = (rel) => { const f = path.join(content, rel); if (fs.existsSync(f)) files[rel] = fs.readFileSync(f, 'utf8'); };
-  for (const rel of ['scenes.yaml', 'npcs.yaml', 'events.csv', 'news.csv', 'cast.yaml']) read(rel);
+  for (const rel of ['scenes.yaml', 'npcs.yaml', 'events.csv', 'news.csv', 'cast.yaml', 'pack_terms.yaml', 'strings.en.json', 'questionnaire/eod.json']) read(rel);
   const dlgDir = path.join(content, 'dialogue');
   if (fs.existsSync(dlgDir)) for (const f of fs.readdirSync(dlgDir).filter(f => f.endsWith('.csv'))) read(`dialogue/${f}`);
   const mf = path.join(content, '..', 'assets', 'manifest.json');

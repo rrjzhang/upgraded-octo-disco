@@ -17,6 +17,8 @@ export interface HotspotAction {
   to?: string;
   text?: string;
   npc?: string; // talk: the NPC this zone stands for (a person painted into the background)
+  /** look: per-pack variants of `text` (SPEC "Content schemas"); `text` stays the fallback */
+  textByPack?: Partial<Record<CultureId, string>>;
 }
 
 // placeholder: true draws a visible PLACEHOLDER box over the zone until the art that should be there exists
@@ -26,6 +28,8 @@ export interface Hotspot { id: string; label: string; zone: Zone; action: Hotspo
 // listed NPC is in the player's roster; those NPCs are then present without a figure and are reached
 // through `talk` hotspots instead of clickable cut-outs.
 export interface Painted { background: string; npcs: string[] }
+/** SPEC "Content schemas" byPack: a per-pack background (and evening render) that replaces the scene's `background` once its asset exists. */
+export interface PackBackground { background: string; evening?: string }
 /** Where a figure's feet stand (fractions of the image; y may exceed 1 to crop the legs). `scale` overrides the horizon formula. */
 export interface Slot { id: string; x: number; y: number; scale?: number; /** a seated spot (on real seating); seated figures may only use these */ seated?: boolean }
 /** A TV screen painted into the background: the glass corners (top-left, top-right, bottom-right, bottom-left) as fractions of the image. */
@@ -53,6 +57,8 @@ export interface Scene {
   slots: Slot[];
   props: Prop[];
   painted?: Painted;
+  /** per-pack background variants (cn | mx | in); used only when the asset exists and is not a placeholder */
+  byPack?: Partial<Record<CultureId, PackBackground>>;
   /** TV glass quads the engine draws the current story onto (SPEC "TV screens show the news") */
   screens: Screen[];
   /** Eye-level line as a fraction of the image height (where the vanishing lines meet). */
@@ -140,6 +146,8 @@ export interface EventRow {
   /** optional prop id (manifest.props, e.g. prop_radio): the event is heard, not seen; that object is shown
    *  on the right panel instead of any bust (SPEC "Content schemas", events.csv `medium`) */
   medium: string;
+  /** SPEC "Packs": culture pack this row is for; '' = every pack (a variant in its id group replaces it for that pack) */
+  pack: CultureId | '';
 }
 
 export interface NewsRow {
@@ -152,6 +160,8 @@ export interface NewsRow {
   body: string;
   /** optional cast id: TV shows that figure's still, print shows the bust beside the headline */
   figure: string;
+  /** SPEC "Packs": culture pack this story is for; '' = every pack (a variant in its id group replaces it for that pack) */
+  pack: CultureId | '';
 }
 
 export interface QItem {
@@ -175,6 +185,8 @@ export interface Manifest {
   props: Record<string, ManifestImage>;
   tv: Record<string, string[]>;
   candidates: Record<string, string[]>;
+  /** npc id -> candidate id -> 160 px thumbnail (portrait/<npc>_candidate_<n>.png), for the researcher page */
+  candidateThumbs?: Record<string, Record<string, string>>;
   /** optional: alternate id -> canonical id (e.g. ch_us_neighbor -> us_neighbor) */
   aliases?: Record<string, string>;
   tvMeta?: Record<string, { placeholder?: boolean; w?: number; h?: number }>;

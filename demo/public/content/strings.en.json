@@ -16,6 +16,18 @@
   "culture.cn": "Chinese",
   "culture.mx": "Mexican",
   "culture.in": "Indian",
+  "pack.cn.homeCenter": "the Grand Avenue center",
+  "pack.mx.homeCenter": "the San José parish hall",
+  "pack.in.homeCenter": "the India Association hall",
+  "pack.cn.homeLeader": "Dr. Zhou",
+  "pack.mx.homeLeader": "Pilar Ochoa",
+  "pack.in.homeLeader": "Meena Krishnan",
+  "pack.cn.chessRival": "Lin",
+  "pack.mx.chessRival": "Beto",
+  "pack.in.chessRival": "Harjit",
+  "pack.cn.centerDrink": "tea",
+  "pack.mx.centerDrink": "coffee",
+  "pack.in.centerDrink": "chai",
   "end.title": "That is the end of the demo week.",
   "end.body": "Thank you for playing. Please export your log and hand it to the researcher."
 }

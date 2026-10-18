@@ -293,6 +293,14 @@ body.page { height: auto; min-height: 100%; }
 .researcher { display: flex; flex-direction: column; align-items: center; gap: 24px; padding: 32px; }
 .grid2, .picks { display: grid; grid-template-columns: 220px 1fr; gap: 8px 16px; align-items: center; }
 .grid2 label, .picks label { margin: 0; }
+.cand-groups h3 { font-size: 14px; margin: 12px 0 4px; }
+.cand-row { border: 0; padding: 0; margin: 0 0 10px; }
+.cand-row legend { font-weight: 500; font-size: 14px; margin-bottom: 6px; }
+.cand-opts { display: flex; flex-wrap: wrap; gap: 10px; }
+.cand-opt { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 0; font-weight: 400; cursor: pointer; }
+.cand-opt img { width: 80px; height: 80px; border-radius: 6px; border: 1.5px solid #cfc7b6; object-fit: cover; }
+.cand-opt input:checked ~ img { border-color: var(--ink); }
+.cand-random { justify-content: center; min-height: 80px; }
 .row { display: flex; gap: 12px; }
 .result { margin-top: 8px; }
 .table-wrap { overflow-x: auto; }

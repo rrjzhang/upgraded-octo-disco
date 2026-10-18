@@ -24,13 +24,21 @@ const BACKGROUNDS = {
   bg_center_cn_day: 'warm_indoor', bg_center_mx_day: 'warm_indoor', bg_center_in_day: 'warm_indoor',
   bg_library_day: 'warm_indoor', bg_clinic_day: 'cool_indoor', bg_work_day: 'cool_indoor', bg_park_day: 'outdoor',
   bg_park_chess_day: 'outdoor',
+  // scenes.yaml home byPack (requests 194-199): per-pack living rooms, lit as the home they replace
+  bg_home_cn_day: 'warm_indoor', bg_home_cn_eve: 'warm_indoor', bg_home_mx_day: 'warm_indoor', bg_home_mx_eve: 'warm_indoor',
+  bg_home_in_day: 'warm_indoor', bg_home_in_eve: 'warm_indoor',
 };
 // background id -> source _A files in order of preference (default: [`${id}_A`]). Round 2 images
 // with the TV painted in replace the plain rooms when present.
 const BG_SOURCES = {
   bg_home_day: ['bg_home_tv_day_A', 'bg_home_day_A'],
   bg_home_eve: ['bg_home_tv_eve_A', 'bg_home_eve_A'],
+  // requests 194-199: gentle per-pack edits of bg_home_tv_day/eve_A (no fallback: until they exist the base home is used)
+  bg_home_cn_day: ['bg_home_cn_day_A'], bg_home_cn_eve: ['bg_home_cn_eve_A'],
+  bg_home_mx_day: ['bg_home_mx_day_A'], bg_home_mx_eve: ['bg_home_mx_eve_A'],
+  bg_home_in_day: ['bg_home_in_day_A'], bg_home_in_eve: ['bg_home_in_eve_A'],
   bg_clinic_day: ['bg_clinic_tv_day_A', 'bg_clinic_day_A'],
+  bg_park_day: ['bg_park_board_day_A', 'bg_park_day_A'], // request 193: chess game baked into the nearest table
 };
 // Characters come from public/content/npcs.yaml (SPEC "Art": a new pack needs no build change): each NPC's
 // `portrait` (`ch_<id>`) is the source base of its busts / reference sheet, and its `figure` plus every
@@ -324,7 +332,17 @@ for (const [cid, base, portraitId] of CHARACTERS) {
     }
   }
   if (!entry.neutral) { entry.neutral = rel(placeholderBust); entry.placeholder = true; }
-  if (CANDIDATES[cid]) entry.candidates = CANDIDATES[cid];
+  if (CANDIDATES[cid]) {
+    entry.candidates = CANDIDATES[cid];
+    // 160 px head-and-shoulders thumbnail of each candidate sheet for the researcher page (manifest.candidateThumbs)
+    CANDIDATES[cid].forEach((refId, i) => {
+      if (!exists(refId)) { warn.push(`missing candidate reference ${refId}`); return; }
+      const img = decodePNG(src(refId)), b = referenceBustBox(img), t = tmp(), dest = out('portrait', `${cid}_candidate_${i + 1}.png`);
+      encodePNG(crop(img, b.x, b.y, b.w, b.h), t, false);
+      sips('-z', '160', '160', t, '--out', dest);
+      ((manifest.candidateThumbs ??= {})[cid] ??= {})[refId] = rel(dest);
+    });
+  }
   manifest.portraits[cid] = entry;
   manifest.aliases[`ch_${cid}`] = cid;
   if (base) manifest.aliases[base] = cid;

@@ -28,6 +28,7 @@ export class TableTab {
     this.cols = path === 'events.csv'
       ? [
         { key: 'id', kind: { type: 'text', size: 14 } },
+        { key: 'pack', kind: en(['cn', 'mx', 'in']) },
         { key: 'source', kind: en(EV_SIDES, false) }, { key: 'target', kind: en(EV_SIDES, false) },
         { key: 'valence', kind: en(VALENCE, false) }, { key: 'proximity', kind: en(PROXIMITY, false) },
         { key: 'trigger', kind: en(TRIGGERS, false) },
@@ -44,6 +45,7 @@ export class TableTab {
       ]
       : [
         { key: 'id', kind: { type: 'text', size: 12 } },
+        { key: 'pack', kind: en(['cn', 'mx', 'in']) },
         { key: 'channel', kind: en(CHANNELS, false) },
         { key: 'nationalLeader', label: 'leader', kind: en(DIMS[3].values) },
         { key: 'dayMin', kind: en(['1', '2', '3', '4', '5']) },

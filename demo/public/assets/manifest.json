@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-18T19:40:23.222Z",
+  "generated": "2026-10-18T20:22:12.169Z",
   "source": "image_generation/out (_A set)",
   "backgrounds": {
     "bg_home_day": {
@@ -717,6 +717,13 @@
       "ch_cn_leader_sep_ref_A_2",
       "ch_cn_leader_sep_ref_A_3"
     ]
+  },
+  "candidateThumbs": {
+    "cn_leader_sep": {
+      "ch_cn_leader_sep_ref_A_1": "portrait/cn_leader_sep_candidate_1.png",
+      "ch_cn_leader_sep_ref_A_2": "portrait/cn_leader_sep_candidate_2.png",
+      "ch_cn_leader_sep_ref_A_3": "portrait/cn_leader_sep_candidate_3.png"
+    }
   },
   "tvMeta": {
     "nat_enforcement": {

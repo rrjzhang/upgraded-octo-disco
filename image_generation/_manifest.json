@@ -1,6 +1,6 @@
 {
   "budget": 50,
-  "planned": 192,
+  "planned": 199,
   "reserved_for_retries": 5,
   "items": [
     {
@@ -3340,6 +3340,132 @@
       "save_prompt_used_as": "out/ch_mx_leader_int_fig_stand_A_v2.prompt.txt",
       "status": "pending",
       "file": "192_ch_mx_leader_int_fig_stand_A_v2.md"
+    },
+    {
+      "id": "bg_park_board_day_A",
+      "order": 193,
+      "part": 13,
+      "style": "A",
+      "kind": "background",
+      "aspect": "3:2",
+      "transparent_background": false,
+      "chat_group": "bg_park_A",
+      "depends_on": [
+        "bg_park_day_A"
+      ],
+      "attach": "out/bg_park_day_A.png",
+      "save_image_as": "out/bg_park_board_day_A.png",
+      "save_prompt_used_as": "out/bg_park_board_day_A.prompt.txt",
+      "status": "pending",
+      "file": "193_bg_park_board_day_A.md"
+    },
+    {
+      "id": "bg_home_cn_day_A",
+      "order": 194,
+      "part": 14,
+      "style": "A",
+      "kind": "background",
+      "aspect": "3:2",
+      "transparent_background": false,
+      "chat_group": "bg_home_cn_A",
+      "depends_on": [
+        "bg_home_tv_day_A"
+      ],
+      "attach": "out/bg_home_tv_day_A.png",
+      "save_image_as": "out/bg_home_cn_day_A.png",
+      "save_prompt_used_as": "out/bg_home_cn_day_A.prompt.txt",
+      "status": "pending",
+      "file": "194_bg_home_cn_day_A.md"
+    },
+    {
+      "id": "bg_home_cn_eve_A",
+      "order": 195,
+      "part": 14,
+      "style": "A",
+      "kind": "background",
+      "aspect": "3:2",
+      "transparent_background": false,
+      "chat_group": "bg_home_cn_A",
+      "depends_on": [
+        "bg_home_tv_eve_A"
+      ],
+      "attach": "out/bg_home_tv_eve_A.png",
+      "save_image_as": "out/bg_home_cn_eve_A.png",
+      "save_prompt_used_as": "out/bg_home_cn_eve_A.prompt.txt",
+      "status": "pending",
+      "file": "195_bg_home_cn_eve_A.md"
+    },
+    {
+      "id": "bg_home_mx_day_A",
+      "order": 196,
+      "part": 14,
+      "style": "A",
+      "kind": "background",
+      "aspect": "3:2",
+      "transparent_background": false,
+      "chat_group": "bg_home_mx_A",
+      "depends_on": [
+        "bg_home_tv_day_A"
+      ],
+      "attach": "out/bg_home_tv_day_A.png",
+      "save_image_as": "out/bg_home_mx_day_A.png",
+      "save_prompt_used_as": "out/bg_home_mx_day_A.prompt.txt",
+      "status": "pending",
+      "file": "196_bg_home_mx_day_A.md"
+    },
+    {
+      "id": "bg_home_mx_eve_A",
+      "order": 197,
+      "part": 14,
+      "style": "A",
+      "kind": "background",
+      "aspect": "3:2",
+      "transparent_background": false,
+      "chat_group": "bg_home_mx_A",
+      "depends_on": [
+        "bg_home_tv_eve_A"
+      ],
+      "attach": "out/bg_home_tv_eve_A.png",
+      "save_image_as": "out/bg_home_mx_eve_A.png",
+      "save_prompt_used_as": "out/bg_home_mx_eve_A.prompt.txt",
+      "status": "pending",
+      "file": "197_bg_home_mx_eve_A.md"
+    },
+    {
+      "id": "bg_home_in_day_A",
+      "order": 198,
+      "part": 14,
+      "style": "A",
+      "kind": "background",
+      "aspect": "3:2",
+      "transparent_background": false,
+      "chat_group": "bg_home_in_A",
+      "depends_on": [
+        "bg_home_tv_day_A"
+      ],
+      "attach": "out/bg_home_tv_day_A.png",
+      "save_image_as": "out/bg_home_in_day_A.png",
+      "save_prompt_used_as": "out/bg_home_in_day_A.prompt.txt",
+      "status": "pending",
+      "file": "198_bg_home_in_day_A.md"
+    },
+    {
+      "id": "bg_home_in_eve_A",
+      "order": 199,
+      "part": 14,
+      "style": "A",
+      "kind": "background",
+      "aspect": "3:2",
+      "transparent_background": false,
+      "chat_group": "bg_home_in_A",
+      "depends_on": [
+        "bg_home_tv_eve_A"
+      ],
+      "attach": "out/bg_home_tv_eve_A.png",
+      "save_image_as": "out/bg_home_in_eve_A.png",
+      "save_prompt_used_as": "out/bg_home_in_eve_A.prompt.txt",
+      "status": "pending",
+      "file": "199_bg_home_in_eve_A.md"
     }
   ]
 }

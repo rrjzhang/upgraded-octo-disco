@@ -64,6 +64,12 @@ Writes `<report>/index.html` (dependency-free) and `<report>/results.json`.
    pack with scenes but no NPCs (its players fall back to cn). `PACK_MISMATCH` (warning): an NPC appearing in another
    pack's scene. `results.json` `packs` (and the CLI summary) list, per home culture, the pack played and the scenes
    open to that player, using the engine's rule (`packView` in core.mjs).
+   Pack-gated content (`packs.mjs`): events/news `pack` must be `cn|mx|in` or blank (`BAD_VALUE`); a pack that contradicts
+   the row's npc/scene pack is `PACK_MISMATCH`. `PACK_GAP` (warning): an id group (id minus `_cn|_mx|_in`) with a gated
+   row but no variant or blank fallback for some pack, or a `pack.<pack>.<name>` string missing for a pack.
+   `UNKNOWN_VAR` (warning): a `{name}` the engine cannot fill. `PACK_LEAK` (warning): player-facing text that uses the
+   keyword list of a pack that does not see it (`public/content/pack_terms.yaml`; shared text may use none; an `allow:`
+   entry with a `why` marks one deliberate use).
 5. **Conversation limit.** A second search tracks the day (1..5, dayPhase follows it) and conversations with the
    NPC that day (at most `--talks`); a new day is free, follow-ups and events do not count. Witnesses come from it
    (`B1/choice1 (+0) → day 4 → B2/choice1 (+1) → …`). A row reachable without the limit but not with it is
@@ -76,7 +82,7 @@ Errors: `MISSING_FILE`, `YAML_PARSE`, `CSV_PARSE`, `UNKNOWN_COLUMN`, `MISSING_CO
 `BAD_EFFECT`, `DANGLING_NEXT`, `DUPLICATE_ID`, `UNKNOWN_SCENE`, `UNKNOWN_SLOT`, `UNKNOWN_NPC`,
 `MISSING_SHEET`, `MISSING_FALLBACK`, `TIE`, `NO_MATCH`, `UNREACHABLE`, `LIMIT_UNREACHABLE`, `SCENE_NOT_APPEARED`, `SEATED_SLOT`.
 Warnings: `NEVER_WINS`, `OVER_BUDGET`, `FALLBACK_PRIORITY`, `NEVER_INVITED`, `INVITE_TRIGGER`,
-`UNKNOWN_ASSET`, `PACK_INCOMPLETE`, `PACK_MISMATCH`. Info: `NO_APPEARANCES` (TV-only NPC; reachability not enforced), `EVENT_SCENE_ONLY`. Warning `COLUMN_ORDER` also flags a `scene` column not right after `dayPhase`.
+`UNKNOWN_ASSET`, `PACK_INCOMPLETE`, `PACK_MISMATCH`, `PACK_GAP`, `PACK_LEAK`, `UNKNOWN_VAR`. Info: `NO_APPEARANCES` (TV-only NPC; reachability not enforced), `EVENT_SCENE_ONLY`. Warning `COLUMN_ORDER` also flags a `scene` column not right after `dayPhase`.
 
 ## Fixtures
 

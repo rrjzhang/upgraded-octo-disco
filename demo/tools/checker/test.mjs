@@ -228,5 +228,80 @@ t('occlusion: SLOT_OCCLUSION names near slot "left" covering "back"; unused and 
   assert.match(d.message, /"left" \(nearer\) would cover 44% of the head band and 44% of a figure on "back"/);
 });
 
+// SPEC "Content schemas" byPack / textByPack: per-pack background variants and look texts. A variant missing from the
+// manifest is an info PENDING_ASSET (the base background is drawn meanwhile); a bad pack key is an error in both.
+const bpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'gv-check-bypack-')), bpDir = path.join(bpRoot, 'content');
+fs.cpSync(path.join(here, 'fixtures', 'good'), bpDir, { recursive: true });
+fs.writeFileSync(path.join(bpDir, 'scenes.yaml'), fs.readFileSync(path.join(bpDir, 'scenes.yaml'), 'utf8')
+  .replace('    lighting: warm_indoor\n    description: "A small test room."\n',
+    '    lighting: warm_indoor\n    description: "A small test room."\n' +
+    '    byPack:\n      cn: { background: bg_home_cn_day, evening: bg_home_cn_eve }\n      mx: { background: bg_home_mx_day }\n      xx: { background: bg_home_day }\n')
+  .replace('        action: { type: end_day }\n',
+    '        action: { type: end_day }\n      - id: shelf\n        label: "Shelf"\n        zone: { x: 0.10, y: 0.10, w: 0.10, h: 0.30 }\n' +
+    '        action: { type: look, text: "Books.", textByPack: { cn: "Books and a red knot.", mx: "", zz: "Nope." } }\n'));
+fs.mkdirSync(path.join(bpRoot, 'assets'));
+fs.writeFileSync(path.join(bpRoot, 'assets', 'manifest.json'), JSON.stringify({ backgrounds: { bg_home_day: { file: 'bg/bg_home_day.jpg' }, bg_home_cn_day: { file: 'bg/bg_home_cn_day.jpg' } }, portraits: {}, figures: {}, props: {}, tv: {} }));
+const bp = JSON.parse(spawnSync(process.execPath, [path.join(here, 'check.mjs'), '--content', bpDir, '--report', fs.mkdtempSync(path.join(os.tmpdir(), 'gv-check-bypack-report-')), '--json'], { encoding: 'utf8' }).stdout);
+t('byPack: pending variants are info, bad pack keys and empty texts are errors', () => {
+  const d = bp.diagnostics.filter(x => /[bB]yPack/.test(x.path || x.loc?.path || '')).map(x => `${x.severity}:${x.code}:${x.path ?? x.loc?.path}`).sort();
+  assert.deepEqual(d, [
+    'error:BAD_VALUE:scenes[0].byPack.xx',
+    'error:BAD_VALUE:scenes[0].hotspots[1].action.textByPack.mx',
+    'error:BAD_VALUE:scenes[0].hotspots[1].action.textByPack.zz',
+    'info:PENDING_ASSET:scenes[0].byPack.cn.evening',
+    'info:PENDING_ASSET:scenes[0].byPack.mx.background',
+  ]);
+});
+
+// SPEC "Culture packs": the events/news `pack` column (BAD_VALUE, PACK_GAP, PACK_MISMATCH), per-pack strings
+// (pack.<pack>.<name> -> {name}, PACK_GAP when a pack lacks one, UNKNOWN_VAR) and the PACK_LEAK lint (pack_terms.yaml).
+const pkDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gv-check-packs-'));
+fs.cpSync(path.join(here, 'fixtures', 'good'), pkDir, { recursive: true });
+fs.writeFileSync(path.join(pkDir, 'events.csv'), [
+  'id,source,target,valence,proximity,trigger,scene,npc,minRapport,playerLean,nationalLeader,chance,cost,emotion,text,choice1,effect1,choice2,effect2,pack',
+  "E_INV,us,home,positive,proximal,invite,home,alice,2,,,1,1,warm,Alice's dinner.,Go,rapport +1; lastValence positive,Decline,lastValence negative,",
+  'E_OVER,home,us,negative,distal,enter,home,bob,,,,0.3,,worried,Bob mutters about the news. Long lines at the clinic.,,,,,',
+  // the leak the player found: a shared morning message naming one pack's food
+  'E_MOM,home,bicultural,positive,distal,day_start,,,,,,0.25,0,neutral,"Your mom is making zongzi, and Mandarin lessons start Monday.",Call her.,,,,',
+  // gated variants: cn and mx but no in and no blank fallback
+  'E_NEWS,us,home,positive,distal,day_start,,,,,,0.3,0,neutral,A phone interpreter line for Cantonese.,,,,,cn',
+  'E_NEWS_mx,us,home,positive,distal,day_start,,,,,,0.3,0,neutral,A phone interpreter line for Spanish and Cantonese.,,,,,mx',
+  // a cn-only row naming an mx food; an unknown pack; a pack that contradicts the npc's
+  'E_CROSS,us,home,positive,distal,day_start,,,,,,0.3,0,neutral,Tamales at the potluck.,,,,,cn',
+  'E_ODD,us,home,positive,distal,day_start,,,,,,0.3,0,neutral,A quiet morning.,,,,,xx',
+  'E_MIS,home,us,negative,distal,enter,home,bob,,,,0.3,,worried,Bob waves.,,,,,mx',
+  // a placeholder no strings define, and a per-pack one
+  'E_VAR,us,home,positive,distal,day_start,,,,,,0.3,0,neutral,You pass {homeCenter} and {nope}.,,,,,',
+].join('\n') + '\n');
+fs.writeFileSync(path.join(pkDir, 'news.csv'), 'id,channel,nationalLeader,dayMin,valence,headline,body,pack\nN1,tv,,1,positive,Test headline,Test body.,\nN2,print,,1,positive,Cricket club opens,Nets on Sunday.,in\n');
+fs.writeFileSync(path.join(pkDir, 'strings.en.json'), JSON.stringify({ 'culture.cn': 'Chinese', 'pack.cn.homeCenter': 'the center on Grand', 'pack.mx.homeCenter': 'the parish hall' }));
+fs.writeFileSync(path.join(pkDir, 'pack_terms.yaml'), 'cn: [zongzi, mandarin, cantonese, lin, center on grand]\nmx: [tamale, spanish]\nin: [cricket]\nallow:\n  - { file: events.csv, row: E_NEWS_mx, term: cantonese, why: "test: a deliberate cross-pack mention" }\n');
+const pk = JSON.parse(spawnSync(process.execPath, [path.join(here, 'check.mjs'), '--content', pkDir, '--report', fs.mkdtempSync(path.join(os.tmpdir(), 'gv-check-packs-report-')), '--json'], { encoding: 'utf8' }).stdout);
+const pkd = (code) => pk.diagnostics.filter(d => d.code === code);
+t('packs: PACK_LEAK flags a shared event naming cn terms (whole words; "lines" is not "lin")', () => {
+  const l = pkd('PACK_LEAK');
+  const mom = l.filter(d => d.row === 'E_MOM');
+  assert.equal(mom.length, 1, JSON.stringify(l));
+  assert.equal(mom[0].severity, 'warning');
+  assert.match(mom[0].message, /"zongzi", "mandarin" \(pack cn terms/);
+  assert.ok(!l.some(d => d.row === 'E_OVER'), 'Bob is cn; and "lines" must not match "lin"');
+  assert.ok(!l.some(d => d.row === 'E_NEWS' || d.row === 'E_NEWS_mx'), 'own-pack terms and allow entries are fine');
+  assert.ok(!l.some(d => d.file === 'pack_terms.yaml'), 'the allow entry is used');
+  assert.ok(l.some(d => d.row === 'E_CROSS' && /"tamales" \(pack mx/.test(d.message)), 'a cn row naming an mx term');
+  assert.ok(!l.some(d => d.row === 'E_VAR'), '{placeholders} are skipped');
+  assert.ok(!l.some(d => d.row === 'N2'), 'an in story may say cricket');
+});
+t('packs: pack column values, gaps and mismatches', () => {
+  assert.ok(pkd('BAD_VALUE').some(d => d.row === 'E_ODD' && d.column === 'pack'));
+  const gap = pkd('PACK_GAP').map(d => d.row || d.path);
+  assert.ok(gap.includes('E_NEWS'), JSON.stringify(gap)); // cn + mx, no in, no blank fallback
+  assert.ok(gap.includes('pack.*.homeCenter'), JSON.stringify(gap)); // no pack.in.homeCenter
+  assert.ok(gap.includes('N2'), JSON.stringify(gap)); // a lone in story without a fallback
+  assert.ok(pkd('PACK_MISMATCH').some(d => d.row === 'E_MIS'), 'pack mx on a cn npc');
+  const v = pkd('UNKNOWN_VAR');
+  assert.equal(v.length, 1, JSON.stringify(v));
+  assert.match(v[0].message, /\{nope\}/);
+});
+
 console.log(failures ? `\n${failures} test(s) failed` : '\nall tests passed');
 process.exit(failures ? 1 : 0);

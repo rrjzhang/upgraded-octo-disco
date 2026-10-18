@@ -27,7 +27,7 @@ npcs:
     figure: ch_us_stranger_a_fig_sit
     seated: true
     appearances:
-      - { scene: park, slot: chess_right, chance: 0.85 }
+      - { scene: park, slot: by_fence, chance: 0.7, figure: ch_us_stranger_a_fig_stand }  # standing in front of the middle table (by_tables is the three sep leaders' slot): the seated cut-out brings a stool that sits in front of the bench; in the cn pack the painted variant seats him
       - { scene: library, slot: desk, chance: 0.3, figure: ch_us_stranger_a_fig_stand }     # standing with the paper; no stool
       - { scene: clinic, slot: by_cooler, chance: 0.15, figure: ch_us_stranger_a_fig_stand } # standing, waiting to be called
     initial: { met: false, rapport: 0, lastValence: none }

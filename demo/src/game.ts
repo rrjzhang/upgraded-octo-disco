@@ -8,7 +8,7 @@ import {
   type Delta,
 } from './rules';
 import { appendLog, debugEnabled, getRoom, readLog, saveState } from './store';
-import { assetEntry, effectivePack, figureHeight, isSeatedFigure, overrideIds, questionnaireProblems, sceneInPack } from './content';
+import { assetEntry, effectivePack, figureHeight, isSeatedFigure, overrideIds, questionnaireProblems, rowInPack, sceneInPack } from './content';
 import { SILHOUETTE_BUST, appUrl, downloadText, h, isDev, params, seeded, silhouetteFigure, subst } from './util';
 import { matrix3d } from './homography';
 
@@ -188,7 +188,11 @@ export class Game {
 
   private vars(): Record<string, string> {
     const leader = this.c.npcById.get(`nat_${this.s.config.nationalLeader}`);
+    // SPEC "Packs": strings `pack.<pack>.<name>` become {name} for players of that pack ({homeCenter}, {chessRival}, ...)
+    const pre = `pack.${this.s.player.pack}.`;
+    const packVars = Object.fromEntries(Object.entries(this.c.strings).filter(([k]) => k.startsWith(pre)).map(([k, v]) => [k.slice(pre.length), v]));
     return {
+      ...packVars,
       homeCulture: CULTURE_NAMES[this.s.player.pack] ?? 'Chinese',
       playerName: this.s.player.name || 'you',
       leaderName: leader?.name ?? 'the President',
@@ -243,6 +247,7 @@ export class Game {
 
   /** An event from someone outside the player's roster, or set in another pack's scene, never fires. */
   private eventInPack(ev: EventRow): boolean {
+    if (!rowInPack(ev, this.c.events, this.s.player.pack)) return false; // events.csv `pack` (SPEC "Packs")
     if (ev.npc) { const n = this.c.npcById.get(ev.npc); if (n && !this.inRoster(n)) return false; }
     return !ev.scene || this.openToPlayer(ev.scene);
   }
@@ -342,18 +347,42 @@ export class Game {
     return !!this.ovImg('backgrounds', id) || !!assetEntry(this.c.manifest, this.c.manifest.backgrounds, id);
   }
 
-  private bgFor(sc: Scene): { url: string; placeholder: boolean; id: string } | null {
+  /** A background asset that is really there: an editor override, or a manifest entry that is not a placeholder. */
+  private realBg(id: string | undefined): boolean {
+    if (!id) return false;
+    if (this.ovImg('backgrounds', id)) return true;
+    const e = assetEntry(this.c.manifest, this.c.manifest.backgrounds, id);
+    return !!e && !e.placeholder;
+  }
+
+  /**
+   * The background drawn for a scene. `base` is the background id the drawn one stands in for (SPEC "Content schemas"
+   * byPack): a pack variant resolves `screens`/`props` byBackground through it, so the TV quad measured on bg_home_day
+   * (or bg_home_eve) keeps working on bg_home_<pack>_day (or _eve).
+   * Order: painted variant (when active) > the player's pack variant (when its asset is real) > the scene background;
+   * in the evening the `_eve` render of whichever was chosen, else (pack variant without an evening) the base's `_eve`.
+   */
+  private bgFor(sc: Scene): { url: string; placeholder: boolean; id: string; base: string } | null {
     if (sc.background === 'none') return null;
     const m = this.c.manifest.backgrounds;
+    const eveOf = (x: string) => (x.includes('_day') ? x.replace('_day', '_eve') : `${x}_eve`);
+    const evening = phaseOf(this.s.actions) === 'evening';
     let id = this.paintedActive(sc) ? sc.painted!.background : sc.background;
-    if (phaseOf(this.s.actions) === 'evening') {
-      const eve = id.includes('_day') ? id.replace('_day', '_eve') : `${id}_eve`;
-      if (this.hasBg(eve)) id = eve;
+    let base = id;
+    const pv = id === sc.background ? sc.byPack?.[this.s.player.pack] : undefined;
+    if (pv && this.realBg(pv.background)) {
+      if (!evening) id = pv.background;
+      else if (this.realBg(pv.evening ?? eveOf(pv.background))) { id = pv.evening ?? eveOf(pv.background); if (this.hasBg(eveOf(base))) base = eveOf(base); }
+      else if (this.hasBg(eveOf(base))) id = base = eveOf(base);
+      else id = pv.background;
+    } else if (evening) {
+      const eve = eveOf(id);
+      if (this.hasBg(eve)) id = base = eve;
     }
     const o = this.ovImg('backgrounds', id);
-    if (o) return { url: o.url, placeholder: false, id };
+    if (o) return { url: o.url, placeholder: false, id, base };
     const e = assetEntry(this.c.manifest, m, id);
-    return e ? { url: this.c.assetUrl(e.file), placeholder: !!e.placeholder, id } : { url: '', placeholder: true, id };
+    return e ? { url: this.c.assetUrl(e.file), placeholder: !!e.placeholder, id, base } : { url: '', placeholder: true, id, base };
   }
 
   private portraitFor(n: Npc, emotion: Emotion): { url: string; placeholder: boolean } {
@@ -757,7 +786,7 @@ export class Game {
       case 'look': {
         const before = this.s.actions;
         this.spend(cost);
-        this.panel = { kind: 'text', title: hs.label, text: a.text ?? '' };
+        this.panel = { kind: 'text', title: hs.label, text: a.textByPack?.[this.s.player.pack] ?? a.text ?? '' };
         appendLog(this.s, { type: 'hotspot', target: hs.id, delta: before !== this.s.actions ? { actions: [before, this.s.actions] } : undefined });
         break;
       }
@@ -812,7 +841,8 @@ export class Game {
   private pickNews(channel: 'tv' | 'print'): NewsRow[] {
     const leader = this.s.config.nationalLeader;
     const pool = this.c.news.filter(
-      (n) => n.channel === channel && (!n.nationalLeader || n.nationalLeader === leader) && n.dayMin <= this.s.day,
+      (n) => n.channel === channel && (!n.nationalLeader || n.nationalLeader === leader) && n.dayMin <= this.s.day
+        && rowInPack(n, this.c.news, this.s.player.pack),
     );
     // unseen first, newest-eligible (highest dayMin) first, then file order
     return pool
@@ -1156,15 +1186,16 @@ export class Game {
   private propQuad(sc: Scene, p: Prop): [number, number][] | null {
     const dev = this.devPropQuads.get(sc.id);
     if (dev?.has(p.asset)) return dev.get(p.asset) ?? null;
-    const bgId = this.bgFor(sc)?.id;
-    return (bgId && p.byBackground?.[bgId]) || p.quad || null;
+    const bg = this.bgFor(sc);
+    return (bg && (p.byBackground?.[bg.id] ?? p.byBackground?.[bg.base])) || p.quad || null;
   }
 
   /** A TV glass: the still laid out at 1280 x 720 and projected onto the quad (scene-box pixels) with matrix3d. */
   private screenEl(scr: Screen): HTMLElement {
     // the screen as measured on the background actually drawn (the evening render may put the TV a little elsewhere)
-    const bgId = this.bgFor(this.scene)?.id;
-    const q = (bgId && scr.byBackground?.[bgId]) || scr.quad;
+    // a pack variant (byPack) resolves through the base background it replaces
+    const bg = this.bgFor(this.scene);
+    const q = (bg && (scr.byBackground?.[bg.id] ?? scr.byBackground?.[bg.base])) || scr.quad;
     const quad = q.map(([x, y]) => [x * IMG_W, y * IMG_H] as [number, number]);
     const st = this.screenStory();
     const glass = h('div', {

@@ -18,6 +18,12 @@ scenes:
     lighting: warm_indoor
     horizon: 0.29        # rug edges meet at y 0.29; sofa back, coffee table and the hall doorway all put the camera near 1.0 m
     cameraHeight: 1.0    # a low, seated-eye-level shot: standing people in this room are tall in frame and the head leaves the top quickly
+    # SPEC "Content schemas" byPack: gentle per-pack edits of the culture-neutral room (image_generation 194-199: three
+    # small objects each, TV untouched). Used once the asset exists; the TV quads below apply through the base replaced.
+    byPack:
+      cn: { background: bg_home_cn_day, evening: bg_home_cn_eve }   # blue-and-white bowl of mandarins, lidded tea cup, red knot
+      mx: { background: bg_home_mx_day, evening: bg_home_mx_eve }   # Talavera-style bowl, striped woven blanket, barro negro vase
+      in: { background: bg_home_in_day, evening: bg_home_in_eve }   # unlit brass diya, block-print cushion, tulsi plant
     description: "Your living room. The radiator ticks. The TV on the far wall is still on from last night."
     exits:
       - { to: street, label: "Front door" }
@@ -33,7 +39,13 @@ scenes:
       - id: bookshelf
         label: "Bookshelf"
         zone: { x: 0.28, y: 0.10, w: 0.10, h: 0.48 }
-        action: { type: look, text: "Paperbacks, a rice cooker manual you keep meaning to throw out, and a photo of your parents at someone's wedding." }
+        action:
+          type: look
+          text: "Paperbacks, a rice cooker manual you keep meaning to throw out, and a photo of your parents at someone's wedding."
+          textByPack:   # SPEC "Content schemas": names the objects the pack's living room adds (requests 194-199)
+            cn: "Paperbacks, a rice cooker manual you keep meaning to throw out, the little red knot your mother tied hanging off the middle shelf, and a photo of your parents at someone's wedding."
+            mx: "Paperbacks, a small black clay vase your aunt carried up from Oaxaca wrapped in three sweaters, and a photo of your parents at someone's wedding."
+            in: "Paperbacks, a small brass diya that only gets lit at Diwali, and a photo of your parents at someone's wedding."
       - id: window
         label: "Window"
         zone: { x: 0.63, y: 0.00, w: 0.17, h: 0.35 }
@@ -81,7 +93,7 @@ scenes:
       - id: window
         label: "Window"
         zone: { x: 0.87, y: 0.00, w: 0.13, h: 0.38 }
-        action: { type: look, text: "The back of the clinic on Fifth, and past it the roof of the community center on Grand." }
+        action: { type: look, text: "The back of the clinic on Fifth, and past it the water towers along Grand." }
     slots:
       - { id: near, x: 0.24, y: 1.0 }      # on the carpet in the foreground left, in front of the left desk row; feet on the bottom edge, head at about 0.17
       - { id: desk_left, x: 0.34, y: 0.68 }   # on the open carpet between the left desk row and the centre desk, clear of the computer
@@ -144,7 +156,7 @@ scenes:
       - id: board
         label: "Bulletin board"
         zone: { x: 0.00, y: 0.03, w: 0.07, h: 0.46 }
-        action: { type: look, text: "ESL Tuesdays 6pm. Citizenship class, Room 3. A lost cat named Biscuit. A flyer for the Thursday potluck in English, Spanish and Chinese." }
+        action: { type: look, text: "ESL Tuesdays 6pm. Citizenship class, Room 3. A lost cat named Biscuit. A flyer for the Thursday potluck in English and three other languages." }
       - id: desk
         label: "Circulation desk"
         zone: { x: 0.75, y: 0.48, w: 0.25, h: 0.12 }
@@ -180,17 +192,8 @@ scenes:
     description: "The chess tables by the path. Leaves on the paving, a lamppost, regulars who nod but don't say much."
     exits:
       - { to: street, label: "Back to the street" }
-    props:
-      # Projected onto the top of the nearest stone table on bg_park_day (SPEC "Content schemas", Prop `quad`): the quad is
-      # the whole 600x515 image rect (TL, TR, BR, BL). The board in the PNG is itself seen in perspective (narrower at the
-      # top), so the rect's far edge comes out a little wider; the board itself lands near-edge-wider at about
-      # [[0.217,0.538],[0.395,0.539],[0.402,0.575],[0.208,0.576]], ~14% in from the table edges and over the faint board
-      # painted into the stone. x/y/w are the flat fallback. Tune live with gv.propQuad('park', 'prop_chessboard', quad).
-      - asset: prop_chessboard
-        x: 0.235
-        y: 0.515
-        w: 0.165
-        quad: [[0.200, 0.536], [0.410, 0.537], [0.402, 0.578], [0.209, 0.578]]
+    # No props: the chess game is baked into the plain park photo (bg_park_board_day_A, image request 193); until it
+    # exists the plain bg_park_day_A shows the faint board painted into the stone.
     hotspots:
       - id: chess_left_player
         label: "Mr. Lin"
@@ -203,7 +206,7 @@ scenes:
       - id: chess_table
         label: "Chess table"
         zone: { x: 0.17, y: 0.53, w: 0.29, h: 0.30 }
-        action: { type: look, text: "A game left mid-way. Someone has scratched a xiangqi river into the stone across the middle of the board, faint enough to miss." }
+        action: { type: look, text: "A game left mid-way. The squares in the middle of the board are worn pale where everyone's hands go." }
       - id: lamppost
         label: "Lamppost"
         zone: { x: 0.74, y: 0.16, w: 0.03, h: 0.27 }

@@ -28,8 +28,8 @@ export const NEWS_COLUMNS = ['id', 'channel', 'nationalLeader', 'dayMin', 'valen
 /** Optional dialogue column (SPEC "Dialogue location"), placed after dayPhase: blank = anywhere, else scene ids joined by `|`. */
 export const DIALOGUE_OPTIONAL_COLUMNS = ['scene'];
 /** Optional columns (SPEC "Cast"): a cast id; blank or absent = unchanged behaviour. */
-export const EVENT_OPTIONAL_COLUMNS = ['portrait', 'medium'];
-export const NEWS_OPTIONAL_COLUMNS = ['figure'];
+export const EVENT_OPTIONAL_COLUMNS = ['portrait', 'medium', 'pack'];
+export const NEWS_OPTIONAL_COLUMNS = ['figure', 'pack'];
 /** localStorage key of the researcher's text override (written by /editor.html). */
 export const OVERRIDE_KEY = 'gv:override:v1';
 /** IndexedDB database / object store of the researcher's image overrides. */
@@ -156,7 +156,7 @@ function parseScenes(r: Reporter, file: string, text: string): Scene[] {
         id: str(hs.id),
         label: str(hs.label, hs.id),
         zone: { x: z.x, y: z.y, w: z.w, h: z.h },
-        action: { type: type as any, module: a.module, cost: a.cost === undefined ? undefined : num(a.cost, 1), to: a.to, text: a.text, npc: a.npc === undefined ? undefined : str(a.npc) },
+        action: { type: type as any, module: a.module, cost: a.cost === undefined ? undefined : num(a.cost, 1), to: a.to, text: a.text, npc: a.npc === undefined ? undefined : str(a.npc), ...parseTextByPack(r, file, hw, a.textByPack) },
         placeholder: hs.placeholder === true,
       });
     });
@@ -186,6 +186,7 @@ function parseScenes(r: Reporter, file: string, text: string): Scene[] {
       painted: s.painted && typeof s.painted === 'object' && s.painted.background
         ? { background: str(s.painted.background), npcs: (Array.isArray(s.painted.npcs) ? s.painted.npcs : []).map((x: any) => str(x)) }
         : undefined,
+      ...parseByPack(r, file, where, s.byPack),
     });
   });
   const ids = new Set(out.map((s) => s.id));
@@ -215,6 +216,31 @@ function parsePropQuad(r: Reporter, file: string, where: string, p: any): Pick<P
     }
   }
   return out;
+}
+
+/** SPEC "Content schemas" byPack: { cn|mx|in: { background, evening? } } (per-pack background variants). */
+function parseByPack(r: Reporter, file: string, where: string, raw: unknown): { byPack?: Scene['byPack'] } {
+  if (raw === undefined || raw === null) return {};
+  if (typeof raw !== 'object' || Array.isArray(raw)) { r.error(file, `${where}: byPack must map cn | mx | in to { background, evening? }`); return {}; }
+  const out: NonNullable<Scene['byPack']> = {};
+  for (const [k, v] of Object.entries(raw as Record<string, any>)) {
+    if (!(SCENE_PACKS as readonly string[]).includes(k)) { r.error(file, `${where}: byPack key "${k}" is not a pack (cn | mx | in)`); continue; }
+    if (!v || typeof v !== 'object' || !v.background) { r.error(file, `${where}: byPack.${k} needs background`); continue; }
+    out[k as CultureId] = { background: str(v.background), ...(v.evening ? { evening: str(v.evening) } : {}) };
+  }
+  return { byPack: out };
+}
+
+/** SPEC "Content schemas" textByPack on a look action: per-pack variants of its text. */
+function parseTextByPack(r: Reporter, file: string, where: string, raw: unknown): { textByPack?: Partial<Record<CultureId, string>> } {
+  if (raw === undefined || raw === null) return {};
+  if (typeof raw !== 'object' || Array.isArray(raw)) { r.error(file, `${where}: textByPack must map cn | mx | in to text`); return {}; }
+  const out: Partial<Record<CultureId, string>> = {};
+  for (const [k, v] of Object.entries(raw as Record<string, any>)) {
+    if (!(SCENE_PACKS as readonly string[]).includes(k)) r.error(file, `${where}: textByPack key "${k}" is not a pack (cn | mx | in)`);
+    else if (typeof v === 'string' && v) out[k as CultureId] = v;
+  }
+  return { textByPack: out };
 }
 
 function parseScreens(r: Reporter, file: string, where: string, raw: unknown): Screen[] {
@@ -371,7 +397,7 @@ function parseEvents(r: Reporter, file: string, text: string, scenes: Map<string
       playerLean: row.playerLean, nationalLeader: row.nationalLeader,
       chance: num(row.chance, 1), cost: num(row.cost, 0),
       emotion: EMOTIONS.includes(emotion) ? emotion : 'neutral',
-      text: row.text, choices, rowNum, portrait: row.portrait ?? '', medium: (row.medium ?? '').trim(),
+      text: row.text, choices, rowNum, portrait: row.portrait ?? '', medium: (row.medium ?? '').trim(), pack: rowPack(r, file, where, row.pack),
     });
   });
   const ids = new Set(out.map((e) => e.id));
@@ -390,7 +416,7 @@ function parseNews(r: Reporter, file: string, text: string): NewsRow[] {
     return [{
       id: row.id, channel: (row.channel === 'print' ? 'print' : 'tv') as NewsRow['channel'],
       nationalLeader: row.nationalLeader, dayMin: num(row.dayMin, 1), valence: row.valence,
-      headline: row.headline, body: row.body, figure: row.figure ?? '',
+      headline: row.headline, body: row.body, figure: row.figure ?? '', pack: rowPack(r, file, where, row.pack),
     }];
   });
 }
@@ -708,6 +734,30 @@ export function effectivePack(c: Pick<Content, 'npcs' | 'scenes'>, homeCulture: 
 }
 
 /** SPEC "Packs": a scene is open to a player when it is shared (no pack) or carries their effective pack. */
+/** SPEC "Packs": an events.csv / news.csv `pack` cell: blank = every pack, else cn | mx | in (anything else is reported and ignored). */
+function rowPack(r: Reporter, file: string, where: string, raw: string | undefined): CultureId | '' {
+  const p = (raw ?? '').trim();
+  if (!p) return '';
+  if ((SCENE_PACKS as readonly string[]).includes(p)) return p as CultureId;
+  r.error(file, `${where}: bad pack "${p}" (cn | mx | in, or blank for every pack)`);
+  return '';
+}
+
+/** SPEC "Packs": the variant group of an events.csv / news.csv id, the id without a trailing _cn | _mx | _in. */
+export function packGroup(id: string): string {
+  return id.replace(/_(cn|mx|in)$/, '');
+}
+
+/**
+ * SPEC "Packs": whether an event or news row is shown to a player of `pack`. A row with a pack only to that pack; a
+ * blank-pack row to everyone, except where its id group (packGroup) has a variant for that pack, which replaces it.
+ */
+export function rowInPack(row: { id: string; pack?: string }, rows: readonly { id: string; pack?: string }[], pack: string): boolean {
+  if (row.pack) return row.pack === pack;
+  const g = packGroup(row.id);
+  return !rows.some((o) => o !== row && o.pack === pack && packGroup(o.id) === g);
+}
+
 export function sceneInPack(sc: Pick<Scene, 'pack'> | undefined, pack: string): boolean {
   return !!sc && (!sc.pack || sc.pack === pack);
 }

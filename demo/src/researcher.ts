@@ -1,8 +1,9 @@
 /** researcher.html: create rooms, list them, export logs. */
 import './style.css';
-import { getSource, questionnaireProblems } from './content';
+import { load as loadYaml } from 'js-yaml';
+import { getSource } from './content';
 import { getSettings, listRooms, loadState, readLog, saveRoom, saveSettings, getRoom, type RoomRecord } from './store';
-import type { Leader, Questionnaire, RoomConfig } from './types';
+import type { Leader, Npc, RoomConfig } from './types';
 import { appUrl, downloadText, h, isFixtures, isoNow } from './util';
 
 const app = document.getElementById('app')!;
@@ -25,65 +26,71 @@ function mintCode(): string {
   throw new Error('could not mint a free room code');
 }
 
+// pack display names, as the home-culture choice reads them (main.ts culture radios: China / Mexico / India)
+const PACK_NAMES: Record<string, string> = { shared: 'Shared', cn: 'Chinese', mx: 'Mexican', in: 'Indian' };
+
 async function main(): Promise<void> {
   let candidates: Record<string, string[]> = {};
+  let thumbs: Record<string, Record<string, string>> = {};
   const src = await getSource(isFixtures);
   const mt = await src.text('assets/manifest.json');
   if (mt) {
-    try { candidates = JSON.parse(mt).candidates ?? {}; } catch (e) { console.error('[researcher] assets/manifest.json:', e); }
+    try { const m = JSON.parse(mt); candidates = m.candidates ?? {}; thumbs = m.candidateThumbs ?? {}; } catch (e) { console.error('[researcher] assets/manifest.json:', e); }
   } else {
     console.warn('[researcher] assets/manifest.json missing; no roster candidates to pick');
   }
+  // character names and packs for the candidates block (ids stay out of sight)
+  const npcs = new Map<string, Npc>();
+  const ny = await src.text('content/npcs.yaml');
+  try { for (const n of ((ny && (loadYaml(ny) as { npcs?: Npc[] })?.npcs) || [])) if (n?.id) npcs.set(n.id, n); }
+  catch (e) { console.error('[researcher] content/npcs.yaml:', e); }
 
   const leader = h('select', { id: 'leader' }, h('option', { value: 'enforcement', text: 'enforcement' }), h('option', { value: 'inclusive', text: 'inclusive' }));
   const seed = h('input', { id: 'seed', type: 'number', min: 0, step: 1 });
   const note = h('input', { id: 'note', type: 'text', placeholder: 'optional, e.g. session or participant group' });
   // SPEC "Conversation limit": conversations a participant may have with each person per day
   const talks = h('input', { id: 'talks', type: 'number', min: 1, max: 8, step: 1, value: '1', 'aria-describedby': 'talks-help' });
-  const qJson = h('textarea', {
-    id: 'qjson', class: 'q-json mono', rows: 6, spellcheck: 'false',
-    placeholder: 'Optional. Paste questionnaire JSON (same schema as content/questionnaire/eod.json) to replace the bundled end-of-day survey for this room.',
-  });
-  const qUrl = h('input', { id: 'qurl', type: 'text', placeholder: 'optional, e.g. https://example.org/eod.json or /content/questionnaire/eod.json' });
-  const qErr = h('div', { class: 'err', role: 'alert' });
-  /** Parses and checks the questionnaire fields; returns the config additions, or null after showing the problems. */
-  const readQuestionnaire = (): Pick<RoomConfig, 'questionnaire' | 'questionnaireUrl'> | null => {
-    qErr.replaceChildren();
-    const out: Pick<RoomConfig, 'questionnaire' | 'questionnaireUrl'> = {};
-    const problems: string[] = [];
-    const raw = qJson.value.trim();
-    if (raw) {
-      let q: unknown;
-      try { q = JSON.parse(raw); } catch (e) { problems.push(`Questionnaire JSON: ${(e as Error).message}`); }
-      if (q !== undefined) {
-        const p = questionnaireProblems(q);
-        if (p.length) problems.push(...p.map((x) => `Questionnaire JSON: ${x}`));
-        else out.questionnaire = q as Questionnaire;
-      }
-    }
-    const url = qUrl.value.trim();
-    if (url) {
-      try { new URL(url, location.origin); out.questionnaireUrl = url; } catch { problems.push(`Questionnaire URL: not a valid URL`); }
-    }
-    if (problems.length) {
-      qErr.append(h('ul', { class: 'errlist' }, ...problems.slice(0, 20).map((p) => h('li', { text: p }))));
-      (raw && problems.some((p) => p.startsWith('Questionnaire JSON')) ? qJson : qUrl).focus();
-      return null;
-    }
-    return out;
-  };
-  const picks: Record<string, HTMLSelectElement> = {};
-  const pickRows = h('div', { class: 'picks' });
+  // The questionnaire JSON / URL inputs were removed 2026-10-18 pending a backend (request + webhook). RoomConfig's
+  // `questionnaire` and `questionnaireUrl` are still honoured by the engine (server -> room -> bundled), so a room
+  // config made elsewhere keeps working; this page just does not offer them.
+  const formErr = h('div', { class: 'err', role: 'alert' });
+  // npc id -> its candidate reference ids; the chosen radio is "random" or a candidate index
+  const picks: Record<string, string[]> = {};
+  const pickRows = h('div', { class: 'cand-groups' });
+  const byPack = new Map<string, HTMLElement[]>();
   for (const [npc, list] of Object.entries(candidates)) {
     if (!Array.isArray(list) || list.length < 2) continue;
-    const sel = h('select', { id: `pick_${npc}` }, ...list.map((c) => h('option', { value: c, text: c })));
-    picks[npc] = sel;
-    pickRows.append(h('label', { for: `pick_${npc}`, text: npc }), sel);
+    picks[npc] = list;
+    const n = npcs.get(npc);
+    const role = n ? [n.stance, (n.role ?? '').replace(/^local_/, '').replace(/_/g, ' ')].filter(Boolean).join(' ') : '';
+    const who = n?.name ? `${n.name}${role ? `, ${role}` : ''}` : 'Unnamed character';
+    const opts = list.map((c, i) => h('label', { class: 'cand-opt', title: c },
+      h('input', { type: 'radio', name: `pick_${npc}`, value: String(i) }),
+      thumbs[npc]?.[c] ? h('img', { src: src.assetUrl(thumbs[npc][c]), alt: '', width: 80, height: 80 }) : null,
+      h('span', { text: `Reference ${i + 1}` })));
+    opts.push(h('label', { class: 'cand-opt cand-random' },
+      h('input', { type: 'radio', name: `pick_${npc}`, value: 'random', checked: true }), h('span', { text: 'Random' })));
+    const pack = n?.pack ?? 'shared';
+    if (!byPack.has(pack)) byPack.set(pack, []);
+    byPack.get(pack)!.push(h('fieldset', { class: 'cand-row' }, h('legend', { text: who }), h('div', { class: 'cand-opts' }, ...opts)));
   }
+  const packOrder = (p: string) => { const i = Object.keys(PACK_NAMES).indexOf(p); return i < 0 ? 99 : i; };
+  for (const [pack, rows] of [...byPack].sort((a, b) => packOrder(a[0]) - packOrder(b[0]))) {
+    pickRows.append(h('h3', { text: `${PACK_NAMES[pack] ?? pack} pack` }), ...rows);
+  }
+  /** The candidate id chosen for each character; "random" resolves here, once per room. */
+  const readPicks = (): Record<string, string> => Object.fromEntries(Object.entries(picks).map(([npc, list]) => {
+    const v = pickRows.querySelector<HTMLInputElement>(`input[name="pick_${npc}"]:checked`)?.value ?? 'random';
+    const i = v === 'random' ? rnd(list.length) : Number(v);
+    return [npc, list[i] ?? list[0]];
+  }));
   const randomize = () => {
     leader.value = pick<Leader>(['enforcement', 'inclusive']);
     seed.value = String(rnd(1_000_000));
-    for (const sel of Object.values(picks)) sel.selectedIndex = rnd(sel.options.length);
+    for (const npc of Object.keys(picks)) {
+      const r = pickRows.querySelector<HTMLInputElement>(`input[name="pick_${npc}"][value="random"]`);
+      if (r) r.checked = true;
+    }
   };
   randomize();
 
@@ -122,12 +129,9 @@ async function main(): Promise<void> {
       h('label', { for: 'talks', text: 'Conversations per person per day' }),
       h('div', {}, talks, h('span', { id: 'talks-help', class: 'muted', text: ' Default 1. After that many, the person shows "Talked already today". Run the checker with --talks N to match.' }))),
     Object.keys(picks).length ? h('h2', { text: 'Roster candidates' }) : null,
+    Object.keys(picks).length ? h('p', { class: 'muted', text: 'Candidates are alternative generated reference sheets for the same character; the pick is per room.' }) : null,
     pickRows,
-    h('h2', { text: 'End-of-day questionnaire' }),
-    h('p', { class: 'muted', text: 'Leave both empty to use the bundled BIIS-2 check-in. A questionnaire from the study server, when there is one, still takes precedence.' }),
-    h('label', { for: 'qjson', text: 'Questionnaire JSON' }), qJson,
-    h('label', { for: 'qurl', text: 'Questionnaire URL (used when no JSON is pasted)' }), qUrl,
-    qErr,
+    formErr,
     h('div', { class: 'row' },
       h('button', { class: 'btn ghost', type: 'button', onclick: randomize, text: 'Re-randomize' }),
       h('button', { class: 'btn', type: 'submit', text: 'Create room' })),
@@ -135,11 +139,10 @@ async function main(): Promise<void> {
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    const q = readQuestionnaire();
-    if (!q) return;
+    formErr.replaceChildren();
     const maxTalks = Math.floor(Number(talks.value));
     if (!(maxTalks >= 1 && maxTalks <= 8)) {
-      qErr.replaceChildren(h('ul', { class: 'errlist' }, h('li', { text: 'Conversations per person per day: a whole number from 1 to 8.' })));
+      formErr.replaceChildren(h('ul', { class: 'errlist' }, h('li', { text: 'Conversations per person per day: a whole number from 1 to 8.' })));
       talks.focus();
       return;
     }
@@ -149,11 +152,10 @@ async function main(): Promise<void> {
       code, password,
       nationalLeader: leader.value as Leader,
       seed: Math.floor(Number(seed.value) || 0),
-      rosterPicks: Object.fromEntries(Object.entries(picks).map(([k, s]) => [k, s.value])),
+      rosterPicks: readPicks(),
       created: isoNow(),
       note: note.value.trim() || undefined,
       maxTalksPerNpcPerDay: maxTalks,
-      ...q,
     };
     const rec: RoomRecord = { code, password, config };
     saveRoom(rec);
@@ -162,7 +164,6 @@ async function main(): Promise<void> {
       h('p', {}, 'Room ', h('strong', { class: 'mono', text: code }), ' password ', h('strong', { class: 'mono', text: password })),
       h('p', { class: 'muted' }, 'Participant link: ', h('a', { href: link, text: link })));
     randomize();
-    qJson.value = ''; qUrl.value = '';
     renderRooms();
   });
 
