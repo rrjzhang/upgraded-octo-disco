@@ -1,6 +1,6 @@
 {
   "budget": 50,
-  "planned": 50,
+  "planned": 82,
   "reserved_for_retries": 5,
   "items": [
     {
@@ -844,6 +844,568 @@
       "save_prompt_used_as": "out/bg_park_chess_day_alt_A.prompt.txt",
       "status": "done",
       "file": "50_bg_park_chess_day_alt_A.md"
+    },
+    {
+      "id": "ch_us_stranger_b_ref_A",
+      "order": 51,
+      "part": 7,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "ch_us_stranger_b_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/ch_us_stranger_b_ref_A.png",
+      "save_prompt_used_as": "out/ch_us_stranger_b_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "51_ch_us_stranger_b_ref_A.md"
+    },
+    {
+      "id": "ch_us_stranger_b_neutral_A",
+      "order": 52,
+      "part": 7,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_us_stranger_b_A",
+      "depends_on": [
+        "ch_us_stranger_b_ref_A"
+      ],
+      "attach": "out/ch_us_stranger_b_ref_A.png",
+      "save_image_as": "out/ch_us_stranger_b_neutral_A.png",
+      "save_prompt_used_as": "out/ch_us_stranger_b_neutral_A.prompt.txt",
+      "status": "pending",
+      "file": "52_ch_us_stranger_b_neutral_A.md"
+    },
+    {
+      "id": "ch_us_stranger_b_warm_A",
+      "order": 53,
+      "part": 7,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_us_stranger_b_A",
+      "depends_on": [
+        "ch_us_stranger_b_ref_A"
+      ],
+      "attach": "out/ch_us_stranger_b_ref_A.png",
+      "save_image_as": "out/ch_us_stranger_b_warm_A.png",
+      "save_prompt_used_as": "out/ch_us_stranger_b_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "53_ch_us_stranger_b_warm_A.md"
+    },
+    {
+      "id": "ch_us_stranger_b_guarded_A",
+      "order": 54,
+      "part": 7,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_us_stranger_b_A",
+      "depends_on": [
+        "ch_us_stranger_b_ref_A"
+      ],
+      "attach": "out/ch_us_stranger_b_ref_A.png",
+      "save_image_as": "out/ch_us_stranger_b_guarded_A.png",
+      "save_prompt_used_as": "out/ch_us_stranger_b_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "54_ch_us_stranger_b_guarded_A.md"
+    },
+    {
+      "id": "ch_us_stranger_b_fig_stand_A",
+      "order": 55,
+      "part": 7,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_us_stranger_b_A",
+      "depends_on": [
+        "ch_us_stranger_b_ref_A"
+      ],
+      "attach": "out/ch_us_stranger_b_ref_A.png",
+      "save_image_as": "out/ch_us_stranger_b_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_us_stranger_b_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "55_ch_us_stranger_b_fig_stand_A.md"
+    },
+    {
+      "id": "ch_us_leader_int_ref_A",
+      "order": 56,
+      "part": 7,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "ch_us_leader_int_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/ch_us_leader_int_ref_A.png",
+      "save_prompt_used_as": "out/ch_us_leader_int_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "56_ch_us_leader_int_ref_A.md"
+    },
+    {
+      "id": "ch_us_leader_int_neutral_A",
+      "order": 57,
+      "part": 7,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_us_leader_int_A",
+      "depends_on": [
+        "ch_us_leader_int_ref_A"
+      ],
+      "attach": "out/ch_us_leader_int_ref_A.png",
+      "save_image_as": "out/ch_us_leader_int_neutral_A.png",
+      "save_prompt_used_as": "out/ch_us_leader_int_neutral_A.prompt.txt",
+      "status": "pending",
+      "file": "57_ch_us_leader_int_neutral_A.md"
+    },
+    {
+      "id": "ch_us_leader_int_warm_A",
+      "order": 58,
+      "part": 7,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_us_leader_int_A",
+      "depends_on": [
+        "ch_us_leader_int_ref_A"
+      ],
+      "attach": "out/ch_us_leader_int_ref_A.png",
+      "save_image_as": "out/ch_us_leader_int_warm_A.png",
+      "save_prompt_used_as": "out/ch_us_leader_int_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "58_ch_us_leader_int_warm_A.md"
+    },
+    {
+      "id": "ch_us_leader_int_guarded_A",
+      "order": 59,
+      "part": 7,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_us_leader_int_A",
+      "depends_on": [
+        "ch_us_leader_int_ref_A"
+      ],
+      "attach": "out/ch_us_leader_int_ref_A.png",
+      "save_image_as": "out/ch_us_leader_int_guarded_A.png",
+      "save_prompt_used_as": "out/ch_us_leader_int_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "59_ch_us_leader_int_guarded_A.md"
+    },
+    {
+      "id": "ch_us_leader_int_fig_stand_A",
+      "order": 60,
+      "part": 7,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_us_leader_int_A",
+      "depends_on": [
+        "ch_us_leader_int_ref_A"
+      ],
+      "attach": "out/ch_us_leader_int_ref_A.png",
+      "save_image_as": "out/ch_us_leader_int_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_us_leader_int_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "60_ch_us_leader_int_fig_stand_A.md"
+    },
+    {
+      "id": "ch_us_leader_seg_ref_A",
+      "order": 61,
+      "part": 7,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "ch_us_leader_seg_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/ch_us_leader_seg_ref_A.png",
+      "save_prompt_used_as": "out/ch_us_leader_seg_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "61_ch_us_leader_seg_ref_A.md"
+    },
+    {
+      "id": "ch_us_leader_seg_neutral_A",
+      "order": 62,
+      "part": 7,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_us_leader_seg_A",
+      "depends_on": [
+        "ch_us_leader_seg_ref_A"
+      ],
+      "attach": "out/ch_us_leader_seg_ref_A.png",
+      "save_image_as": "out/ch_us_leader_seg_neutral_A.png",
+      "save_prompt_used_as": "out/ch_us_leader_seg_neutral_A.prompt.txt",
+      "status": "pending",
+      "file": "62_ch_us_leader_seg_neutral_A.md"
+    },
+    {
+      "id": "ch_us_leader_seg_warm_A",
+      "order": 63,
+      "part": 7,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_us_leader_seg_A",
+      "depends_on": [
+        "ch_us_leader_seg_ref_A"
+      ],
+      "attach": "out/ch_us_leader_seg_ref_A.png",
+      "save_image_as": "out/ch_us_leader_seg_warm_A.png",
+      "save_prompt_used_as": "out/ch_us_leader_seg_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "63_ch_us_leader_seg_warm_A.md"
+    },
+    {
+      "id": "ch_us_leader_seg_guarded_A",
+      "order": 64,
+      "part": 7,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_us_leader_seg_A",
+      "depends_on": [
+        "ch_us_leader_seg_ref_A"
+      ],
+      "attach": "out/ch_us_leader_seg_ref_A.png",
+      "save_image_as": "out/ch_us_leader_seg_guarded_A.png",
+      "save_prompt_used_as": "out/ch_us_leader_seg_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "64_ch_us_leader_seg_guarded_A.md"
+    },
+    {
+      "id": "ch_us_leader_seg_fig_stand_A",
+      "order": 65,
+      "part": 7,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_us_leader_seg_A",
+      "depends_on": [
+        "ch_us_leader_seg_ref_A"
+      ],
+      "attach": "out/ch_us_leader_seg_ref_A.png",
+      "save_image_as": "out/ch_us_leader_seg_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_us_leader_seg_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "65_ch_us_leader_seg_fig_stand_A.md"
+    },
+    {
+      "id": "ch_cn_neighbor_ref_A",
+      "order": 66,
+      "part": 7,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "ch_cn_neighbor_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/ch_cn_neighbor_ref_A.png",
+      "save_prompt_used_as": "out/ch_cn_neighbor_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "66_ch_cn_neighbor_ref_A.md"
+    },
+    {
+      "id": "ch_cn_neighbor_neutral_A",
+      "order": 67,
+      "part": 7,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_cn_neighbor_A",
+      "depends_on": [
+        "ch_cn_neighbor_ref_A"
+      ],
+      "attach": "out/ch_cn_neighbor_ref_A.png",
+      "save_image_as": "out/ch_cn_neighbor_neutral_A.png",
+      "save_prompt_used_as": "out/ch_cn_neighbor_neutral_A.prompt.txt",
+      "status": "pending",
+      "file": "67_ch_cn_neighbor_neutral_A.md"
+    },
+    {
+      "id": "ch_cn_neighbor_warm_A",
+      "order": 68,
+      "part": 7,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_cn_neighbor_A",
+      "depends_on": [
+        "ch_cn_neighbor_ref_A"
+      ],
+      "attach": "out/ch_cn_neighbor_ref_A.png",
+      "save_image_as": "out/ch_cn_neighbor_warm_A.png",
+      "save_prompt_used_as": "out/ch_cn_neighbor_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "68_ch_cn_neighbor_warm_A.md"
+    },
+    {
+      "id": "ch_cn_neighbor_guarded_A",
+      "order": 69,
+      "part": 7,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_cn_neighbor_A",
+      "depends_on": [
+        "ch_cn_neighbor_ref_A"
+      ],
+      "attach": "out/ch_cn_neighbor_ref_A.png",
+      "save_image_as": "out/ch_cn_neighbor_guarded_A.png",
+      "save_prompt_used_as": "out/ch_cn_neighbor_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "69_ch_cn_neighbor_guarded_A.md"
+    },
+    {
+      "id": "ch_cn_neighbor_fig_stand_A",
+      "order": 70,
+      "part": 7,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_cn_neighbor_A",
+      "depends_on": [
+        "ch_cn_neighbor_ref_A"
+      ],
+      "attach": "out/ch_cn_neighbor_ref_A.png",
+      "save_image_as": "out/ch_cn_neighbor_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_cn_neighbor_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "70_ch_cn_neighbor_fig_stand_A.md"
+    },
+    {
+      "id": "ch_cn_stranger_b_ref_A",
+      "order": 71,
+      "part": 7,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "ch_cn_stranger_b_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/ch_cn_stranger_b_ref_A.png",
+      "save_prompt_used_as": "out/ch_cn_stranger_b_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "71_ch_cn_stranger_b_ref_A.md"
+    },
+    {
+      "id": "ch_cn_stranger_b_neutral_A",
+      "order": 72,
+      "part": 7,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_cn_stranger_b_A",
+      "depends_on": [
+        "ch_cn_stranger_b_ref_A"
+      ],
+      "attach": "out/ch_cn_stranger_b_ref_A.png",
+      "save_image_as": "out/ch_cn_stranger_b_neutral_A.png",
+      "save_prompt_used_as": "out/ch_cn_stranger_b_neutral_A.prompt.txt",
+      "status": "pending",
+      "file": "72_ch_cn_stranger_b_neutral_A.md"
+    },
+    {
+      "id": "ch_cn_stranger_b_warm_A",
+      "order": 73,
+      "part": 7,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_cn_stranger_b_A",
+      "depends_on": [
+        "ch_cn_stranger_b_ref_A"
+      ],
+      "attach": "out/ch_cn_stranger_b_ref_A.png",
+      "save_image_as": "out/ch_cn_stranger_b_warm_A.png",
+      "save_prompt_used_as": "out/ch_cn_stranger_b_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "73_ch_cn_stranger_b_warm_A.md"
+    },
+    {
+      "id": "ch_cn_stranger_b_guarded_A",
+      "order": 74,
+      "part": 7,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_cn_stranger_b_A",
+      "depends_on": [
+        "ch_cn_stranger_b_ref_A"
+      ],
+      "attach": "out/ch_cn_stranger_b_ref_A.png",
+      "save_image_as": "out/ch_cn_stranger_b_guarded_A.png",
+      "save_prompt_used_as": "out/ch_cn_stranger_b_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "74_ch_cn_stranger_b_guarded_A.md"
+    },
+    {
+      "id": "ch_cn_stranger_b_fig_stand_A",
+      "order": 75,
+      "part": 7,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_cn_stranger_b_A",
+      "depends_on": [
+        "ch_cn_stranger_b_ref_A"
+      ],
+      "attach": "out/ch_cn_stranger_b_ref_A.png",
+      "save_image_as": "out/ch_cn_stranger_b_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_cn_stranger_b_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "75_ch_cn_stranger_b_fig_stand_A.md"
+    },
+    {
+      "id": "ch_cn_leader_int_ref_A",
+      "order": 76,
+      "part": 7,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "ch_cn_leader_int_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/ch_cn_leader_int_ref_A.png",
+      "save_prompt_used_as": "out/ch_cn_leader_int_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "76_ch_cn_leader_int_ref_A.md"
+    },
+    {
+      "id": "ch_cn_leader_int_neutral_A",
+      "order": 77,
+      "part": 7,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_cn_leader_int_A",
+      "depends_on": [
+        "ch_cn_leader_int_ref_A"
+      ],
+      "attach": "out/ch_cn_leader_int_ref_A.png",
+      "save_image_as": "out/ch_cn_leader_int_neutral_A.png",
+      "save_prompt_used_as": "out/ch_cn_leader_int_neutral_A.prompt.txt",
+      "status": "pending",
+      "file": "77_ch_cn_leader_int_neutral_A.md"
+    },
+    {
+      "id": "ch_cn_leader_int_warm_A",
+      "order": 78,
+      "part": 7,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_cn_leader_int_A",
+      "depends_on": [
+        "ch_cn_leader_int_ref_A"
+      ],
+      "attach": "out/ch_cn_leader_int_ref_A.png",
+      "save_image_as": "out/ch_cn_leader_int_warm_A.png",
+      "save_prompt_used_as": "out/ch_cn_leader_int_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "78_ch_cn_leader_int_warm_A.md"
+    },
+    {
+      "id": "ch_cn_leader_int_guarded_A",
+      "order": 79,
+      "part": 7,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_cn_leader_int_A",
+      "depends_on": [
+        "ch_cn_leader_int_ref_A"
+      ],
+      "attach": "out/ch_cn_leader_int_ref_A.png",
+      "save_image_as": "out/ch_cn_leader_int_guarded_A.png",
+      "save_prompt_used_as": "out/ch_cn_leader_int_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "79_ch_cn_leader_int_guarded_A.md"
+    },
+    {
+      "id": "ch_cn_leader_int_fig_stand_A",
+      "order": 80,
+      "part": 7,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_cn_leader_int_A",
+      "depends_on": [
+        "ch_cn_leader_int_ref_A"
+      ],
+      "attach": "out/ch_cn_leader_int_ref_A.png",
+      "save_image_as": "out/ch_cn_leader_int_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_cn_leader_int_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "80_ch_cn_leader_int_fig_stand_A.md"
+    },
+    {
+      "id": "ch_nat_multi_ref_A",
+      "order": 81,
+      "part": 7,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "ch_nat_multi_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/ch_nat_multi_ref_A.png",
+      "save_prompt_used_as": "out/ch_nat_multi_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "81_ch_nat_multi_ref_A.md"
+    },
+    {
+      "id": "ch_nat_multi_tv_1_A",
+      "order": 82,
+      "part": 7,
+      "style": "A",
+      "kind": "tv_still",
+      "aspect": "16:9",
+      "transparent_background": false,
+      "chat_group": "ch_nat_multi_A",
+      "depends_on": [
+        "ch_nat_multi_ref_A"
+      ],
+      "attach": "out/ch_nat_multi_ref_A.png",
+      "save_image_as": "out/ch_nat_multi_tv_1_A.png",
+      "save_prompt_used_as": "out/ch_nat_multi_tv_1_A.prompt.txt",
+      "status": "pending",
+      "file": "82_ch_nat_multi_tv_1_A.md"
     }
   ]
 }

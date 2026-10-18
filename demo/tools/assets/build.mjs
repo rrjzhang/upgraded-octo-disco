@@ -33,11 +33,11 @@ const BG_SOURCES = {
 };
 // content id -> source base (null = no art at all)
 const CHARACTERS = {
-  us_neighbor: 'ch_us_neighbor', us_stranger_a: 'ch_us_stranger_a', us_stranger_b: null,
-  us_leader_int: null, us_leader_seg: null,
-  nat_enforcement: 'ch_nat_anti', nat_inclusive: null,
-  cn_neighbor: null, cn_stranger_a: 'ch_cn_stranger_a', cn_stranger_b: null,
-  cn_leader_int: null, cn_leader_sep: 'ch_cn_leader_sep',
+  us_neighbor: 'ch_us_neighbor', us_stranger_a: 'ch_us_stranger_a', us_stranger_b: 'ch_us_stranger_b',
+  us_leader_int: 'ch_us_leader_int', us_leader_seg: 'ch_us_leader_seg',
+  nat_enforcement: 'ch_nat_anti', nat_inclusive: 'ch_nat_multi',
+  cn_neighbor: 'ch_cn_neighbor', cn_stranger_a: 'ch_cn_stranger_a', cn_stranger_b: 'ch_cn_stranger_b',
+  cn_leader_int: 'ch_cn_leader_int', cn_leader_sep: 'ch_cn_leader_sep',
   mx_neighbor: 'ch_mx_neighbor', in_neighbor: 'ch_in_neighbor',
 };
 const EXPRESSIONS = ['neutral', 'warm', 'guarded', 'worried'];
@@ -45,6 +45,9 @@ const CANDIDATES = { cn_leader_sep: ['ch_cn_leader_sep_ref_A_1', 'ch_cn_leader_s
 const FIGURES = [
   ['ch_us_neighbor_fig_stand_A', false], ['ch_cn_leader_sep_fig_stand_A', false],
   ['ch_us_stranger_a_fig_sit_A', true], ['ch_cn_stranger_a_fig_sit_A', true],
+  // Round 3 (files 51-82): the six roster characters that had silhouettes
+  ['ch_us_stranger_b_fig_stand_A', false], ['ch_us_leader_int_fig_stand_A', false], ['ch_us_leader_seg_fig_stand_A', false],
+  ['ch_cn_neighbor_fig_stand_A', false], ['ch_cn_stranger_b_fig_stand_A', false], ['ch_cn_leader_int_fig_stand_A', false],
 ];
 const PLACEHOLDER_FIGURES = {
   ch_cn_neighbor_fig_stand: 'stand', ch_us_stranger_b_fig_stand: 'stand', ch_us_leader_int_fig_stand: 'stand',
@@ -255,6 +258,7 @@ for (const [kind, sdf, w] of [['stand', SIL_STAND, 260], ['sit', SIL_SIT, 300]])
   manifest.figures[`placeholder_${kind}`] = { file: rel(dest), w, h: FIG_H, seated: kind === 'sit', placeholder: true };
 }
 for (const [key, kind] of Object.entries(PLACEHOLDER_FIGURES)) {
+  if (manifest.figures[key]) continue; // real art arrived (Round 3)
   manifest.figures[key] = { ...manifest.figures[`placeholder_${kind}`], placeholder: true };
 }
 
@@ -275,6 +279,12 @@ if (exists('ch_nat_anti_tv_1_A')) {
     nat_inclusive: { placeholder: true, note: 'no inclusive-leader still yet; reuses nat_enforcement_1.jpg' },
   };
 } else warn.push('missing ch_nat_anti_tv_1_A');
+if (exists('ch_nat_multi_tv_1_A')) {
+  const dest = out('tv', 'nat_inclusive_1.jpg');
+  sips('-s', 'format', 'jpeg', '-s', 'formatOptions', '85', '--resampleWidth', String(TV_W), src('ch_nat_multi_tv_1_A'), '--out', dest);
+  manifest.tv.nat_inclusive = [rel(dest)];
+  manifest.tvMeta = { ...(manifest.tvMeta || {}), nat_inclusive: { placeholder: false, ...dims(dest) } };
+}
 
 fs.writeFileSync(path.join(OUT, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
 fs.rmSync(TMP, { recursive: true, force: true });
