@@ -3,7 +3,7 @@ import { load as loadYaml } from 'js-yaml';
 import Papa from 'papaparse';
 import type {
   Content, DialogueRow, Emotion, EventRow, Manifest, NewsRow, Npc, Questionnaire, Scene, Slot, Hotspot, CondField, Screen,
-  CastInfo, OverrideInfo,
+  CastInfo, OverrideInfo, CultureId,
 } from './types';
 import { COND_FIELDS } from './types';
 import { DEFAULT_STRINGS } from './strings';
@@ -36,6 +36,10 @@ export const OVERRIDE_KEY = 'gv:override:v1';
 export const OVERRIDE_DB = 'gv';
 export const OVERRIDE_STORE = 'images';
 const EMOTIONS: Emotion[] = ['neutral', 'warm', 'guarded', 'worried'];
+/** SPEC "Stances": Berry's acculturation strategies minus marginalization. */
+export const STANCES = ['none', 'integration', 'assimilation', 'separation'] as const;
+/** SPEC "Packs": culture packs a scene may belong to (absent = shared by everyone). */
+export const SCENE_PACKS = ['cn', 'mx', 'in'] as const;
 
 export function liveSource(): Source {
   return {
@@ -134,6 +138,8 @@ function parseScenes(r: Reporter, file: string, text: string): Scene[] {
     if (!s?.id) return r.error(file, `${where}: missing id`);
     const community = str(s.community, 'neutral');
     if (!['home', 'us', 'neutral'].includes(community)) r.error(file, `${where}: bad community "${community}"`);
+    const pack = s.pack === undefined || s.pack === null || s.pack === '' ? undefined : str(s.pack);
+    if (pack !== undefined && !(SCENE_PACKS as readonly string[]).includes(pack)) r.error(file, `${where}: bad pack "${pack}" (cn | mx | in, or omit for a shared scene)`);
     const hotspots: Hotspot[] = [];
     (Array.isArray(s.hotspots) ? s.hotspots : []).forEach((hs: any, j: number) => {
       const hw = `${where} hotspot #${j + 1}${hs?.id ? ` (${hs.id})` : ''}`;
@@ -158,6 +164,7 @@ function parseScenes(r: Reporter, file: string, text: string): Scene[] {
       id: str(s.id),
       name: str(s.name, s.id),
       community: community as any,
+      ...(pack !== undefined ? { pack: pack as CultureId } : {}),
       background: str(s.background, 'none'),
       lighting: str(s.lighting),
       description: str(s.description),
@@ -242,13 +249,15 @@ function parseNpcs(r: Reporter, file: string, text: string, scenes: Map<string, 
       if (!sc.slots.some((s) => s.id === str(a.slot))) return r.error(file, `${where} appearance #${j + 1}: unknown slot "${a.slot}" in scene ${sc.id}`), false;
       return true;
     }).map((a: any) => ({ scene: str(a.scene), slot: str(a.slot), chance: num(a.chance, 1), figure: str(a.figure) || undefined }));
+    const stance = str(n.stance, 'none') || 'none';
+    if (!(STANCES as readonly string[]).includes(stance)) r.error(file, `${where}: bad stance "${stance}" (${STANCES.join(' | ')})`);
     out.push({
       id: str(n.id),
       name: str(n.name, n.id),
       pack: str(n.pack, 'shared'),
       community: str(n.community),
       role: str(n.role),
-      stance: str(n.stance, 'none'),
+      stance,
       portrait: str(n.portrait, `ch_${n.id}`),
       figure: n.figure ? str(n.figure) : undefined,
       seated: n.seated === true,
@@ -665,4 +674,19 @@ export async function getSource(fixtures: boolean): Promise<Source> {
     return m.fixtureSource();
   }
   return liveSource();
+}
+
+/**
+ * SPEC "Packs": the player's effective culture pack. Their homeCulture when the content has at least one NPC in that
+ * pack and at least one scene carrying it; otherwise `cn` (the standing-in roster, with the banner).
+ */
+export function effectivePack(c: Pick<Content, 'npcs' | 'scenes'>, homeCulture: string | undefined): CultureId {
+  const want = (SCENE_PACKS as readonly string[]).includes(String(homeCulture)) ? (homeCulture as CultureId) : 'cn';
+  if (want === 'cn') return 'cn';
+  return c.npcs.some((n) => n.pack === want) && c.scenes.some((s) => s.pack === want) ? want : 'cn';
+}
+
+/** SPEC "Packs": a scene is open to a player when it is shared (no pack) or carries their effective pack. */
+export function sceneInPack(sc: Pick<Scene, 'pack'> | undefined, pack: string): boolean {
+  return !!sc && (!sc.pack || sc.pack === pack);
 }

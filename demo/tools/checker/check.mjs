@@ -133,6 +133,10 @@ if (isMain) {
       const parts = n.scenes.map(sc => `${sc.scene ?? '(anywhere)'}${sc.scene != null && !(n.talkScenes || []).includes(sc.scene) ? '*' : ''} ${(sc.coverage * 100).toFixed(1)}%${sc.noMatch ? ` NO-ROW ${sc.noMatch}` : ''}${sc.ties.length ? ` TIES ${sc.ties.length}` : ''}${sc.located.length ? ` [${sc.located.length} located]` : ''}`);
       console.log('  ' + n.id.padEnd(16) + parts.join(' · '));
     }
+    if (result.packs) {
+      console.log('\nCulture packs (scenes open to a player of each home culture; SPEC "Packs")');
+      for (const [c, v] of Object.entries(result.packs)) console.log(`  ${c}: plays ${v.pack}${v.fallback ? ' (fallback, banner)' : ''} · ${v.scenes.join(', ')}`);
+    }
     console.log(`\n${result.ok ? 'PASS' : 'FAIL'}: ${result.counts.error} error(s), ${result.counts.warning} warning(s). Report: ${path.join(args.report, 'index.html')}`);
   }
   process.exit(result.ok ? 0 : 1);

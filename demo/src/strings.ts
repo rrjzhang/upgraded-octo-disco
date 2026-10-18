@@ -37,7 +37,7 @@ export const DEFAULT_STRINGS: Record<string, string> = {
   'ui.phone.balance': 'Balance',
   'ui.pendingArt': 'PLACEHOLDER',
   'ui.pendingBg': 'PLACEHOLDER background',
-  'ui.packBanner': 'The {culture} pack is not in this demo. You will meet the China roster instead.',
+  'ui.packBanner': 'The {culture} pack is not in this demo yet. The {pack} pack is standing in: you will meet its people instead.',
   'ui.end.title': 'Thank you',
   'ui.end.body': 'You have finished five days. Please let the researcher know you are done.',
   'ui.end.export': 'Export log (.jsonl)',

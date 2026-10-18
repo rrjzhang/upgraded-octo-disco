@@ -7,7 +7,7 @@ import {
   type Delta,
 } from './rules';
 import { appendLog, debugEnabled, getRoom, readLog, saveState } from './store';
-import { assetEntry, figureHeight, isSeatedFigure, overrideIds, questionnaireProblems } from './content';
+import { assetEntry, effectivePack, figureHeight, isSeatedFigure, overrideIds, questionnaireProblems, sceneInPack } from './content';
 import { SILHOUETTE_BUST, appUrl, downloadText, h, isDev, params, seeded, silhouetteFigure, subst } from './util';
 import { matrix3d } from './homography';
 
@@ -78,6 +78,15 @@ export class Game {
   private tvOnScreen: { id: string; image: string | null } | null = null;
 
   constructor(host: HTMLElement, private c: Content, private s: GameState) {
+    // SPEC "Packs": the effective pack follows the content on disk; old saves (no pack, or a pack the content no longer
+    // has, or one it has gained since) are recomputed on load. A player left standing in another pack's scene goes home.
+    const pack = effectivePack(c, s.player.homeCulture);
+    if (s.player.pack !== pack) {
+      console.info(`[pack] ${s.player.homeCulture}: effective pack ${s.player.pack ?? '(none)'} -> ${pack}`);
+      s.player.pack = pack;
+      saveState(s);
+    }
+    if (!sceneInPack(c.sceneById.get(s.scene), pack)) { s.scene = 'home'; saveState(s); }
     this.stage = h('div', { class: 'stage', id: 'stage' });
     host.replaceChildren(this.stage);
     this.buildShell();
@@ -140,7 +149,7 @@ export class Game {
     const ctx = this.eventCtx('home', false);
     for (const ev of this.c.events) {
       if (ev.trigger !== 'day_start' || s.fired.includes(ev.id)) continue;
-      if (!eventMatches(ev, ctx)) continue;
+      if (!this.eventInPack(ev) || !eventMatches(ev, ctx)) continue;
       if (rng() < ev.chance) {
         this.queue.push(ev);
         break;
@@ -219,6 +228,22 @@ export class Game {
   /** Out of actions: every destination except home is closed. */
   private moveBlocked(to: string): boolean {
     return this.s.actions <= 0 && to !== 'home';
+  }
+
+  /** SPEC "Packs": shared scenes and the scenes of the player's effective pack. */
+  private openToPlayer(sceneId: string): boolean {
+    return sceneInPack(this.c.sceneById.get(sceneId), this.s.player.pack);
+  }
+
+  /** The exits of a scene the player may take (other packs' scenes are not listed). */
+  private exitsOf(sc: Scene): Scene['exits'] {
+    return sc.exits.filter((ex) => this.openToPlayer(ex.to));
+  }
+
+  /** An event from someone outside the player's roster, or set in another pack's scene, never fires. */
+  private eventInPack(ev: EventRow): boolean {
+    if (ev.npc) { const n = this.c.npcById.get(ev.npc); if (n && !this.inRoster(n)) return false; }
+    return !ev.scene || this.openToPlayer(ev.scene);
   }
 
   private inRoster(n: Npc): boolean {
@@ -400,6 +425,10 @@ export class Game {
       console.error(`[move] unknown scene "${sceneId}"`);
       return;
     }
+    if (!this.openToPlayer(sceneId)) {
+      console.info(`[move] scene "${sceneId}" belongs to another culture pack (player pack ${this.s.player.pack}); refused`);
+      return;
+    }
     if (this.moveBlocked(sceneId)) {
       this.panel = { kind: 'idle', note: this.str('ui.tired') };
       this.render();
@@ -422,7 +451,7 @@ export class Game {
     const ctx = this.eventCtx(sceneId, true);
     for (const ev of this.c.events) {
       if (ev.trigger !== 'enter' || this.s.fired.includes(ev.id)) continue;
-      if (!eventMatches(ev, ctx)) continue;
+      if (!this.eventInPack(ev) || !eventMatches(ev, ctx)) continue;
       if (rng() < ev.chance) {
         if (this.fireEvent(ev, false)) return;
       }
@@ -1149,7 +1178,13 @@ export class Game {
     box.classList.toggle('is-tired', this.tired());
 
     if (sc.background === 'none') {
-      box.append(this.hubCard(sc));
+      const hub = this.hubCard(sc);
+      box.append(hub);
+      // in the hub the banner sits inside the card (the card fills the scene; a bottom overlay would cover the last exit)
+      const card = hub.querySelector<HTMLElement>('.hub-card')!;
+      const before = card.childElementCount;
+      this.appendPackBanner(card, card.querySelector('.hub-where'));
+      card.classList.toggle('has-banner', card.childElementCount > before);
       return;
     }
     const bg = this.bgFor(sc)!;
@@ -1184,6 +1219,7 @@ export class Game {
       // a talk zone only exists while its NPC is painted into the current background
       const talkNpc = a.type === 'talk' ? present.find((p) => p.npc.id === a.npc && p.slot === null)?.npc : undefined;
       if (a.type === 'talk' && !talkNpc) continue;
+      if (a.type === 'move' && !this.openToPlayer(String(a.to))) continue; // another pack's scene
       const cost = talkNpc ? this.talkCost(talkNpc) : a.cost ?? (a.type === 'window' || a.type === 'news' ? 1 : 0);
       const blockedMove = a.type === 'move' && this.moveBlocked(String(a.to));
       const speaking = !!talkNpc && ((this.panel.kind === 'dialogue' && this.panel.npc === talkNpc.id) || (this.panel.kind === 'event' && this.panel.ev.npc === talkNpc.id));
@@ -1243,14 +1279,21 @@ export class Game {
         h('p', { text: this.str('ui.tired') }),
         h('button', { class: 'btn', 'data-fk': 'gohome', onclick: () => this.moveTo('home'), text: this.str('ui.goHome') })));
     }
-    if (this.s.player.homeCulture !== 'cn') {
-      box.append(h('div', { class: 'banner', role: 'note', text: this.str('ui.packBanner', { culture: CULTURE_PACK_NAMES[this.s.player.homeCulture] }) }));
-    }
+    this.appendPackBanner(box);
+  }
+
+  /** SPEC "Packs": the home culture's pack is not in the content, so another pack (cn) stands in; say which. */
+  private appendPackBanner(box: HTMLElement, before: Element | null = null): void {
+    if (this.s.player.homeCulture === this.s.player.pack) return;
+    box.insertBefore(h('div', { class: `banner${before ? ' banner-inline' : ''}`, role: 'note', text: this.str('ui.packBanner', {
+      culture: CULTURE_PACK_NAMES[this.s.player.homeCulture] ?? this.s.player.homeCulture,
+      pack: CULTURE_PACK_NAMES[this.s.player.pack] ?? this.s.player.pack,
+    }) }), before);
   }
 
   private hubCard(sc: Scene): HTMLElement {
     const list = h('div', { class: 'hub-exits' });
-    for (const ex of sc.exits) {
+    for (const ex of this.exitsOf(sc)) {
       const dest = this.c.sceneById.get(ex.to);
       const blocked = this.moveBlocked(ex.to);
       const name = dest?.name ?? ex.to;
@@ -1273,7 +1316,7 @@ export class Game {
   private renderStrip(): void {
     const sc = this.scene;
     const exits = h('div', { class: 'exits' });
-    for (const ex of sc.exits) {
+    for (const ex of this.exitsOf(sc)) {
       const blocked = this.moveBlocked(ex.to);
       const name = this.c.sceneById.get(ex.to)?.name ?? ex.to;
       exits.append(h('button', {
@@ -1284,7 +1327,7 @@ export class Game {
         h('span', { class: 'arrow', 'aria-hidden': 'true', text: '→' }), ex.label));
     }
     // out of actions away from home: home stays one click away even when no exit here leads there
-    if (this.s.actions <= 0 && sc.id !== 'home' && !sc.exits.some((ex) => ex.to === 'home')) {
+    if (this.s.actions <= 0 && sc.id !== 'home' && !this.exitsOf(sc).some((ex) => ex.to === 'home')) {
       exits.append(h('button', { class: 'exit', 'data-fk': 'exit:home', onclick: () => this.moveTo('home') },
         h('span', { class: 'arrow', 'aria-hidden': 'true', text: '→' }), this.str('ui.goHome')));
     }

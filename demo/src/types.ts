@@ -37,6 +37,8 @@ export interface Scene {
   id: string;
   name: string;
   community: Community;
+  /** SPEC "Packs": the culture pack this scene belongs to; absent = shared (listed for everyone). */
+  pack?: CultureId;
   background: string; // asset id or 'none'
   lighting?: string;
   description: string;
@@ -230,7 +232,8 @@ export interface RoomConfig {
 export interface PlayerInfo {
   name: string;
   homeCulture: CultureId;
-  pack: 'cn';
+  /** The effective culture pack (SPEC "Packs"): homeCulture when the content has that pack, else cn. Recomputed on load. */
+  pack: CultureId;
   language: string;
   eligible: boolean;
 }

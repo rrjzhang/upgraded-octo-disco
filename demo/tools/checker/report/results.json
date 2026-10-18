@@ -1,37 +1,27 @@
 {
  "content": "/Users/richardzhang/great_vote/demo/public/content",
- "generated": "2026-10-18T07:49:22.101Z",
+ "generated": "2026-10-18T08:44:56.299Z",
  "ok": true,
  "counts": {
   "error": 0,
-  "warning": 3,
+  "warning": 2,
   "info": 3
  },
  "maxTalks": 1,
  "diagnostics": [
   {
    "severity": "warning",
-   "code": "UNKNOWN_ASSET",
+   "code": "PACK_INCOMPLETE",
    "file": "npcs.yaml",
-   "line": 20,
-   "path": "npcs[1].appearances[1].figure",
-   "message": "figure \"ch_us_stranger_a_fig_stand\" not in assets/manifest.json"
+   "path": "npcs",
+   "message": "scenes carry pack: mx but no NPC has pack: mx; mx players fall back to the cn pack and never see those scenes"
   },
   {
    "severity": "warning",
-   "code": "UNKNOWN_ASSET",
+   "code": "PACK_INCOMPLETE",
    "file": "npcs.yaml",
-   "line": 20,
-   "path": "npcs[1].appearances[2].figure",
-   "message": "figure \"ch_us_stranger_a_fig_stand\" not in assets/manifest.json"
-  },
-  {
-   "severity": "warning",
-   "code": "UNKNOWN_ASSET",
-   "file": "npcs.yaml",
-   "line": 125,
-   "path": "npcs[8].appearances[1].figure",
-   "message": "figure \"ch_cn_stranger_a_fig_stand\" not in assets/manifest.json"
+   "path": "npcs",
+   "message": "scenes carry pack: in but no NPC has pack: in; in players fall back to the cn pack and never see those scenes"
   },
   {
    "severity": "info",
@@ -119569,5 +119559,49 @@
    "errors": 0,
    "warnings": 0
   }
- ]
+ ],
+ "packs": {
+  "cn": {
+   "culture": "cn",
+   "pack": "cn",
+   "fallback": false,
+   "scenes": [
+    "home",
+    "work",
+    "clinic",
+    "library",
+    "park",
+    "center_cn",
+    "street"
+   ]
+  },
+  "mx": {
+   "culture": "mx",
+   "pack": "cn",
+   "fallback": true,
+   "scenes": [
+    "home",
+    "work",
+    "clinic",
+    "library",
+    "park",
+    "center_cn",
+    "street"
+   ]
+  },
+  "in": {
+   "culture": "in",
+   "pack": "cn",
+   "fallback": true,
+   "scenes": [
+    "home",
+    "work",
+    "clinic",
+    "library",
+    "park",
+    "center_cn",
+    "street"
+   ]
+  }
+ }
 }

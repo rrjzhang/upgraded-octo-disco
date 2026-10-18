@@ -64,7 +64,13 @@ export interface CheckResult {
   maxTalks: number;
   diagnostics: Diagnostic[];
   npcs: NpcResult[];
+  /** SPEC "Packs": per home culture, the pack played and the scenes open to that player */
+  packs?: Record<string, PackView>;
 }
+export interface PackView { culture: string; pack: string; fallback: boolean; scenes: string[] }
+export function packView(npcs: Iterable<{ pack?: string }>, scenes: Iterable<{ id: string; pack?: string }>, culture: string): PackView;
+export const STANCES: string[];
+export const SCENE_PACKS: string[];
 export interface CheckInput {
   files: Record<string, string | null | undefined>;
   manifest?: string | object | null;

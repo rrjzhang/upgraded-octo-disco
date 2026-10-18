@@ -46,7 +46,10 @@ const MODULES = ['tv', 'work', 'survey'];
 const PACKS = ['shared', 'cn', 'mx', 'in'];
 const NPC_COMMUNITY = ['us', 'home', 'other', 'bicultural'];
 const ROLES = ['neighbor', 'stranger', 'local_leader', 'national_leader'];
-const STANCES = ['integration', 'separation', 'none'];
+// SPEC "Stances": Berry's acculturation strategies minus marginalization
+export const STANCES = ['none', 'integration', 'assimilation', 'separation'];
+// SPEC "Packs": a scene may carry one of these (absent = shared)
+export const SCENE_PACKS = ['cn', 'mx', 'in'];
 export const EV_SIDES = ['us', 'home', 'other', 'bicultural'];
 export const VALENCE = ['positive', 'negative'];
 export const PROXIMITY = ['proximal', 'distal'];
@@ -229,6 +232,7 @@ function validateScenes(files, diag, assets) {
     else if (sc.background !== 'none' && assets && !hasAsset(assets, 'backgrounds', sc.background)) diag.warn('UNKNOWN_ASSET', rel, loc('background'), `background "${sc.background}" not in assets/manifest.json`);
     if (sc.horizon != null && !(typeof sc.horizon === 'number' && sc.horizon > 0 && sc.horizon < 1)) diag.error('BAD_VALUE', rel, loc('horizon'), `horizon must be a fraction 0..1, got ${JSON.stringify(sc.horizon)}`);
     if (sc.cameraHeight != null && !(typeof sc.cameraHeight === 'number' && sc.cameraHeight > 0 && sc.cameraHeight < 5)) diag.error('BAD_VALUE', rel, loc('cameraHeight'), `cameraHeight must be metres (0..5), got ${JSON.stringify(sc.cameraHeight)}`);
+    if (sc.pack != null && sc.pack !== '' && !SCENE_PACKS.includes(sc.pack)) diag.error('BAD_VALUE', rel, loc('pack'), `pack "${sc.pack}"; expected ${SCENE_PACKS.join('|')} (or omit for a shared scene)`);
     if (sc.lighting != null && !LIGHTING.includes(sc.lighting)) diag.error('BAD_VALUE', rel, loc('lighting'), `lighting "${sc.lighting}"; expected ${LIGHTING.join('|')}`);
     for (const [j, pr] of (sc.props || []).entries()) {
       if (!pr || !pr.asset) diag.error('SCHEMA', rel, loc(`props[${j}]`), 'prop needs asset');
@@ -804,6 +808,18 @@ function analyseReachability(npc, sheet, comp, events, invitedExternally, diag, 
  * input.analyse: optional list of NPC ids; completeness/reachability run only for those (editor speed-up)
  * input.maxTalks: conversations per NPC per day the reachability search allows (roomConfig.maxTalksPerNpcPerDay; default 1)
  */
+/**
+ * SPEC "Packs", mirroring the engine: the effective pack of a player whose home culture is `culture` (their culture
+ * when some NPC and some scene carry it, else cn) and the scenes open to them (shared ones plus that pack's).
+ * `npcs` / `scenes`: iterables of { pack } / { id, pack }.
+ */
+export function packView(npcs, scenes, culture) {
+  const npcList = [...npcs], sceneList = [...scenes];
+  const want = SCENE_PACKS.includes(culture) ? culture : 'cn';
+  const pack = want === 'cn' || (npcList.some(n => n && n.pack === want) && sceneList.some(sc => sc && sc.pack === want)) ? want : 'cn';
+  return { culture: want, pack, fallback: pack !== want, scenes: sceneList.filter(sc => sc && (!sc.pack || sc.pack === pack)).map(sc => sc.id) };
+}
+
 export function checkContent(input) {
   const { files = {}, manifest = null, content = '', analyse = null } = input || {};
   const maxTalks = Number.isInteger(input?.maxTalks) && input.maxTalks > 0 ? input.maxTalks : DEFAULT_TALKS;
@@ -828,6 +844,21 @@ export function checkContent(input) {
       const d = yaml.load(files['cast.yaml']);
       for (const c of Array.isArray(d) ? d : Array.isArray(d?.cast) ? d.cast : []) if (c && c.id) castIds.add(String(c.id));
     } catch (e) { diag.error('YAML_PARSE', 'cast.yaml', { line: e.mark ? e.mark.line + 1 : undefined }, e.reason || e.message); }
+  }
+  // SPEC "Packs": a pack is playable when it has NPCs and a scene; one without the other falls back to cn silently
+  {
+    const npcPacks = new Set([...npcs.values()].map(n => n.pack).filter(p => SCENE_PACKS.includes(p)));
+    const scenePacks = new Set([...scenes.values()].map(sc => sc.pack).filter(p => SCENE_PACKS.includes(p)));
+    for (const p of SCENE_PACKS) {
+      // cn is the standing-in pack: cn players always play cn, so cn NPCs without a cn scene still meet people in shared scenes
+      if (p !== 'cn' && npcPacks.has(p) && !scenePacks.has(p)) diag.warn('PACK_INCOMPLETE', 'scenes.yaml', { path: 'scenes' }, `pack "${p}" has NPCs in npcs.yaml but no scene carries pack: ${p}; ${p} players fall back to the cn pack`);
+      if (scenePacks.has(p) && !npcPacks.has(p)) diag.warn('PACK_INCOMPLETE', 'npcs.yaml', { path: 'npcs' }, p === 'cn' ? 'scenes carry pack: cn but no NPC has pack: cn' : `scenes carry pack: ${p} but no NPC has pack: ${p}; ${p} players fall back to the cn pack and never see those scenes`);
+    }
+    // an NPC appearing in another pack's scene could never be met there (only one pack is ever in play)
+    for (const [id, n] of npcs) for (const [j, a] of (n.appearances || []).entries()) {
+      const sc = a && scenes.get(a.scene);
+      if (sc && SCENE_PACKS.includes(sc.pack) && n.pack !== 'shared' && n.pack !== sc.pack) diag.warn('PACK_MISMATCH', 'npcs.yaml', { line: n.line, path: `npcs.${id}.appearances[${j}]` }, `${id} (pack ${n.pack}) appears in ${sc.id}, a pack ${sc.pack} scene; nobody playing ${n.pack} can go there`);
+    }
   }
   const { events, ids: eventIds } = validateEvents(files, diag, scenes, npcs, assets, castIds);
   validateNews(files, diag, assets, castIds);
@@ -899,5 +930,6 @@ export function checkContent(input) {
   }
   const counts = { error: 0, warning: 0, info: 0 };
   for (const d of diag.list) counts[d.severity]++;
-  return { content, generated: new Date().toISOString(), ok: counts.error === 0, counts, maxTalks, diagnostics: diag.list, npcs: npcResults };
+  const packs = Object.fromEntries(SCENE_PACKS.map(p => [p, packView(npcs.values(), scenes.values(), p)]));
+  return { content, generated: new Date().toISOString(), ok: counts.error === 0, counts, maxTalks, diagnostics: diag.list, npcs: npcResults, packs };
 }

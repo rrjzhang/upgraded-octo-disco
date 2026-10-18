@@ -57,6 +57,11 @@ Writes `<report>/index.html` (dependency-free) and `<report>/results.json`.
    (asset warning if unknown); once any slot in scenes.yaml carries `seated`, a seated figure (the appearance's
    `figure`, else the NPC's; manifest `seated: true` or `_fig_sit` in the id) on a slot without `seated: true` is
    `SEATED_SLOT`. `screens` quads must be four corners, clockwise and convex; `byBackground` maps a background id to a quad.
+   Stances and packs (SPEC "Culture packs"): `stance` must be `none|integration|assimilation|separation` and a scene's
+   optional `pack` `cn|mx|in` (`BAD_VALUE`). `PACK_INCOMPLETE` (warning): an mx/in pack with NPCs but no scene, or a
+   pack with scenes but no NPCs (its players fall back to cn). `PACK_MISMATCH` (warning): an NPC appearing in another
+   pack's scene. `results.json` `packs` (and the CLI summary) list, per home culture, the pack played and the scenes
+   open to that player, using the engine's rule (`packView` in core.mjs).
 5. **Conversation limit.** A second search tracks the day (1..5, dayPhase follows it) and conversations with the
    NPC that day (at most `--talks`); a new day is free, follow-ups and events do not count. Witnesses come from it
    (`B1/choice1 (+0) → day 4 → B2/choice1 (+1) → …`). A row reachable without the limit but not with it is
@@ -69,7 +74,7 @@ Errors: `MISSING_FILE`, `YAML_PARSE`, `CSV_PARSE`, `UNKNOWN_COLUMN`, `MISSING_CO
 `BAD_EFFECT`, `DANGLING_NEXT`, `DUPLICATE_ID`, `UNKNOWN_SCENE`, `UNKNOWN_SLOT`, `UNKNOWN_NPC`,
 `MISSING_SHEET`, `MISSING_FALLBACK`, `TIE`, `NO_MATCH`, `UNREACHABLE`, `LIMIT_UNREACHABLE`, `SCENE_NOT_APPEARED`, `SEATED_SLOT`.
 Warnings: `NEVER_WINS`, `OVER_BUDGET`, `FALLBACK_PRIORITY`, `NEVER_INVITED`, `INVITE_TRIGGER`,
-`UNKNOWN_ASSET`. Info: `NO_APPEARANCES` (TV-only NPC; reachability not enforced), `EVENT_SCENE_ONLY`. Warning `COLUMN_ORDER` also flags a `scene` column not right after `dayPhase`.
+`UNKNOWN_ASSET`, `PACK_INCOMPLETE`, `PACK_MISMATCH`. Info: `NO_APPEARANCES` (TV-only NPC; reachability not enforced), `EVENT_SCENE_ONLY`. Warning `COLUMN_ORDER` also flags a `scene` column not right after `dayPhase`.
 
 ## Fixtures
 

@@ -2,7 +2,7 @@
 
 `node tools/assets/build.mjs` (from `demo/`) wipes and regenerates `public/assets/**` and
 `public/assets/manifest.json` from `../image_generation/out/` (read-only, `_A` photoreal set only).
-Options: `--src <dir>`, `--out <dir>`. Needs macOS `sips`; no npm packages. Runs in about 5 s.
+Options: `--src <dir>`, `--out <dir>`, `--npcs <file>` (default `public/content/npcs.yaml`). Needs macOS `sips`; no npm packages. Runs in about 5 s.
 
 Processing: backgrounds to JPEG q85 at 1536 wide; busts to 640 x 640 PNG with alpha; figures trimmed
 to the alpha > 8 bounding box (4 px pad, own zlib PNG decoder), green-spill removed from
@@ -11,6 +11,15 @@ semi-transparent pixels, scaled to 700 tall; props trimmed and scaled to 600 wid
 detected head (top of subject minus 50 px, centred on the head), scaled to 640, grey ground, no
 alpha (`fromReference: true`). Silhouette placeholders are drawn procedurally (SDF shapes,
 3x3 supersampled alpha).
+
+**Characters come from `public/content/npcs.yaml`** (SPEC "Art"; added 2026-10-18): each NPC's `portrait`
+(`ch_<id>`) is the source base for `<base>_<expression>_A.png` / `<base>_bust_A.png` / `<base>_ref_A.png`, and its
+`figure` plus every appearance's `figure` override are the figures to build (`<figure>_A.png`; seated when the id has
+`_fig_sit`). A figure or portrait with no source yet gets a silhouette entry marked `placeholder: true`, so a new pack
+needs no build change. The only hard-coded exceptions: `nat_enforcement` reads `ch_nat_anti`, `nat_inclusive` reads
+`cast_president_inclusive`, and `cn_leader_sep` has three reference `candidates`. Characters with art in the source
+folder that `npcs.yaml` does not name yet (`ch_mx_neighbor_ref_A`) are still built, and every `<base>_fig_*_A.png` of a
+listed character is processed even when no appearance names it. The table below is a snapshot.
 
 Manifest `portraits` is keyed by content id; `aliases` maps `ch_<id>` and the source base
 (`ch_nat_anti`) to the content id. Missing expressions are `null` (engine falls back to neutral).

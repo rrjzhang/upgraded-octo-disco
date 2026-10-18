@@ -32,31 +32,53 @@ const BG_SOURCES = {
   bg_home_eve: ['bg_home_tv_eve_A', 'bg_home_eve_A'],
   bg_clinic_day: ['bg_clinic_tv_day_A', 'bg_clinic_day_A'],
 };
-// content id -> source base (null = no art at all)
-const CHARACTERS = {
-  us_neighbor: 'ch_us_neighbor', us_stranger_a: 'ch_us_stranger_a', us_stranger_b: 'ch_us_stranger_b',
-  us_leader_int: 'ch_us_leader_int', us_leader_seg: 'ch_us_leader_seg',
-  nat_enforcement: 'ch_nat_anti', nat_inclusive: 'cast_president_inclusive', // Lena Ortiz: Round 4 cast images replace the Round 3 male 'ch_nat_multi' set
-  cn_neighbor: 'ch_cn_neighbor', cn_stranger_a: 'ch_cn_stranger_a', cn_stranger_b: 'ch_cn_stranger_b',
-  cn_leader_int: 'ch_cn_leader_int', cn_leader_sep: 'ch_cn_leader_sep',
-  mx_neighbor: 'ch_mx_neighbor', in_neighbor: 'ch_in_neighbor',
+// Characters come from public/content/npcs.yaml (SPEC "Art": a new pack needs no build change): each NPC's
+// `portrait` (`ch_<id>`) is the source base of its busts / reference sheet, and its `figure` plus every
+// appearance's `figure` override are the figures to process. Only the exceptions live here.
+// content id -> source base, overriding the NPC's portrait field
+const PORTRAIT_SOURCES = {
+  nat_enforcement: 'ch_nat_anti', // the Round 3 enforcement leader set
+  nat_inclusive: 'cast_president_inclusive', // Lena Ortiz: Round 4 cast images replace the Round 3 male 'ch_nat_multi' set
 };
 const EXPRESSIONS = ['neutral', 'warm', 'guarded', 'worried'];
+// several generated reference sheets for one character: the researcher page picks one per room
 const CANDIDATES = { cn_leader_sep: ['ch_cn_leader_sep_ref_A_1', 'ch_cn_leader_sep_ref_A_2', 'ch_cn_leader_sep_ref_A_3'] };
-const FIGURES = [
-  ['ch_us_neighbor_fig_stand_A', false], ['ch_cn_leader_sep_fig_stand_A', false],
-  ['ch_us_stranger_a_fig_sit_A', true], ['ch_cn_stranger_a_fig_sit_A', true],
-  // Round 3 (files 51-82): the six roster characters that had silhouettes
-  ['ch_us_stranger_b_fig_stand_A', false], ['ch_us_leader_int_fig_stand_A', false], ['ch_us_leader_seg_fig_stand_A', false],
-  ['ch_cn_neighbor_fig_stand_A', false], ['ch_cn_stranger_b_fig_stand_A', false], ['ch_cn_leader_int_fig_stand_A', false],
+const isSeatedId = (id) => /_fig_sit/.test(id);
 
-  // Round 5 (files 112-113): standing versions of the two chess players for non-park slots
-  ['ch_us_stranger_a_fig_stand_A', false], ['ch_cn_stranger_a_fig_stand_A', false],
-];
-const PLACEHOLDER_FIGURES = {
-  ch_cn_neighbor_fig_stand: 'stand', ch_us_stranger_b_fig_stand: 'stand', ch_us_leader_int_fig_stand: 'stand',
-  ch_us_leader_seg_fig_stand: 'stand', ch_cn_stranger_b_fig_stand: 'stand', ch_cn_leader_int_fig_stand: 'stand',
-};
+/**
+ * { characters: [[contentId, sourceBase, portraitId]], figures: [figureId] } from npcs.yaml, plus any character with art
+ * in the source folder (ch_<id>_<expression|ref>_A.png) that npcs.yaml does not name yet, so art never drops out of
+ * the manifest while content catches up. Figures without a source image become placeholder entries.
+ */
+function contentTables(npcsYaml, srcDir) {
+  const chars = new Map(), figures = [];
+  const addFig = (f) => { if (f && typeof f === 'string' && !figures.includes(f)) figures.push(f); };
+  let list = [];
+  if (fs.existsSync(npcsYaml)) {
+    try { const doc = loadYaml(fs.readFileSync(npcsYaml, 'utf8')); list = Array.isArray(doc?.npcs) ? doc.npcs : []; }
+    catch (e) { warn.push(`public/content/npcs.yaml: ${e.message} (characters from the source folder only)`); }
+  } else warn.push('public/content/npcs.yaml not found (characters from the source folder only)');
+  for (const n of list) {
+    if (!n?.id) continue;
+    const id = String(n.id), portrait = n.portrait ? String(n.portrait) : `ch_${id}`;
+    if (!chars.has(id)) chars.set(id, { base: PORTRAIT_SOURCES[id] ?? portrait, portrait });
+    addFig(n.figure);
+    for (const a of Array.isArray(n.appearances) ? n.appearances : []) addFig(a?.figure);
+  }
+  const used = new Set([...chars.values()].flatMap((c) => [c.base, c.portrait]).concat(Object.values(PORTRAIT_SOURCES), ['ch_nat_multi']));
+  const files = fs.existsSync(srcDir) ? fs.readdirSync(srcDir).sort() : [];
+  for (const f of files) {
+    const m = /^ch_(.+?)_(neutral|warm|guarded|worried|ref)_A(_\d+)?\.png$/.exec(f);
+    if (m && !chars.has(m[1]) && !used.has(`ch_${m[1]}`)) chars.set(m[1], { base: `ch_${m[1]}`, portrait: `ch_${m[1]}` });
+  }
+  // every figure image of a listed character, referenced or not (a writer may name it on an appearance later)
+  const bases = new Set([...chars.values()].map((c) => c.base));
+  for (const f of files) {
+    const m = /^(ch_.+?)_fig_(stand|sit)_A\.png$/.exec(f);
+    if (m && bases.has(m[1])) addFig(f.replace(/_A\.png$/, ''));
+  }
+  return { characters: [...chars].map(([id, c]) => [id, c.base, c.portrait]), figures };
+}
 const PROPS = ['prop_tv_A', 'prop_chessboard_A'];
 // Cast: authority figures named by news.csv `figure` and events.csv `portrait` (SPEC "Cast").
 // Sources: image_generation/out/cast_<id>_ref_A.png, cast_<id>_bust_A.png (1:1, transparent), cast_<id>_tv_A.png (16:9).
@@ -243,6 +265,7 @@ fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
 const manifest = { generated: new Date().toISOString(), source: 'image_generation/out (_A set)', backgrounds: {}, portraits: {}, aliases: {}, figures: {}, props: {}, tv: {}, candidates: CANDIDATES };
 const warn = [];
+const { characters: CHARACTERS, figures: FIGURES } = contentTables(path.resolve(arg('--npcs', path.join(DEMO, 'public', 'content', 'npcs.yaml'))), SRC);
 
 for (const [id, lighting] of Object.entries(BACKGROUNDS)) {
   const choices = BG_SOURCES[id] ?? [id + '_A'], sid = choices.find(exists);
@@ -255,7 +278,7 @@ for (const [id, lighting] of Object.entries(BACKGROUNDS)) {
 const placeholderBust = out('portrait', 'placeholder_neutral.png');
 encodePNG(render(PORTRAIT, PORTRAIT, SIL_BUST), placeholderBust, true);
 
-for (const [cid, base] of Object.entries(CHARACTERS)) {
+for (const [cid, base, portraitId] of CHARACTERS) {
   const entry = { neutral: null, warm: null, guarded: null, worried: null, placeholder: false, fromReference: false, sources: [] };
   if (base) {
     for (const ex of EXPRESSIONS) {
@@ -290,11 +313,18 @@ for (const [cid, base] of Object.entries(CHARACTERS)) {
   manifest.portraits[cid] = entry;
   manifest.aliases[`ch_${cid}`] = cid;
   if (base) manifest.aliases[base] = cid;
+  if (portraitId) manifest.aliases[portraitId] = cid;
 }
 
-for (const [id, seated] of FIGURES) {
-  if (!exists(id)) { warn.push(`missing figure ${id}`); continue; }
-  const key = id.replace(/_A$/, ''), dest = out('figure', key + '.png');
+const placeholderFigures = [];
+for (const key of FIGURES) {
+  const seated = isSeatedId(key), id = `${key}_A`;
+  if (!exists(id)) {
+    // named in npcs.yaml, no art yet: the silhouette of the right posture, marked placeholder
+    placeholderFigures.push(key);
+    continue;
+  }
+  const dest = out('figure', key + '.png');
   const r = trimTo(id, dest, 'h', FIG_H, true);
   manifest.figures[key] = { file: rel(dest), w: r.w, h: r.h, seated, placeholder: false };
 }
@@ -303,10 +333,8 @@ for (const [kind, sdf, w] of [['stand', SIL_STAND, 260], ['sit', SIL_SIT, 300]])
   encodePNG(render(w, FIG_H, sdf), dest, true);
   manifest.figures[`placeholder_${kind}`] = { file: rel(dest), w, h: FIG_H, seated: kind === 'sit', placeholder: true };
 }
-for (const [key, kind] of Object.entries(PLACEHOLDER_FIGURES)) {
-  if (manifest.figures[key]) continue; // real art arrived (Round 3)
-  manifest.figures[key] = { ...manifest.figures[`placeholder_${kind}`], placeholder: true };
-}
+for (const key of placeholderFigures) manifest.figures[key] = { ...manifest.figures[`placeholder_${isSeatedId(key) ? 'sit' : 'stand'}`], placeholder: true };
+if (placeholderFigures.length) warn.push(`placeholder figures (no source yet): ${placeholderFigures.join(', ')}`);
 
 for (const id of PROPS) {
   if (!exists(id)) { warn.push(`missing prop ${id}`); continue; }

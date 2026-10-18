@@ -140,6 +140,11 @@ button { font-family: inherit; }
 .hub-desc { font: italic 17px var(--serif); color: var(--muted); margin: 0 0 18px; }
 .hub-where { font-weight: 600; margin: 0 0 10px; }
 .hub-exits { display: flex; flex-direction: column; gap: 10px; }
+/* the culture-pack banner inside the hub card (SPEC "Packs"); the card tightens to keep every exit on screen */
+.banner.banner-inline { position: static; margin: 0 0 12px; }
+.hub-card.has-banner { padding-block: 22px; }
+.hub-card.has-banner .hub-desc { margin-bottom: 10px; }
+.hub-card.has-banner .hub-exits { gap: 6px; }
 .hub-exit {
   display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-radius: 8px;
   border: 1.5px solid #cfc7b6; background: #fff; font-size: 17px; cursor: pointer; color: var(--ink); text-align: left;

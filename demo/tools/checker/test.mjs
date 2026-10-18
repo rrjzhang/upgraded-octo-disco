@@ -118,5 +118,39 @@ t('profile: valid profile passes; bad ranges, types and unknown keys are reporte
   ]);
 });
 
+// SPEC "Stances" and "Packs": the good fixture with an mx scene, an assimilation stance, a bad stance and a bad pack
+const packDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gv-check-pack-'));
+fs.cpSync(path.join(here, 'fixtures', 'good'), packDir, { recursive: true });
+const centerMx = '  - id: center_mx\n    name: Center\n    community: home\n    pack: mx\n    background: none\n    description: "x"\n    exits: []\n    slots: []\n';
+const centerCn = '  - id: center_cn\n    name: Center\n    community: home\n    pack: cn\n    background: none\n    description: "x"\n    exits: []\n    slots: []\n';
+const runPack = (scenesExtra, npcsFn) => {
+  fs.writeFileSync(path.join(packDir, 'scenes.yaml'), fs.readFileSync(path.join(here, 'fixtures', 'good', 'scenes.yaml'), 'utf8') + scenesExtra);
+  fs.writeFileSync(path.join(packDir, 'npcs.yaml'), npcsFn(fs.readFileSync(path.join(here, 'fixtures', 'good', 'npcs.yaml'), 'utf8')));
+  const rep = fs.mkdtempSync(path.join(os.tmpdir(), 'gv-check-pack-report-'));
+  return JSON.parse(spawnSync(process.execPath, [path.join(here, 'check.mjs'), '--content', packDir, '--report', rep, '--json'], { encoding: 'utf8' }).stdout);
+};
+const nonInfo = (r) => r.diagnostics.filter(d => d.severity !== 'info').map(d => `${d.severity}:${d.code}:${d.path ?? ''}`).sort();
+// alice becomes an assimilationist (valid); an mx scene exists but nobody is mx yet
+const pk1 = runPack(centerMx + centerCn, (y) => y.replace('    stance: none\n', '    stance: assimilation\n'));
+t('pack: stance assimilation accepted; mx scene without mx NPCs warns and mx players fall back to cn', () => {
+  assert.deepEqual(nonInfo(pk1), ['warning:PACK_INCOMPLETE:npcs']);
+  assert.deepEqual(pk1.packs.mx, { culture: 'mx', pack: 'cn', fallback: true, scenes: ['home', 'center_cn'] });
+  assert.deepEqual(pk1.packs.cn.scenes, ['home', 'center_cn']);
+});
+// bob moves to mx: mx is now playable; cn players no longer see center_mx; bad stance and bad pack are errors
+const pk2 = runPack(centerMx + centerCn.replace('pack: cn', 'pack: xx'), (y) => y.replace('    pack: cn\n', '    pack: mx\n').replace(/(id: bob[\s\S]*?)stance: none/, '$1stance: marginalization'));
+t('pack: mx playable once it has an NPC and a scene; shared + own-pack scenes only; bad stance / pack are errors', () => {
+  assert.deepEqual(pk2.packs.mx, { culture: 'mx', pack: 'mx', fallback: false, scenes: ['home', 'center_mx'] });
+  assert.deepEqual(pk2.packs.cn, { culture: 'cn', pack: 'cn', fallback: false, scenes: ['home'] });
+  assert.deepEqual(pk2.packs.in.pack, 'cn');
+  assert.deepEqual(nonInfo(pk2), ['error:BAD_VALUE:npcs[1].stance', 'error:BAD_VALUE:scenes[2].pack']);
+});
+// an mx NPC but no mx scene: warning, mx falls back
+const pk3 = runPack('', (y) => y.replace('    pack: cn\n', '    pack: mx\n'));
+t('pack: mx NPCs without an mx scene warn and fall back', () => {
+  assert.deepEqual(nonInfo(pk3), ['warning:PACK_INCOMPLETE:scenes']);
+  assert.equal(pk3.packs.mx.pack, 'cn');
+});
+
 console.log(failures ? `\n${failures} test(s) failed` : '\nall tests passed');
 process.exit(failures ? 1 : 0);

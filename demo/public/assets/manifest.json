@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-18T07:51:39.657Z",
+  "generated": "2026-10-18T08:44:44.819Z",
   "source": "image_generation/out (_A set)",
   "backgrounds": {
     "bg_home_day": {
@@ -249,23 +249,6 @@
         "ch_cn_leader_sep_ref_A_3"
       ]
     },
-    "mx_neighbor": {
-      "neutral": "portrait/mx_neighbor_neutral.png",
-      "warm": null,
-      "guarded": null,
-      "worried": null,
-      "placeholder": false,
-      "fromReference": true,
-      "sources": [
-        "ch_mx_neighbor_ref_A"
-      ],
-      "referenceCrop": {
-        "x": 224,
-        "y": 0,
-        "w": 560,
-        "h": 560
-      }
-    },
     "in_neighbor": {
       "neutral": "portrait/in_neighbor_neutral.png",
       "warm": null,
@@ -278,6 +261,23 @@
       ],
       "referenceCrop": {
         "x": 229,
+        "y": 0,
+        "w": 560,
+        "h": 560
+      }
+    },
+    "mx_neighbor": {
+      "neutral": "portrait/mx_neighbor_neutral.png",
+      "warm": null,
+      "guarded": null,
+      "worried": null,
+      "placeholder": false,
+      "fromReference": true,
+      "sources": [
+        "ch_mx_neighbor_ref_A"
+      ],
+      "referenceCrop": {
+        "x": 224,
         "y": 0,
         "w": 560,
         "h": 560
@@ -299,20 +299,13 @@
     "ch_cn_stranger_b": "cn_stranger_b",
     "ch_cn_leader_int": "cn_leader_int",
     "ch_cn_leader_sep": "cn_leader_sep",
-    "ch_mx_neighbor": "mx_neighbor",
-    "ch_in_neighbor": "in_neighbor"
+    "ch_in_neighbor": "in_neighbor",
+    "ch_mx_neighbor": "mx_neighbor"
   },
   "figures": {
     "ch_us_neighbor_fig_stand": {
       "file": "figure/ch_us_neighbor_fig_stand.png",
       "w": 206,
-      "h": 700,
-      "seated": false,
-      "placeholder": false
-    },
-    "ch_cn_leader_sep_fig_stand": {
-      "file": "figure/ch_cn_leader_sep_fig_stand.png",
-      "w": 221,
       "h": 700,
       "seated": false,
       "placeholder": false
@@ -324,11 +317,11 @@
       "seated": true,
       "placeholder": false
     },
-    "ch_cn_stranger_a_fig_sit": {
-      "file": "figure/ch_cn_stranger_a_fig_sit.png",
-      "w": 338,
+    "ch_us_stranger_a_fig_stand": {
+      "file": "figure/ch_us_stranger_a_fig_stand.png",
+      "w": 249,
       "h": 700,
-      "seated": true,
+      "seated": false,
       "placeholder": false
     },
     "ch_us_stranger_b_fig_stand": {
@@ -359,6 +352,20 @@
       "seated": false,
       "placeholder": false
     },
+    "ch_cn_stranger_a_fig_sit": {
+      "file": "figure/ch_cn_stranger_a_fig_sit.png",
+      "w": 338,
+      "h": 700,
+      "seated": true,
+      "placeholder": false
+    },
+    "ch_cn_stranger_a_fig_stand": {
+      "file": "figure/ch_cn_stranger_a_fig_stand.png",
+      "w": 202,
+      "h": 700,
+      "seated": false,
+      "placeholder": false
+    },
     "ch_cn_stranger_b_fig_stand": {
       "file": "figure/ch_cn_stranger_b_fig_stand.png",
       "w": 194,
@@ -373,16 +380,9 @@
       "seated": false,
       "placeholder": false
     },
-    "ch_us_stranger_a_fig_stand": {
-      "file": "figure/ch_us_stranger_a_fig_stand.png",
-      "w": 249,
-      "h": 700,
-      "seated": false,
-      "placeholder": false
-    },
-    "ch_cn_stranger_a_fig_stand": {
-      "file": "figure/ch_cn_stranger_a_fig_stand.png",
-      "w": 202,
+    "ch_cn_leader_sep_fig_stand": {
+      "file": "figure/ch_cn_leader_sep_fig_stand.png",
+      "w": 221,
       "h": 700,
       "seated": false,
       "placeholder": false

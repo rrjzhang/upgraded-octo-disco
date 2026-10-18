@@ -1,6 +1,6 @@
 /** index.html: room entry -> character setup -> game. */
 import './style.css';
-import { getSource, loadContent } from './content';
+import { effectivePack, getSource, loadContent } from './content';
 import { Game } from './game';
 import { appendLog, getRoom, loadState, logKey, newState, saveRoom, saveState, stateKey, type RoomRecord } from './store';
 import type { Content, CultureId, Leader, PlayerInfo } from './types';
@@ -22,6 +22,8 @@ function startGame(content: Content, room: RoomRecord, player?: PlayerInfo): voi
     saveState(state);
     appendLog(state, { type: 'start', target: 'game', player, config: room.config, content: content.source });
   }
+  // dev: &culture= on an existing save switches it (the Game recomputes the effective pack on load)
+  if (isDev && player && params.get('culture') && state.player.homeCulture !== player.homeCulture) state.player.homeCulture = player.homeCulture;
   // NPCs added to content after the save was made get their initial state.
   for (const n of content.npcs) if (!state.npcs[n.id]) state.npcs[n.id] = { ...n.initial };
   document.body.classList.add('in-game');
@@ -37,7 +39,7 @@ function setupForm(content: Content, room: RoomRecord): void {
   const radios = h('fieldset', { class: 'radios' }, h('legend', { text: 'Home culture' }),
     ...cultures.map(([id, label], i) => h('label', {},
       h('input', { type: 'radio', name: 'culture', value: id, checked: i === 0 }), ` ${label}`,
-      id !== 'cn' ? h('span', { class: 'muted', text: ' (pack not in demo; China roster used)' }) : null)));
+      effectivePack(content, id) !== id ? h('span', { class: 'muted', text: ' (pack not in demo; China roster used)' }) : null)));
   const lang = h('select', { id: 'plang' },
     ...['English', 'Mandarin Chinese', 'Spanish', 'Hindi', 'Other'].map((l) => h('option', { value: l, text: l })));
   const elig = h('input', { id: 'pelig', type: 'checkbox' });
@@ -56,7 +58,7 @@ function setupForm(content: Content, room: RoomRecord): void {
     if (!name.value.trim()) { err.textContent = 'Please enter a display name.'; name.focus(); return; }
     if (!elig.checked) { err.textContent = 'Please confirm eligibility to continue.'; elig.focus(); return; }
     const culture = (form.querySelector<HTMLInputElement>('input[name=culture]:checked')?.value ?? 'cn') as CultureId;
-    startGame(content, room, { name: name.value.trim(), homeCulture: culture, pack: 'cn', language: lang.value, eligible: true });
+    startGame(content, room, { name: name.value.trim(), homeCulture: culture, pack: effectivePack(content, culture), language: lang.value, eligible: true });
   });
   app.replaceChildren(h('div', { class: 'form-page' }, form));
   name.focus();
@@ -112,7 +114,7 @@ async function main(): Promise<void> {
       if (st && st.config.nationalLeader !== leader) { st.config = room.config; saveState(st); }
     }
     const culture = (['cn', 'mx', 'in'].includes(params.get('culture') ?? '') ? params.get('culture') : 'cn') as CultureId;
-    startGame(content, room, { name: params.get('name') ?? 'Alex', homeCulture: culture, pack: 'cn', language: 'English', eligible: true });
+    startGame(content, room, { name: params.get('name') ?? 'Alex', homeCulture: culture, pack: effectivePack(content, culture), language: 'English', eligible: true });
     return;
   }
   roomForm(content);
