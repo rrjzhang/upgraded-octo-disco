@@ -210,7 +210,11 @@ button { font-family: inherit; }
   text-align: left; padding: 11px 14px; border: 1.5px solid #cfc7b6; background: #fff; border-radius: 8px;
   font: 15px/1.4 var(--ui); color: var(--ink); cursor: pointer;
 }
-.choice:hover { border-color: var(--accent); }
+.choice:hover:not(:disabled), .choice:focus-visible {
+  border-color: var(--accent); background: rgba(31,111,107,.08); box-shadow: inset 3px 0 0 var(--accent); transform: translateX(2px); outline: none;
+}
+.choice { transition: background .12s, border-color .12s, transform .12s; }
+@media (prefers-reduced-motion: reduce) { .choice { transition: none; } .choice:hover:not(:disabled) { transform: none; } }
 .status { margin-top: auto; padding-top: 10px; font: 12px ui-monospace, Menlo, monospace; color: var(--muted); }
 
 /* ---------- phone ---------- */
