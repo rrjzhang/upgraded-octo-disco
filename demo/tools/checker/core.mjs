@@ -326,6 +326,28 @@ export function isSeatedFigure(assets, id) {
   return /_fig_sit/.test(id);
 }
 
+/** SPEC "Character profiles": writer-facing fields on an NPC (the engine ignores them). */
+export const PROFILE_SCALES = ['integrationLean', 'warmth', 'talkative'];
+export const PROFILE_TEXTS = ['backstory', 'motivation', 'voice'];
+export const PROFILE_LISTS = ['topics', 'avoid'];
+
+function validateProfile(pr, diag, rel, loc) {
+  if (pr == null) return;
+  if (typeof pr !== 'object' || Array.isArray(pr)) { diag.error('BAD_VALUE', rel, loc('profile'), 'profile must be a mapping of fields'); return; }
+  for (const [k, v] of Object.entries(pr)) {
+    const at = loc(`profile.${k}`);
+    if (PROFILE_SCALES.includes(k)) {
+      if (!(typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 10)) diag.error('BAD_VALUE', rel, at, `profile.${k} must be a number 0..10, got ${JSON.stringify(v)}`);
+    } else if (PROFILE_TEXTS.includes(k)) {
+      if (typeof v !== 'string') diag.error('BAD_VALUE', rel, at, `profile.${k} must be text, got ${JSON.stringify(v)}`);
+    } else if (PROFILE_LISTS.includes(k)) {
+      if (!Array.isArray(v) || v.some((x) => typeof x !== 'string')) diag.error('BAD_VALUE', rel, at, `profile.${k} must be a list of text items, got ${JSON.stringify(v)}`);
+    } else {
+      diag.warn('PROFILE_KEY', rel, at, `unknown profile key "${k}"; expected ${[...PROFILE_SCALES, ...PROFILE_TEXTS, ...PROFILE_LISTS].join(', ')}`);
+    }
+  }
+}
+
 function validateNpcs(files, diag, scenes, assets) {
   const rel = 'npcs.yaml';
   const y = readYaml(files[rel], rel, diag);
@@ -371,6 +393,7 @@ function validateNpcs(files, diag, scenes, assets) {
     if (!(Number.isInteger(rap) && rap >= 0 && rap <= 3)) { diag.error('BAD_VALUE', rel, loc('initial.rapport'), `initial.rapport must be 0..3, got ${JSON.stringify(init.rapport)}`); rap = 0; }
     let lv = init.lastValence ?? 'none';
     if (!['none', 'positive', 'negative'].includes(lv)) { diag.error('BAD_VALUE', rel, loc('initial.lastValence'), `initial.lastValence must be none|positive|negative, got ${JSON.stringify(lv)}`); lv = 'none'; }
+    validateProfile(n.profile, diag, rel, loc);
     npcs.set(n.id, { ...n, appearances: apps, line: yamlLine(y.text, n.id), start: ((met ? 1 : 0) * 4 + rap) * 3 + ['none', 'positive', 'negative'].indexOf(lv) });
   });
   return npcs;

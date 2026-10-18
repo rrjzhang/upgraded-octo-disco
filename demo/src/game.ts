@@ -3,7 +3,7 @@ import type {
   Content, DialogueRow, Questionnaire, Emotion, EventRow, GameState, Hotspot, ModuleId, NewsRow, Npc, Scene, Screen, Slot,
 } from './types';
 import {
-  DAY_ACTIONS, DEFAULT_TALKS_PER_DAY, DEMO_DAYS, DIALOGUE_COST, FREE_DEPTH, applyEffects, dayPhaseOf, eventMatches, leanOf, phaseOf, rowDepth, selectRow,
+  DAY_ACTIONS, DEFAULT_TALKS_PER_DAY, DEMO_DAYS, DIALOGUE_COST, FEATURES, FREE_DEPTH, applyEffects, dayPhaseOf, eventMatches, leanOf, phaseOf, rowDepth, selectRow,
   type Delta,
 } from './rules';
 import { appendLog, debugEnabled, getRoom, readLog, saveState } from './store';
@@ -74,6 +74,8 @@ export class Game {
   private shownScene: string | null = null;
   /** dev only: screen quads set with gv.screens(), per scene, in memory */
   private devScreens = new Map<string, Screen[]>();
+  /** the still the room screens showed when the TV was switched on; kept until the TV window closes (memory only) */
+  private tvOnScreen: { id: string; image: string | null } | null = null;
 
   constructor(host: HTMLElement, private c: Content, private s: GameState) {
     this.stage = h('div', { class: 'stage', id: 'stage' });
@@ -94,8 +96,13 @@ export class Game {
       this.renderEnd();
       return;
     }
-    // a conversation open when the page went away (reload, closed tab) is closed as "left", timed to its last turn
-    if (this.s.convo) this.endConvo('left', this.s.convo.last);
+    // a conversation open when the page went away (reload, closed tab) resumes on the row it was on (SPEC "Conversation
+    // limit semantics": a conversation in progress can always be finished). A stale one (another day, a row that no
+    // longer exists after a content edit) is closed as "left", timed to its last turn.
+    const cv = this.s.convo;
+    const resumeRow = cv && this.s.dayStartDone >= this.s.day && this.s.surveyDay !== this.s.day
+      ? (this.c.dialogue.get(cv.npc) ?? []).find((r) => r.id === cv.rules[cv.rules.length - 1]) : undefined;
+    if (cv && !resumeRow) this.endConvo(this.s.dayStartDone < this.s.day ? 'day_end' : 'left', cv.last);
     if (this.s.dayStartDone < this.s.day) this.beginDay();
     else {
       // an event on screen (already fired and paid for) and the ones queued behind it survive a reload
@@ -103,7 +110,11 @@ export class Game {
       const open = ev(this.s.openEvent);
       this.queue = (this.s.queuedEvents ?? []).map((id) => ev(id)).filter((e): e is EventRow => !!e);
       if (open) this.panel = { kind: 'event', ev: open };
-      if (!open && this.queue.length) this.nextQueued();
+      else if (resumeRow && cv) {
+        this.panel = { kind: 'dialogue', npc: cv.npc, row: resumeRow, tie: [] };
+        console.info(`[talk] ${cv.npc}: resuming the conversation on ${resumeRow.id} after a reload`);
+      }
+      if (!open && !resumeRow && this.queue.length) this.nextQueued();
       else this.render();
     }
     // The survey window lives only in the DOM; a page reload (dev-server HMR, F5, crash) used to drop it silently
@@ -448,11 +459,15 @@ export class Game {
     cv.last = Date.now();
   }
 
-  /** Logs the open conversation (one `conversation` line) and clears it. */
+  /**
+   * Logs the open conversation (one `conversation` line) and clears it. This is where the per-NPC daily count goes up
+   * (SPEC "Conversation limit semantics"): when a conversation ends or is left, never at its start or mid-tree.
+   */
   private endConvo(exit: 'ended' | 'left' | 'day_end', at = Date.now()): void {
     const cv = this.s.convo;
     if (!cv) return;
     this.s.convo = undefined;
+    if (exit !== 'day_end') this.countTalk(cv.npc); // the day's counts reset at day start anyway
     appendLog(this.s, {
       type: 'conversation', target: cv.npc, scene: cv.scene, turns: cv.turns, ms: Math.max(0, at - cv.started), rules: cv.rules, exit,
     });
@@ -507,7 +522,7 @@ export class Game {
     return Number.isInteger(v) && v > 0 ? v : DEFAULT_TALKS_PER_DAY;
   }
 
-  /** Conversations with `npcId` started today. */
+  /** Conversations with `npcId` had today (ended or left; the one in progress does not count yet). */
   talksToday(npcId: string): number {
     const t = this.s.talks;
     return t && t.day === this.s.day ? t.counts[npcId] ?? 0 : 0;
@@ -525,25 +540,34 @@ export class Game {
 
   /** "Talk to Dana (1 action)" / "(free)" / "(no actions left)": the same words for aria-label and hover title. */
   private talkLabel(n: Npc, cost: number): string {
-    if (this.talkedOut(n.id)) return `${n.name}: ${this.str('ui.talkedToday')}`;
+    if (this.talkedOut(n.id)) return this.talkedAria(n);
     const why = this.s.actions <= 0 ? this.str('ui.noActionsShort') : cost ? this.costWords(cost) : this.str('ui.free');
     return `${this.str('ui.talkTo', { name: n.name })} (${why})`;
+  }
+
+  /** At the limit the figure has no visible label at all; this name is for assistive tech only. */
+  private talkedAria(n: Npc): string {
+    return `${n.name} (talked today)`;
   }
 
   /** `force` (dev only, gv.talk(npc, {force:true})) ignores the per-day conversation limit. */
   talkTo(npcId: string, opts: { force?: boolean } = {}): void {
     const n = this.c.npcById.get(npcId);
     if (!n) return;
+    // the conversation with this person is already on screen: clicking them again keeps it (and does not end it)
+    if (this.s.convo?.npc === n.id && this.panel.kind === 'dialogue' && this.panel.npc === n.id && !opts.force) return;
     if (this.talkedOut(n.id) && !opts.force) {
-      // the figure is disabled; this covers gv.talk and anything else that calls in directly
+      // the figure is non-interactive; this covers gv.talk and anything else that calls in directly (no visible notice)
       console.info(`[talk] ${n.id}: already talked ${this.talksToday(n.id)} time(s) today (limit ${this.maxTalks})`);
-      if (!(this.panel.kind === 'dialogue' && this.panel.npc === n.id)) {
-        this.panel = { kind: 'idle', note: `${n.name}: ${this.str('ui.talkedToday')}` };
-        this.render();
-      }
       return;
     }
     this.endConvo('left'); // talking to someone else (or the same person afresh) leaves the current conversation
+    if (this.talkedOut(n.id) && !opts.force) {
+      // leaving an open conversation with this same person (forced dev path) just used up the last one
+      this.panel = { kind: 'idle' };
+      this.save();
+      return this.render();
+    }
     const cost = this.talkCost(n);
     if (!this.canTalk(cost)) {
       this.panel = { kind: 'idle', note: this.str(this.tired() ? 'ui.tired' : 'ui.notEnough') };
@@ -556,8 +580,8 @@ export class Game {
       this.panel = { kind: 'idle', note: `(No dialogue for ${n.name} yet.)` };
     } else {
       this.panel = { kind: 'dialogue', npc: n.id, row: row.row, tie: row.tie };
-      this.countTalk(n.id);
-      appendLog(this.s, { type: 'dialogue', target: n.id, rule: row.row.id, cost, talk: this.talksToday(n.id), delta: { actions: [before, this.s.actions] }, ...(opts.force ? { forced: true } : {}) });
+      // `talk` = which of today's conversations with this NPC this is (counted when it ends)
+      appendLog(this.s, { type: 'dialogue', target: n.id, rule: row.row.id, cost, talk: this.talksToday(n.id) + 1, delta: { actions: [before, this.s.actions] }, ...(opts.force ? { forced: true } : {}) });
       this.startConvo(n.id, row.row.id);
     }
     this.save();
@@ -682,16 +706,24 @@ export class Game {
           appendLog(this.s, { type: 'hotspot', target: hs.id });
           return this.endDay();
         }
+        if (mod === 'tv' && this.tvWatchedToday()) {
+          // SPEC "TV once a day": the hotspot is disabled; this covers anything that calls in directly (no notice)
+          console.info('[tv] already watched today');
+          return;
+        }
         const before = this.s.actions;
         this.spend(cost);
         let content: unknown = {};
         let rule: string | undefined;
         if (mod === 'tv') {
           const tv = this.tvContent();
-          content = tv;
+          // the room screen keeps the still it showed when the TV was switched on until the window closes
+          this.tvOnScreen = this.screenStory();
+          content = { ...tv, keepWatching: FEATURES.tvKeepWatching };
           rule = tv.stories[0]?.id;
           if (rule) this.s.seenNews.push(rule);
           this.s.tvWatched = { day: this.s.day, phase: phaseOf(this.s.actions), story: rule };
+          this.s.tvWatchedDay = this.s.day;
         }
         appendLog(this.s, { type: 'window', target: mod, rule, delta: before !== this.s.actions ? { actions: [before, this.s.actions] } : undefined });
         this.save();
@@ -844,6 +876,7 @@ export class Game {
     if (!this.win) return;
     const w = this.win;
     this.win = null;
+    if (w.module === 'tv') this.tvOnScreen = null; // SPEC "TV once a day": the room screens go black for the rest of the day
     w.overlay.remove();
     if (notify) w.onClose?.();
     this.render();
@@ -876,6 +909,7 @@ export class Game {
         if (n > this.s.actions) return this.reply('state', { ok: false });
         const before = this.s.actions;
         this.spend(n);
+        if (w.module === 'tv' && !FEATURES.tvKeepWatching) return this.reply('state', { ok: false }); // Keep watching is off
         if (w.module === 'tv' && typeof m.story === 'string') {
           this.s.seenNews.push(m.story);
           this.s.tvWatched = { day: this.s.day, phase: phaseOf(this.s.actions), story: m.story };
@@ -1028,14 +1062,20 @@ export class Game {
     return this.devScreens.get(sc.id) ?? sc.screens ?? [];
   }
 
-  /** The story a room TV shows: what tvContent() would open with, or, once watched this phase, the next story. */
+  /** SPEC "TV once a day": the TV (home or clinic, one shared state) has been opened today. */
+  private tvWatchedToday(): boolean {
+    return this.s.tvWatchedDay === this.s.day;
+  }
+
+  /**
+   * The story a room TV shows: what tvContent() would open with. Once the TV has been opened today, the still it
+   * showed at that moment stays while the TV window is open (opening marks the story seen, which must not change the
+   * screen), and after the window closes the screens are black for the rest of the day.
+   */
   private screenStory(): { id: string; image: string | null } | null {
-    const tv = this.tvContent();
-    if (!tv.stories.length) return null;
-    const w = this.s.tvWatched;
-    const watched = !!w && w.day === this.s.day && w.phase === phaseOf(this.s.actions);
-    const st = watched ? tv.stories.find((x) => x.id !== w!.story) ?? tv.stories[0] : tv.stories[0];
-    return { id: st.id, image: st.image ?? null };
+    if (this.tvWatchedToday()) return this.tvOnScreen;
+    const st = this.tvContent().stories[0];
+    return st ? { id: st.id, image: st.image ?? null } : null;
   }
 
   /** A TV glass: the still laid out at 1280 x 720 and projected onto the quad (scene-box pixels) with matrix3d. */
@@ -1146,19 +1186,23 @@ export class Game {
       if (a.type === 'talk' && !talkNpc) continue;
       const cost = talkNpc ? this.talkCost(talkNpc) : a.cost ?? (a.type === 'window' || a.type === 'news' ? 1 : 0);
       const blockedMove = a.type === 'move' && this.moveBlocked(String(a.to));
-      const talked = !!talkNpc && this.talkedOut(talkNpc.id);
-      const disabled = talkNpc ? talked || !this.canTalk(cost) : tired || cost > this.s.actions || blockedMove;
-      const label = talkNpc ? (talked ? this.talkLabel(talkNpc, cost) : this.str('ui.talkTo', { name: talkNpc.name })) : hs.label;
-      const costTxt = talkNpc ? (talked ? '' : this.talkLabel(talkNpc, cost).slice(label.length)) : cost ? ` (${this.costWords(cost)})` : blockedMove ? ` (${this.str('ui.tired')})` : '';
       const speaking = !!talkNpc && ((this.panel.kind === 'dialogue' && this.panel.npc === talkNpc.id) || (this.panel.kind === 'event' && this.panel.ev.npc === talkNpc.id));
+      // SPEC "Conversation limit semantics" / "TV once a day": simply non-interactive, no visible label or notice
+      const talked = !!talkNpc && this.talkedOut(talkNpc.id) && !speaking;
+      const watched = a.type === 'window' && a.module === 'tv' && this.tvWatchedToday();
+      const spent = talked || watched;
+      const disabled = spent || (talkNpc ? !this.canTalk(cost) : tired || cost > this.s.actions || blockedMove);
+      const label = talkNpc ? this.str('ui.talkTo', { name: talkNpc.name }) : hs.label;
+      const costTxt = talkNpc ? this.talkLabel(talkNpc, cost).slice(label.length) : cost ? ` (${this.costWords(cost)})` : blockedMove ? ` (${this.str('ui.tired')})` : '';
+      const aria = talked ? this.talkedAria(talkNpc!) : watched ? `${hs.label} (watched today)` : `${label}${costTxt}`;
       const b = h('button', {
-        class: `hotspot${hs.placeholder ? ' ph' : ''}${talkNpc ? ' talk' : ''}${speaking ? ' speaking' : ''}${talked ? ' talked' : ''}`,
-        'data-fk': `hs:${hs.id}`, 'aria-label': `${label}${costTxt}`, title: `${label}${costTxt}`,
+        class: `hotspot${hs.placeholder ? ' ph' : ''}${talkNpc ? ' talk' : ''}${speaking ? ' speaking' : ''}${spent ? ' spent' : ''}`,
+        'data-fk': `hs:${hs.id}`, 'aria-label': aria, title: spent ? null : aria,
         disabled, onclick: () => this.hotspot(hs),
         style: `left:${hs.zone.x * 100}%;top:${hs.zone.y * 100}%;width:${hs.zone.w * 100}%;height:${hs.zone.h * 100}%;`,
       },
       hs.placeholder ? h('span', { class: 'ph-mark', text: `${this.str('ui.pendingArt')} · ${hs.label}` }) : null,
-      talked ? h('span', { class: 'hs-label talked-label', text: this.str('ui.talkedToday') }) : h('span', { class: 'hs-label' }, label, this.costDots(cost)));
+      spent ? null : h('span', { class: 'hs-label' }, label, this.costDots(cost)));
       box.append(b);
     }
 
@@ -1171,20 +1215,18 @@ export class Game {
       const top = slot.y * IMG_H - hgt;
       const speaking = (this.panel.kind === 'dialogue' && this.panel.npc === npc.id) || (this.panel.kind === 'event' && this.panel.ev.npc === npc.id);
       const cost = this.talkCost(npc);
-      const talkLabel = this.talkLabel(npc, cost);
-      // SPEC "Conversation limit": still standing there, but today's conversation has been had
+      // SPEC "Conversation limit semantics": still standing there, simply non-interactive (no outline, no label)
       const talked = this.talkedOut(npc.id) && !speaking;
+      const talkLabel = talked ? this.talkedAria(npc) : this.talkLabel(npc, cost);
       const btn = h('button', {
         class: `figure${speaking ? ' speaking' : ''}${fig.seated ? ' seated' : ''}${cost ? '' : ' free'}${talked ? ' talked' : ''}`, 'data-fk': `npc:${npc.id}`,
-        'aria-label': talkLabel, title: talkLabel, 'data-cost': cost,
+        'aria-label': talkLabel, title: talked ? null : talkLabel, 'data-cost': cost,
         disabled: talked || !this.canTalk(cost), onclick: () => this.talkTo(npc.id),
         style: `left:${left}px;top:${top}px;width:${wid}px;height:${hgt}px;z-index:${10 + Math.round(slot.y * 100)};`,
       },
       h('span', { class: 'shadow', style: `width:${wid * (fig.seated ? 0.9 : 0.7)}px;height:${Math.max(8, hgt * 0.05)}px;` }),
       h('img', { src: fig.url, alt: '', draggable: 'false' }),
-      talked
-        ? h('span', { class: 'fig-label talked-label', 'aria-hidden': 'true', text: this.str('ui.talkedToday') })
-        : h('span', { class: 'fig-label', 'aria-hidden': 'true' }, npc.name, this.costDots(cost)),
+      talked ? null : h('span', { class: 'fig-label', 'aria-hidden': 'true' }, npc.name, this.costDots(cost)),
       fig.placeholder ? this.pendingTag() : null);
       const img = btn.querySelector('img')!;
       img.addEventListener('error', () => { img.src = silhouetteFigure(fig.seated); });

@@ -296,12 +296,11 @@ th { color: var(--muted); font-weight: 500; }
 .news-bust figcaption { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.3; }
 .news-bust .pending { position: absolute; left: 4px; top: 4px; right: auto; }
 
-/* SPEC "Conversation limit": the person is still there, but today's conversation has been had */
-.figure.talked { cursor: default; }
-.figure.talked .fig-label.talked-label, .hotspot.talked .hs-label.talked-label {
-  opacity: .92; background: rgba(93,87,77,.88); color: #ece6d8; font-size: 11px; font-weight: 500; letter-spacing: .01em;
-}
-.hotspot.talked { cursor: default; }
+/* SPEC "Conversation limit semantics" / "TV once a day": still there, simply non-interactive: no outline, no label, default cursor */
+.figure.talked, .figure.talked:disabled, .hotspot.spent, .hotspot.spent:disabled { cursor: default; }
+.scene-box.reveal .figure.talked img { filter: none; }
+.scene-box.reveal.evening[data-lighting="outdoor"] .figure.talked img { filter: brightness(.8) saturate(.9); }
+.hotspot.spent, .scene-box.reveal .hotspot.spent { border-color: transparent; background: none; }
 
 /* SPEC "Figures appear with the scene": input waits while the next scene's images load; a snapshot of the old scene fades out */
 .stage.swapping .body { pointer-events: none; }

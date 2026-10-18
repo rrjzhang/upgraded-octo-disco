@@ -65,6 +65,12 @@ export interface Ctx extends NpcState { nationalLeader: Leader; playerLean: Lean
 /** Default conversations per NPC per day (SPEC "Conversation limit"). */
 export const DEFAULT_TALKS_PER_DAY = 1;
 
+/** Feature switches kept in code but off for the study (SPEC "TV once a day"). */
+export const FEATURES = {
+  /** the TV module's "Keep watching" second story (1 action); off: one story per day */
+  tvKeepWatching: false,
+} as const;
+
 /** Parses a dialogue `scene` cell: blank = anywhere, else scene ids separated by `|`. */
 export function sceneList(cell: string): string[] {
   return (cell ?? '').split('|').map((x) => x.trim()).filter(Boolean);

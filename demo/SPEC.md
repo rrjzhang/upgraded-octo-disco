@@ -91,7 +91,7 @@ Survey answers go in a `survey` line with `answers:{itemId:value}`. Journal save
 
 ## Window host API (engine builds modules too)
 
-Modules are static HTML under `public/modules/` loaded in an iframe. Host sends `postMessage({type:'init', payload:{day, actions, wallet, condition, homeCulture, content}})` after load, where `content` is module-specific (TV: the chosen news story; survey: the questionnaire JSON). Module sends `{type:'earn', amount}`, `{type:'spend', actions}`, `{type:'submit', answers}`, `{type:'close'}`. Host ignores anything else. Three modules: `work.html` (placeholder: a 20-second "sort the mail" click game; one shift costs 2 actions and pays $40), `tv.html` (shows the news still image and the story; Keep watching costs 1 action and shows a second story if any), `survey.html` (renders the questionnaire JSON: likert matrix, single choice, short text; Next/Submit).
+Modules are static HTML under `public/modules/` loaded in an iframe. Host sends `postMessage({type:'init', payload:{day, actions, wallet, condition, homeCulture, content}})` after load, where `content` is module-specific (TV: the chosen news story; survey: the questionnaire JSON). Module sends `{type:'earn', amount}`, `{type:'spend', actions}`, `{type:'submit', answers}`, `{type:'close'}`. Host ignores anything else. Three modules: `work.html` (placeholder: a 20-second "sort the mail" click game; one shift costs 2 actions and pays $40), `tv.html` (shows the news still image and the story; the Keep watching second story is behind `FEATURES.tvKeepWatching`, off for now; the TV opens once per day), `survey.html` (renders the questionnaire JSON: likert matrix, single choice, short text; Next/Submit).
 
 ## Content schemas (content agent)
 

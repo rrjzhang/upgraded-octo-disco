@@ -1,6 +1,6 @@
 {
  "content": "/Users/richardzhang/great_vote/demo/public/content",
- "generated": "2026-10-18T07:29:25.421Z",
+ "generated": "2026-10-18T07:49:22.101Z",
  "ok": true,
  "counts": {
   "error": 0,
@@ -29,7 +29,7 @@
    "severity": "warning",
    "code": "UNKNOWN_ASSET",
    "file": "npcs.yaml",
-   "line": 115,
+   "line": 125,
    "path": "npcs[8].appearances[1].figure",
    "message": "figure \"ch_cn_stranger_a_fig_stand\" not in assets/manifest.json"
   },

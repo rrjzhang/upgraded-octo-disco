@@ -101,5 +101,22 @@ t('place --talks 2: E6 becomes reachable (two conversations on day 1)', () => {
   assert.equal(place2.result.diagnostics.filter(d => d.code === 'LIMIT_UNREACHABLE').length, 0);
 });
 
+// SPEC "Character profiles": the good fixture with profiles added (one valid, one with bad values and an unknown key)
+const profDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gv-check-profile-'));
+fs.cpSync(path.join(here, 'fixtures', 'good'), profDir, { recursive: true });
+const npcsY = fs.readFileSync(path.join(profDir, 'npcs.yaml'), 'utf8')
+  .replace('    portrait: ch_alice\n', '    profile:\n      integrationLean: 4\n      warmth: 8\n      talkative: 7\n      backstory: "Three sentences. Of backstory. Here."\n      motivation: "Wants the player to stay."\n      voice: "Short sentences."\n      topics: [lunch, school]\n      avoid: [money]\n    portrait: ch_alice\n')
+  .replace('    portrait: ch_bob\n', '    profile:\n      warmth: 11\n      talkative: "lots"\n      topics: chess\n      voice: [a, b]\n      mood: grumpy\n    portrait: ch_bob\n');
+fs.writeFileSync(path.join(profDir, 'npcs.yaml'), npcsY);
+const profReport = fs.mkdtempSync(path.join(os.tmpdir(), 'gv-check-profile-report-'));
+const prof = JSON.parse(spawnSync(process.execPath, [path.join(here, 'check.mjs'), '--content', profDir, '--report', profReport, '--json'], { encoding: 'utf8' }).stdout);
+t('profile: valid profile passes; bad ranges, types and unknown keys are reported', () => {
+  const d = prof.diagnostics.filter(x => /profile/.test(x.path || '')).map(x => `${x.severity}:${x.code}:${x.path}`).sort();
+  assert.deepEqual(d, [
+    'error:BAD_VALUE:npcs[1].profile.talkative', 'error:BAD_VALUE:npcs[1].profile.topics', 'error:BAD_VALUE:npcs[1].profile.voice',
+    'error:BAD_VALUE:npcs[1].profile.warmth', 'warning:PROFILE_KEY:npcs[1].profile.mood',
+  ]);
+});
+
 console.log(failures ? `\n${failures} test(s) failed` : '\nall tests passed');
 process.exit(failures ? 1 : 0);

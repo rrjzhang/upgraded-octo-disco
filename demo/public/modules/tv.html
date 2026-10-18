@@ -36,7 +36,7 @@
   document.getElementById('close').onclick = () => GV.send({ type: 'close' });
   more.onclick = () => {
     const s = p.content.stories[idx + 1];
-    if (!s || waiting) return;
+    if (!s || waiting || p.content.keepWatching !== true) return;
     waiting = true; more.disabled = true;
     GV.send({ type: 'spend', actions: 1, story: s.id });
   };
@@ -61,7 +61,8 @@
       el('div', { className: 'count', textContent: `Story ${idx + 1} of ${stories.length}` }),
       el('h2', { textContent: s.headline }),
       el('p', { className: 'body', textContent: s.body })));
-    more.hidden = !stories[idx + 1];
+    // "Keep watching" is behind the host's FEATURES.tvKeepWatching (off for the study: one story a day)
+    more.hidden = p.content.keepWatching !== true || !stories[idx + 1];
     more.disabled = st.actions < 1;
     (more.hidden || more.disabled ? document.getElementById('close') : more).focus();
   }

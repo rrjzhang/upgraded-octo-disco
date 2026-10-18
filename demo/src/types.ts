@@ -70,6 +70,21 @@ export interface Npc {
   seated: boolean;
   appearances: Appearance[];
   initial: NpcState;
+  /** Writer-facing character profile (SPEC "Profiles"), exactly as written in npcs.yaml; the engine never uses it. */
+  profile?: NpcProfile;
+}
+
+/** SPEC "Character profiles": camelCase keys as in npcs.yaml; unknown keys are kept (the checker warns on them). */
+export interface NpcProfile {
+  integrationLean?: number;
+  warmth?: number;
+  talkative?: number;
+  backstory?: string;
+  motivation?: string;
+  voice?: string;
+  topics?: string[];
+  avoid?: string[];
+  [key: string]: unknown;
 }
 
 export const COND_FIELDS = ['met', 'rapport', 'lastValence', 'nationalLeader', 'playerLean', 'dayPhase'] as const;
@@ -240,15 +255,17 @@ export interface GameState {
   entries: Record<string, number>; // `${day}:${scene}` -> entry count, seeds event rolls
   journal: string;
   dayStartDone: number; // day whose day_start processing has run
-  /** The conversation in progress; persisted so a reload closes it (exit "left") instead of losing it. */
+  /** The conversation in progress; persisted so a reload resumes it (the last entry of `rules` is the row on screen). */
   convo?: { npc: string; scene: string; started: number; last: number; turns: number; rules: string[] };
   /** The event on screen (already fired and paid for) and the ones queued behind it, so a reload shows them again. */
   openEvent?: string;
   queuedEvents?: string[];
-  /** conversations started today per NPC (reset at day start); follow-ups inside a conversation do not count */
+  /** conversations ended today per NPC (reset at day start); counted when a conversation ends, follow-ups do not count */
   talks?: { day: number; counts: Record<string, number> };
-  /** when the TV was last watched (the room screen then shows the next story for the rest of that phase) */
+  /** when the TV was last watched (and which story); used by the Keep watching path (FEATURES.tvKeepWatching) */
   tvWatched?: { day: number; phase: Phase; story?: string };
+  /** SPEC "TV once a day": the day the TV was opened; it cannot be opened again that day and the room screens go black */
+  tvWatchedDay?: number;
   surveyDay?: number; // day whose end-of-day survey is open; a reload reopens it instead of dropping it
   finished: boolean;
   started: string;

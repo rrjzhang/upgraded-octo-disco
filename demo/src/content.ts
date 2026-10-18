@@ -253,6 +253,8 @@ function parseNpcs(r: Reporter, file: string, text: string, scenes: Map<string, 
       figure: n.figure ? str(n.figure) : undefined,
       seated: n.seated === true,
       appearances,
+      // writer-facing only (SPEC "Profiles"): kept as written, never read by the engine; the checker validates it
+      ...(n.profile && typeof n.profile === 'object' && !Array.isArray(n.profile) ? { profile: { ...n.profile } } : {}),
       initial: {
         met,
         rapport: Math.max(0, Math.min(3, num(init.rapport, 0))),
