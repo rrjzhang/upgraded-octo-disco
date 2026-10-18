@@ -188,15 +188,25 @@ function out(sub, name) { const d = path.join(OUT, sub); fs.mkdirSync(d, { recur
 function despill(img) {
   let n = 0;
   for (let o = 0; o < img.data.length; o += 4) {
-    if (img.data[o + 3] >= 250) continue;
-    const m = Math.max(img.data[o], img.data[o + 2]);
-    if (img.data[o + 1] > m + 8) { img.data[o + 1] = m; n++; }
+    const a = img.data[o + 3];
+    if (a === 0) continue;
+    const r = img.data[o], g = img.data[o + 1], b = img.data[o + 2], m = Math.max(r, b);
+    // Saturated chroma-key green at any opacity is leftover ground, never clothing (olive and forest
+    // greens have g within ~30 of r or b). Drop it.
+    if (g - m > 40) { img.data[o + 3] = 0; n++; continue; }
+    if (a >= 250) continue;
+    // Semi-transparent haze left by an imperfect green-screen knockout (Round 3 figures): a greenish
+    // or neutral pixel well below full opacity is background, not person. Drop it entirely.
+    if (a < 200 && g >= m - 12) { img.data[o + 3] = 0; n++; continue; }
+    if (a < 40) { img.data[o + 3] = 0; n++; continue; }
+    if (g > m + 8) { img.data[o + 1] = m; n++; }
   }
   return n;
 }
 function trimTo(id, dest, mode, size, clean = false) {
-  const img = decodePNG(src(id)), b = alphaBBox(img), t = tmp();
-  if (clean) despill(img);
+  const img = decodePNG(src(id)), t = tmp();
+  if (clean) despill(img); // before the bounding box, so dropped haze does not widen the figure
+  const b = alphaBBox(img);
   encodePNG(crop(img, b.x, b.y, b.w, b.h), t, true);
   sips(mode === 'h' ? '--resampleHeight' : '--resampleWidth', String(size), t, '--out', dest);
   return { ...dims(dest), trimBox: b };
