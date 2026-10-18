@@ -3,7 +3,7 @@ import { load as loadYaml } from 'js-yaml';
 import Papa from 'papaparse';
 import type {
   Content, DialogueRow, Emotion, EventRow, Manifest, NewsRow, Npc, Questionnaire, Scene, Slot, Hotspot, CondField, Screen,
-  CastInfo, OverrideInfo, CultureId, Prop,
+  CastInfo, OverrideInfo, CultureId, Prop, Profile, ProfileOption, ProfileQuestion,
 } from './types';
 import { COND_FIELDS } from './types';
 import { DEFAULT_STRINGS } from './strings';
@@ -643,7 +643,7 @@ export async function loadContent(src: Source, opts: LoadOptions = {}): Promise<
     return v;
   };
 
-  const [scenesText, npcsText, eventsText, newsText, eodText, manifestText, stringsText, castText, images] = await Promise.all([
+  const [scenesText, npcsText, eventsText, newsText, eodText, manifestText, stringsText, castText, images, profileText] = await Promise.all([
     ov?.scenes !== undefined ? src.text('content/scenes.yaml') : need('content/scenes.yaml'),
     ov?.npcs !== undefined ? src.text('content/npcs.yaml') : need('content/npcs.yaml'),
     ov?.events !== undefined ? src.text('content/events.csv') : need('content/events.csv'),
@@ -653,7 +653,9 @@ export async function loadContent(src: Source, opts: LoadOptions = {}): Promise<
     src.text('content/strings.en.json'),
     src.text('content/cast.yaml'),
     useOverride ? loadImageOverrides() : Promise.resolve(new Map<string, { url: string; w?: number; h?: number }>()),
+    src.text('content/profile.yaml'),
   ]);
+  const profile = parseProfile(r, 'content/profile.yaml', profileText);
 
   const SCENES = 'content/scenes.yaml', NPCS = 'content/npcs.yaml', EVENTS = 'content/events.csv', NEWS = 'content/news.csv';
   const scenes = tryOverride('scenes', SCENES, ov?.scenes, parseScenes)
@@ -760,9 +762,67 @@ export async function loadContent(src: Source, opts: LoadOptions = {}): Promise<
   }
 
   return {
-    source: src.kind, scenes, sceneById, npcs, npcById, dialogue, events, news, eod, manifest, strings,
+    source: src.kind, scenes, sceneById, npcs, npcById, dialogue, events, news, eod, manifest, strings, profile,
     assetUrl: src.assetUrl, errors: r.errors, cast, override: info, imageOverrides: images,
   };
+}
+
+/** The built-in profile: the heritage question alone (content/profile.yaml absent or broken, fixtures). */
+export const DEFAULT_PROFILE: Profile = {
+  heritage: {
+    id: 'heritage',
+    question: 'What is the heritage culture that you most identify with before arriving in the US? If you were born in the US, what is the heritage culture that your parents most identify with?',
+    options: [{ id: 'cn', label: 'Chinese' }, { id: 'mx', label: 'Mexican' }, { id: 'in', label: 'Indian' }, { id: 'other', label: 'Another culture' }],
+  },
+  followups: {},
+};
+
+/** SPEC "Profile questions and variant words": content/profile.yaml. Problems are reported and the built-in profile used. */
+export function parseProfile(r: Reporter, file: string, text: string | null): Profile {
+  if (!text) return DEFAULT_PROFILE;
+  let doc: any;
+  try { doc = loadYaml(text); } catch (e) { r.error(file, `YAML error: ${(e as Error).message}`); return DEFAULT_PROFILE; }
+  const q = (raw: any, where: string, fixedId?: string): ProfileQuestion | null => {
+    if (!raw || typeof raw !== 'object' || typeof raw.question !== 'string' || !raw.question.trim()) { r.error(file, `${where}: needs a question`); return null; }
+    const id = fixedId ?? str(raw.id);
+    if (!/^\w+$/.test(id)) { r.error(file, `${where}: id "${id}" must be a word`); return null; }
+    const options: ProfileOption[] = [];
+    for (const [i, o] of (Array.isArray(raw.options) ? raw.options : []).entries()) {
+      if (!o || typeof o !== 'object' || !/^\w+$/.test(str(o.id)) || typeof o.label !== 'string' || !o.label.trim()) { r.error(file, `${where}.options[${i}]: needs id (a word) and label`); continue; }
+      options.push({ id: str(o.id), label: o.label.trim(), ...(o.skip ? { skip: true } : {}) });
+    }
+    if (!options.some((o) => !o.skip)) { r.error(file, `${where}: needs at least one option that is not skip`); return null; }
+    return { id, question: raw.question.trim(), options };
+  };
+  const heritage = q(doc?.heritage, 'heritage', 'heritage') ?? DEFAULT_PROFILE.heritage;
+  for (const o of heritage.options) if (!['cn', 'mx', 'in', 'other'].includes(o.id)) r.error(file, `heritage option "${o.id}": expected cn | mx | in | other`);
+  const followups: Profile['followups'] = {};
+  for (const [pack, list] of Object.entries(doc?.followups ?? {})) {
+    if (!(SCENE_PACKS as readonly string[]).includes(pack)) { r.error(file, `followups.${pack}: expected ${SCENE_PACKS.join(' | ')}`); continue; }
+    const qs = (Array.isArray(list) ? list : []).map((x: any, i: number) => q(x, `followups.${pack}[${i}]`)).filter((x): x is ProfileQuestion => !!x);
+    const ids = new Set<string>();
+    for (const fq of qs) { if (ids.has(fq.id) || fq.id === 'heritage') r.error(file, `followups.${pack}: duplicate question id "${fq.id}"`); ids.add(fq.id); }
+    followups[pack as CultureId] = qs;
+  }
+  return { heritage, followups };
+}
+
+/**
+ * SPEC "Profile questions and variant words": the {placeholders} of a player. `pack.<pack>.<name>` is the base word;
+ * `pack.<pack>|<dim>=<value>[|<dim>=<value>].<name>` applies when every listed dimension matches the player's
+ * variant answers, the most specific key winning (ties: the last key in file order).
+ */
+export function packVars(strings: Record<string, string>, pack: string, variant: Record<string, string> = {}): Record<string, string> {
+  const best = new Map<string, { n: number; v: string }>();
+  for (const [k, v] of Object.entries(strings)) {
+    const m = /^pack\.([a-z]+)((?:\|\w+=\w+)*)\.(\w+)$/.exec(k);
+    if (!m || m[1] !== pack) continue;
+    const cons = m[2] ? m[2].slice(1).split('|').map((c) => c.split('=')) : [];
+    if (!cons.every(([d, val]) => variant[d] === val)) continue;
+    const cur = best.get(m[3]);
+    if (!cur || cons.length >= cur.n) best.set(m[3], { n: cons.length, v });
+  }
+  return Object.fromEntries([...best].map(([k, { v }]) => [k, v]));
 }
 
 /** Scenes an NPC can be met in: appearances, painted variants and talk zones naming them, and events with that npc and a scene. */

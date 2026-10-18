@@ -206,6 +206,12 @@ button { font-family: inherit; }
 .choice.next { text-align: center; font-weight: 500; }
 .choice.dev-back { font-size: 13px; color: var(--muted); border-style: dashed; }
 .exit.locked { cursor: not-allowed; }
+/* the opening questions on the phone (SPEC "Profile questions and variant words"): the scene waits behind them */
+.profile-pending .scene-box { pointer-events: none; filter: saturate(.6) brightness(.85); }
+.ph-profile .ph-q { border: 0; padding: 0; margin: 14px 0 0; }
+.ph-profile .ph-q legend { font: 500 15px/1.4 var(--ui); margin-bottom: 6px; }
+.ph-profile .ph-opt { display: block; padding: 5px 0; font-size: 15px; cursor: pointer; }
+.ph-profile .ph-profile-note { min-height: 20px; }
 .chip {
   position: absolute; right: 12px; top: 12px; font-size: 12px; font-weight: 600; text-transform: capitalize;
   padding: 3px 10px; border-radius: 999px; background: #fff; color: var(--ink); border: 1.5px solid var(--muted);

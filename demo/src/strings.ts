@@ -43,6 +43,11 @@ export const DEFAULT_STRINGS: Record<string, string> = {
   'ui.end.export': 'Export log (.jsonl)',
   'ui.street': 'Where to?',
   'ui.next': 'Next',
+  'ui.profile.title': 'Before we start',
+  'ui.profile.intro': 'A couple of questions so the neighbourhood fits you. Only the research team sees the answers.',
+  'ui.profile.pick': 'Pick an answer to each question to begin.',
+  'ui.profile.begin': 'Begin',
+  'ui.profile.otherCulture': 'The demo has Chinese, Mexican and Indian neighbourhoods so far; you will play the Chinese one.',
   'ui.back': 'Back',
   // dev only (SPEC "Dev: editing a line in place"); never shown to participants
   'ui.dev.edit': 'edit',

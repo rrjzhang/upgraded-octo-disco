@@ -307,6 +307,8 @@
           el('span', { class: 'small' }, el('span', { class: 'id', text: l.rule }), l.trigger ? T(` · trigger ${l.trigger}`) : null,
             e ? T(` · ${e.valence} ${e.proximity}, ${e.source}→${e.target}`) : null, l.delta ? T(` · ${fmtDelta(l.delta)}`) : null)];
       }
+      case 'profile':
+        return [el('span', { class: 'who', text: 'Profile: ' }), T(`heritage ${l.heritage || '?'} → pack ${l.pack || '?'}` + (l.variant && Object.keys(l.variant).length ? `, ${Object.entries(l.variant).map(([k, v]) => `${k} ${v}`).join(', ')}` : ', no variant'))];
       case 'beat':
         return [el('span', { class: 'who', text: 'Next: ' }), T(`beat ${l.beat} of the line`), el('span', { class: 'small' }, el('span', { class: 'id', text: l.rule }))];
       case 'dev':

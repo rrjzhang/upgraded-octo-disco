@@ -1,0 +1,25 @@
+# Opening questions on the phone (SPEC "Profile questions and variant words"). Asked once, before day 1 begins; the
+# phone opens by itself and nothing else can be done until they are answered. The heritage answer sets the player's
+# culture pack; a follow-up answer sets a variant dimension that picks variant words in strings.en.json
+# (`pack.in|region=south.homeFestival`). An option with `skip: true` leaves its dimension unset (the base word is used).
+heritage:
+  question: "What is the heritage culture that you most identify with before arriving in the US? If you were born in the US, what is the heritage culture that your parents most identify with?"
+  options:
+    - { id: cn, label: "Chinese" }
+    - { id: mx, label: "Mexican" }
+    - { id: in, label: "Indian" }
+    - { id: other, label: "Another culture" }
+followups:
+  in:
+    - id: region
+      question: "Which part of India is your family mostly from?"
+      options:
+        - { id: north, label: "North India" }
+        - { id: south, label: "South India" }
+        - { id: skip, label: "Elsewhere in India, or I'd rather not say", skip: true }
+    - id: faith
+      question: "Which religious tradition, if any, did you grow up with?"
+      options:
+        - { id: hindu, label: "Hindu" }
+        - { id: muslim, label: "Muslim" }
+        - { id: skip, label: "Another tradition, none, or I'd rather not say", skip: true }

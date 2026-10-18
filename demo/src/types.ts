@@ -232,6 +232,7 @@ export interface Content {
   eod: Questionnaire;
   manifest: Manifest;
   strings: Record<string, string>;
+  profile: Profile;
   assetUrl: (file: string) => string;
   errors: string[];
   /** cast id -> display name and role (content/cast.yaml, falling back to the manifest) */
@@ -261,9 +262,20 @@ export interface RoomConfig {
   maxPresent?: number;
 }
 
+/** SPEC "Profile questions and variant words": the opening questions on the phone (content/profile.yaml). */
+export interface ProfileOption { id: string; label: string; /** leaves the dimension unset (the base word is used) */ skip?: boolean }
+export interface ProfileQuestion { id: string; question: string; options: ProfileOption[] }
+export interface Profile { heritage: ProfileQuestion; followups: Partial<Record<CultureId, ProfileQuestion[]>> }
+
 export interface PlayerInfo {
   name: string;
   homeCulture: CultureId;
+  /** the heritage option chosen on the phone (cn | mx | in | other); homeCulture is cn for `other` */
+  heritage?: string;
+  /** follow-up answers that pick variant words: { region: 'south', faith: 'muslim' } (skipped dimensions absent) */
+  variant?: Record<string, string>;
+  /** the opening questions have not been answered yet: the phone is open on them and the day has not begun */
+  profilePending?: boolean;
   /** The effective culture pack (SPEC "Packs"): homeCulture when the content has that pack, else cn. Recomputed on load. */
   pack: CultureId;
   language: string;

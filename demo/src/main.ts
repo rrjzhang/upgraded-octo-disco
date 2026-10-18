@@ -35,11 +35,8 @@ function startGame(content: Content, room: RoomRecord, player?: PlayerInfo): voi
 
 function setupForm(content: Content, room: RoomRecord): void {
   const name = h('input', { id: 'pname', type: 'text', required: true, maxlength: 40, autocomplete: 'off' });
-  const cultures: [CultureId, string][] = [['cn', 'China'], ['mx', 'Mexico'], ['in', 'India']];
-  const radios = h('fieldset', { class: 'radios' }, h('legend', { text: 'Home culture' }),
-    ...cultures.map(([id, label], i) => h('label', {},
-      h('input', { type: 'radio', name: 'culture', value: id, checked: i === 0 }), ` ${label}`,
-      effectivePack(content, id) !== id ? h('span', { class: 'muted', text: ' (pack not in demo; China roster used)' }) : null)));
+  // the home culture is no longer asked here: the phone asks the heritage question (and its follow-ups) when the game
+  // opens (SPEC "Profile questions and variant words")
   const lang = h('select', { id: 'plang' },
     ...['English', 'Mandarin Chinese', 'Spanish', 'Hindi', 'Other'].map((l) => h('option', { value: l, text: l })));
   const elig = h('input', { id: 'pelig', type: 'checkbox' });
@@ -48,7 +45,6 @@ function setupForm(content: Content, room: RoomRecord): void {
     h('h1', { text: 'Your character' }),
     h('p', { class: 'muted', text: `Room ${room.code}` }),
     h('label', { for: 'pname', text: 'Display name' }), name,
-    radios,
     h('label', { for: 'plang', text: 'Language you mostly speak at home (recorded only)' }), lang,
     h('label', { class: 'check' }, elig, ' I confirm I am eligible to take part in this study and agree to my choices being recorded.'),
     err,
@@ -57,8 +53,7 @@ function setupForm(content: Content, room: RoomRecord): void {
     e.preventDefault();
     if (!name.value.trim()) { err.textContent = 'Please enter a display name.'; name.focus(); return; }
     if (!elig.checked) { err.textContent = 'Please confirm eligibility to continue.'; elig.focus(); return; }
-    const culture = (form.querySelector<HTMLInputElement>('input[name=culture]:checked')?.value ?? 'cn') as CultureId;
-    startGame(content, room, { name: name.value.trim(), homeCulture: culture, pack: effectivePack(content, culture), language: lang.value, eligible: true });
+    startGame(content, room, { name: name.value.trim(), homeCulture: 'cn', pack: 'cn', language: lang.value, eligible: true, profilePending: true });
   });
   app.replaceChildren(h('div', { class: 'form-page' }, form));
   name.focus();
@@ -113,8 +108,14 @@ async function main(): Promise<void> {
       const st = loadState(code);
       if (st && st.config.nationalLeader !== leader) { st.config = room.config; saveState(st); }
     }
+    // &culture=cn|mx|in skips the opening questions (&region=, &faith= set the variant); &profile=1 asks them
     const culture = (['cn', 'mx', 'in'].includes(params.get('culture') ?? '') ? params.get('culture') : 'cn') as CultureId;
-    startGame(content, room, { name: params.get('name') ?? 'Alex', homeCulture: culture, pack: effectivePack(content, culture), language: 'English', eligible: true });
+    const variant: Record<string, string> = {};
+    for (const dim of ['region', 'faith']) if (params.get(dim)) variant[dim] = params.get(dim)!;
+    startGame(content, room, {
+      name: params.get('name') ?? 'Alex', homeCulture: culture, pack: effectivePack(content, culture), language: 'English', eligible: true,
+      heritage: culture, variant, profilePending: params.get('profile') === '1',
+    });
     return;
   }
   roomForm(content);

@@ -1,6 +1,6 @@
 /** The game runtime: state transitions + plain-DOM rendering of the 1440x900 stage. */
 import type {
-  Content, DialogueRow, Questionnaire, Emotion, EventRow, GameState, Hotspot, ModuleId, NewsRow, Npc, Prop, Scene, Screen, Slot,
+  Content, CultureId, DialogueRow, Questionnaire, Emotion, EventRow, GameState, Hotspot, ModuleId, NewsRow, Npc, Prop, Scene, Screen, Slot,
 } from './types';
 import {
   DAY_ACTIONS, DEFAULT_TALKS_PER_DAY, DEMO_DAYS, FEATURES, applyEffects, dayPhaseOf, eventMatches, leanOf, optionCharge, phaseOf, selectRow,
@@ -10,7 +10,7 @@ import {
 import { appendLog, debugEnabled, getRoom, readLog, saveState } from './store';
 import {
   assetEntry, dialogueCsvFromRows, effectivePack, figureHeight, isSeatedFigure, liveSource, overrideForWrite, overrideIds, parseDialogueQuiet,
-  patchDialogueRow, questionnaireProblems, rowInPack, sceneInPack, storeOverride,
+  patchDialogueRow, packVars, questionnaireProblems, rowInPack, sceneInPack, storeOverride,
 } from './content';
 import { SILHOUETTE_BUST, appUrl, downloadText, h, isDev, params, seeded, silhouetteFigure, subst } from './util';
 import { matrix3d } from './homography';
@@ -54,7 +54,9 @@ export class Game {
   private panel: Panel = { kind: 'idle' };
   private queue: EventRow[] = [];
   private phoneOpen = false;
-  private phoneTab: 'journal' | 'contacts' | 'wallet' | 'call' = 'journal';
+  private phoneTab: 'journal' | 'contacts' | 'wallet' | 'call' | 'profile' = 'journal';
+  /** answers in progress on the opening questions (SPEC "Profile questions and variant words") */
+  private profileDraft: Record<string, string> = {};
   private win: OpenWindow | null = null;
   private stage: HTMLElement;
   private top!: HTMLElement;
@@ -112,6 +114,13 @@ export class Game {
     if (this.s.finished) {
       this.render();
       this.renderEnd();
+      return;
+    }
+    // SPEC "Profile questions and variant words": the opening questions come first; the day begins once they are answered
+    if (this.s.player.profilePending) {
+      this.phoneOpen = true;
+      this.phoneTab = 'profile';
+      this.render();
       return;
     }
     // a conversation open when the page went away (reload, closed tab) resumes on the row it was on (SPEC "Conversation
@@ -197,10 +206,9 @@ export class Game {
   private vars(): Record<string, string> {
     const leader = this.c.npcById.get(`nat_${this.s.config.nationalLeader}`);
     // SPEC "Packs": strings `pack.<pack>.<name>` become {name} for players of that pack ({homeCenter}, {chessRival}, ...)
-    const pre = `pack.${this.s.player.pack}.`;
-    const packVars = Object.fromEntries(Object.entries(this.c.strings).filter(([k]) => k.startsWith(pre)).map(([k, v]) => [k.slice(pre.length), v]));
+    // and `pack.<pack>|<dim>=<value>.<name>` variant words chosen by the profile answers (SPEC "Profile questions and variant words")
     return {
-      ...packVars,
+      ...packVars(this.c.strings, this.s.player.pack, this.s.player.variant),
       homeCulture: CULTURE_NAMES[this.s.player.pack] ?? 'Chinese',
       playerName: this.s.player.name || 'you',
       leaderName: leader?.name ?? 'the President',
@@ -1420,6 +1428,7 @@ export class Game {
     const sc = this.scene;
     const box = this.sceneBox;
     box.replaceChildren();
+    this.stage.classList.toggle('profile-pending', !!this.s.player.profilePending);
     box.dataset.lighting = sc.lighting ?? '';
     box.classList.toggle('evening', phaseOf(this.s.actions) === 'evening');
     box.classList.toggle('is-tired', this.tired());
@@ -1569,8 +1578,9 @@ export class Game {
   private renderStrip(): void {
     const sc = this.scene;
     const exits = h('div', { class: 'exits' });
-    // SPEC "Conversation end": the exits are locked while a conversation is on screen (every row has a leave option)
-    const locked = this.panel.kind === 'dialogue';
+    // SPEC "Conversation end": the exits are locked while a conversation is on screen (every row has a leave option);
+    // and while the opening questions are on the phone
+    const locked = this.panel.kind === 'dialogue' || !!this.s.player.profilePending;
     const why = (blocked: boolean) => (blocked ? this.str('ui.tired') : locked ? this.str('ui.inConversation') : null);
     for (const ex of this.exitsOf(sc)) {
       const blocked = this.moveBlocked(ex.to);
@@ -1786,6 +1796,7 @@ export class Game {
     const el = this.phoneEl;
     el.hidden = !this.phoneOpen;
     if (!this.phoneOpen) return;
+    if (this.s.player.profilePending) return this.renderProfile();
     const callOk = this.s.actions <= 0;
     const tabs: [typeof this.phoneTab, string, boolean][] = [
       ['journal', this.str('ui.phone.journal'), true],
@@ -1847,6 +1858,60 @@ export class Game {
         h('span', { text: this.str('ui.phone') }),
         h('button', { class: 'ph-close', 'aria-label': this.str('ui.close'), onclick: () => { this.phoneOpen = false; this.renderPhone(); this.renderStrip(); }, text: '×' })),
       tabBar, pane);
+  }
+
+  // ------------------------------------------------------------------ opening questions (SPEC "Profile questions and variant words")
+  /** The phone, open on the profile questions and nothing else: heritage first, then that pack's follow-ups. */
+  private renderProfile(): void {
+    const el = this.phoneEl;
+    const prof = this.c.profile;
+    const draft = this.profileDraft;
+    const pane = h('div', { class: 'ph-pane ph-profile', role: 'group', 'aria-label': this.str('ui.profile.title') });
+    const ask = (q: { id: string; question: string; options: { id: string; label: string }[] }) => {
+      const fs = h('fieldset', { class: 'ph-q' }, h('legend', { text: q.question }));
+      for (const o of q.options) {
+        const input = h('input', { type: 'radio', name: `prof-${q.id}`, value: o.id, 'data-fk': `prof:${q.id}:${o.id}` }) as HTMLInputElement;
+        input.checked = draft[q.id] === o.id;
+        input.addEventListener('change', () => { draft[q.id] = o.id; if (q.id === 'heritage') for (const k of Object.keys(draft)) if (k !== 'heritage') delete draft[k]; this.renderPhone(); });
+        fs.append(h('label', { class: 'ph-opt' }, input, ` ${o.label}`));
+      }
+      return fs;
+    };
+    pane.append(h('p', { class: 'ph-hint', text: this.str('ui.profile.intro') }), ask(prof.heritage));
+    const heritage = draft.heritage;
+    const followups = heritage ? prof.followups[heritage as CultureId] ?? [] : [];
+    for (const q of followups) pane.append(ask(q));
+    const ready = !!heritage && followups.every((q) => !!draft[q.id]);
+    const note = h('p', { class: 'ph-hint ph-profile-note', text: ready ? '' : this.str('ui.profile.pick') });
+    pane.append(note, h('div', { class: 'ph-row' },
+      h('button', { class: 'btn', 'data-fk': 'prof:begin', disabled: !ready, onclick: () => this.completeProfile(), text: this.str('ui.profile.begin') })));
+    el.replaceChildren(h('div', { class: 'ph-head' }, h('span', { text: this.str('ui.profile.title') })), pane);
+  }
+
+  /** The answers become the player's pack and variant; logged as `profile`; then the first day begins. */
+  private completeProfile(): void {
+    const prof = this.c.profile, draft = this.profileDraft, p = this.s.player;
+    const heritage = draft.heritage;
+    if (!heritage) return;
+    const followups = prof.followups[heritage as CultureId] ?? [];
+    if (!followups.every((q) => !!draft[q.id])) return;
+    const variant: Record<string, string> = {};
+    for (const q of followups) {
+      const o = q.options.find((x) => x.id === draft[q.id]);
+      if (o && !o.skip) variant[q.id] = o.id;
+    }
+    p.heritage = heritage;
+    p.homeCulture = (['cn', 'mx', 'in'].includes(heritage) ? heritage : 'cn') as CultureId;
+    p.pack = effectivePack(this.c, p.homeCulture);
+    p.variant = variant;
+    p.profilePending = false;
+    this.profileDraft = {};
+    appendLog(this.s, { type: 'profile', heritage, homeCulture: p.homeCulture, pack: p.pack, variant });
+    this.phoneOpen = false;
+    this.phoneTab = 'journal';
+    if (heritage === 'other') this.panel = { kind: 'idle', note: this.str('ui.profile.otherCulture') };
+    this.save();
+    this.start();
   }
 
   private renderEnd(): void {

@@ -45,7 +45,7 @@ scenes:
           textByPack:   # SPEC "Content schemas": names the objects the pack's living room adds (requests 194-199)
             cn: "Paperbacks, a rice cooker manual you keep meaning to throw out, the little red knot your mother tied hanging off the middle shelf, and a photo of your parents at someone's wedding."
             mx: "Paperbacks, a small black clay vase your aunt carried up from Oaxaca wrapped in three sweaters, and a photo of your parents at someone's wedding."
-            in: "Paperbacks, a small brass diya that only gets lit at Diwali, and a photo of your parents at someone's wedding."
+            in: "Paperbacks, a small brass oil lamp your mother packed for you, still unlit, and a photo of your parents at someone's wedding."
       - id: window
         label: "Window"
         zone: { x: 0.63, y: 0.00, w: 0.17, h: 0.35 }

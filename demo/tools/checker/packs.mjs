@@ -6,6 +6,45 @@ const PACKS = ['cn', 'mx', 'in'];
 /** Placeholders the engine fills for every player; `pack.<pack>.<name>` strings add per-pack ones. */
 const BUILTIN_VARS = ['homeCulture', 'playerName', 'leaderName'];
 
+/** A strings.en.json key: `pack.<pack>.<name>` or `pack.<pack>|<dim>=<value>[|...].<name>` (SPEC "Profile questions and variant words"). */
+export const PACK_KEY = /^pack\.([^.|]+)((?:\|\w+=\w+)*)\.(\w+)$/;
+
+/**
+ * content/profile.yaml -> { dims: { in: { region: Set(north, south), faith: Set(hindu, muslim) } } } (skip options left
+ * out), with schema problems reported; null when the file is absent.
+ */
+export function parseProfile(text, diag) {
+  if (text == null) return null;
+  let doc;
+  try { doc = yaml.load(text); } catch (e) { diag.error('YAML_PARSE', 'profile.yaml', { line: e.mark ? e.mark.line + 1 : undefined }, e.reason || e.message); return null; }
+  const dims = {};
+  const checkQ = (q, where, needId) => {
+    if (!q || typeof q !== 'object' || typeof q.question !== 'string' || !q.question.trim()) { diag.error('SCHEMA', 'profile.yaml', { path: where }, 'needs a question'); return null; }
+    if (needId && !/^\w+$/.test(String(q.id ?? ''))) { diag.error('SCHEMA', 'profile.yaml', { path: where }, 'needs an id (a word)'); return null; }
+    const opts = Array.isArray(q.options) ? q.options : [];
+    const ids = [];
+    opts.forEach((o, i) => {
+      if (!o || typeof o !== 'object' || !/^\w+$/.test(String(o.id ?? '')) || typeof o.label !== 'string' || !o.label.trim()) diag.error('SCHEMA', 'profile.yaml', { path: `${where}.options[${i}]` }, 'needs id (a word) and label');
+      else if (!o.skip) ids.push(String(o.id));
+    });
+    if (!ids.length) diag.error('SCHEMA', 'profile.yaml', { path: where }, 'needs at least one option that is not skip');
+    return ids;
+  };
+  const h = checkQ(doc?.heritage, 'heritage', false) || [];
+  for (const id of h) if (!['cn', 'mx', 'in', 'other'].includes(id)) diag.error('BAD_VALUE', 'profile.yaml', { path: 'heritage.options' }, `option "${id}"; expected cn | mx | in | other`);
+  for (const [pack, list] of Object.entries(doc?.followups ?? {})) {
+    if (!PACKS.includes(pack)) { diag.error('BAD_VALUE', 'profile.yaml', { path: `followups.${pack}` }, `pack "${pack}"; expected ${PACKS.join('|')}`); continue; }
+    dims[pack] = {};
+    (Array.isArray(list) ? list : []).forEach((q, i) => {
+      const ids = checkQ(q, `followups.${pack}[${i}]`, true);
+      if (!ids) return;
+      if (dims[pack][q.id] || q.id === 'heritage') diag.error('DUPLICATE_ID', 'profile.yaml', { path: `followups.${pack}[${i}].id` }, `duplicate question id "${q.id}"`);
+      dims[pack][q.id] = new Set(ids);
+    });
+  }
+  return { dims };
+}
+
 /** SPEC "Packs": the variant group of an events.csv / news.csv id (the id without a trailing _cn | _mx | _in). */
 export const packGroup = (id) => String(id).replace(/_(cn|mx|in)$/, '');
 
@@ -93,15 +132,33 @@ export function checkPacks({ files, diag, scenes, npcs, events, news, sheets }) 
   if (files['strings.en.json'] != null) {
     try { strings = JSON.parse(files['strings.en.json']); } catch (e) { diag.error('JSON_PARSE', 'strings.en.json', {}, e.message); }
   }
-  const packVarNames = new Map(); // name -> Set(packs)
+  const profile = parseProfile(files['profile.yaml'], diag);
+  const packVarNames = new Map(); // name -> Set(packs) with a base (unconstrained) word
+  const allVarNames = new Set();
   if (strings) {
+    const constrained = []; // [pack, name, key]
     for (const k of Object.keys(strings)) {
-      const m = /^pack\.([^.]+)\.(\w+)$/.exec(k);
-      if (!m) continue;
+      if (!k.startsWith('pack.')) continue;
+      const m = PACK_KEY.exec(k);
+      if (!m) { diag.error('BAD_VALUE', 'strings.en.json', { path: k }, 'expected pack.<pack>.<name> or pack.<pack>|<dim>=<value>.<name>'); continue; }
       if (!PACKS.includes(m[1])) { diag.error('BAD_VALUE', 'strings.en.json', { path: k }, `pack "${m[1]}"; expected ${PACKS.join('|')}`); continue; }
-      if (!packVarNames.has(m[2])) packVarNames.set(m[2], new Set());
-      packVarNames.get(m[2]).add(m[1]);
+      allVarNames.add(m[3]);
+      if (!m[2]) {
+        if (!packVarNames.has(m[3])) packVarNames.set(m[3], new Set());
+        packVarNames.get(m[3]).add(m[1]);
+        continue;
+      }
+      constrained.push([m[1], m[3], k]);
+      // SPEC "Profile questions and variant words": every <dim>=<value> must be a follow-up question and a non-skip option of that pack
+      const dims = profile?.dims?.[m[1]];
+      for (const c of m[2].slice(1).split('|')) {
+        const [d, v] = c.split('=');
+        if (!profile) continue; // no profile.yaml in the input: nothing to check against
+        if (!dims || !dims[d]) diag.error('BAD_VALUE', 'strings.en.json', { path: k }, `"${d}" is not a follow-up question for pack ${m[1]} in profile.yaml (${dims ? Object.keys(dims).join(', ') || 'none' : 'no follow-ups'})`);
+        else if (!dims[d].has(v)) diag.error('BAD_VALUE', 'strings.en.json', { path: k }, `"${v}" is not an option of ${m[1]}.${d} (${[...dims[d]].join(', ')})`);
+      }
     }
+    for (const [p, name, k] of constrained) if (!packVarNames.get(name)?.has(p)) diag.warn('PACK_GAP', 'strings.en.json', { path: k }, `variant word without a base: add pack.${p}.${name} for players who skipped or answered differently`);
     for (const [name, ps] of packVarNames) {
       const missing = PACKS.filter(p => !ps.has(p));
       if (missing.length) diag.warn('PACK_GAP', 'strings.en.json', { path: `pack.*.${name}` }, `{${name}} is defined for ${[...ps].join(', ')} but not ${missing.join(', ')}; those players would see "{${name}}"`);
@@ -144,7 +201,7 @@ export function checkPacks({ files, diag, scenes, npcs, events, news, sheets }) 
   }
   if (strings) for (const [k, v] of Object.entries(strings)) {
     if (k.startsWith('culture.') || typeof v !== 'string') continue; // the culture names are labels, shown on purpose
-    const m = /^pack\.([^.]+)\./.exec(k);
+    const m = PACK_KEY.exec(k);
     add('strings.en.json', { path: k }, m && PACKS.includes(m[1]) ? m[1] : null, 'value', v);
   }
   if (files['questionnaire/eod.json'] != null) {
@@ -161,7 +218,7 @@ export function checkPacks({ files, diag, scenes, npcs, events, news, sheets }) 
 
   // ---- placeholders the engine cannot fill (only when strings.en.json is part of the input)
   if (strings) {
-    const known = new Set([...BUILTIN_VARS, ...packVarNames.keys()]);
+    const known = new Set([...BUILTIN_VARS, ...allVarNames]);
     for (const t of texts) {
       if (t.rel === 'strings.en.json' || t.rel.startsWith('questionnaire/')) continue; // UI strings and {H}/{M} have their own placeholders
       const unknown = [...new Set([...t.text.matchAll(/\{(\w+)\}/g)].map(m => m[1]).filter(n => !known.has(n)))];
