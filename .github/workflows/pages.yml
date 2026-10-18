@@ -1,4 +1,4 @@
-name: Deploy demo to GitHub Pages
+name: Build demo and publish to gh-pages
 
 on:
   push:
@@ -6,9 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
@@ -33,16 +31,10 @@ jobs:
         env:
           BASE: /${{ github.event.repository.name }}/
       - run: touch dist/.nojekyll
-      - uses: actions/upload-pages-artifact@v3
+      # Publish the build to the gh-pages branch; Pages serves that branch (Settings → Pages → Deploy from a branch → gh-pages / root).
+      - uses: peaceiris/actions-gh-pages@v4
         with:
-          path: demo/dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./demo/dist
+          publish_branch: gh-pages
+          force_orphan: true
