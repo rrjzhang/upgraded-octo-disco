@@ -1,0 +1,2 @@
+id,source,target,valence,proximity,trigger,scene,npc,minRapport,playerLean,nationalLeader,chance,cost,emotion,text,choice1,effect1,choice2,effect2
+E_KNOCK,us,home,positive,proximal,enter,home,frank,,,,0.5,0,warm,Frank knocks with a newspaper.,Thanks,rapport +1,,

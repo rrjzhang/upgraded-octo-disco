@@ -1,0 +1,28 @@
+npcs:
+  - id: erin
+    name: Erin
+    pack: shared
+    community: us
+    role: neighbor
+    stance: none
+    portrait: ch_erin
+    figure: ch_erin_fig_stand
+    seated: false
+    appearances:
+      - { scene: home, slot: left, chance: 1.0 }
+      - { scene: park, slot: stand, chance: 1.0 }
+    initial: { met: false, rapport: 0, lastValence: none }
+  - id: frank
+    name: Frank
+    pack: shared
+    community: us
+    role: stranger
+    stance: none
+    portrait: ch_frank
+    figure: ch_frank_fig_sit
+    seated: true
+    appearances:
+      - { scene: park, slot: bench, chance: 1.0 }
+      - { scene: park, slot: stand, chance: 0.5 }                                   # SEATED_SLOT: seated default figure on a standing slot
+      - { scene: work, slot: desk, chance: 0.5, figure: ch_frank_fig_stand }       # fine: a standing figure named on the appearance
+    initial: { met: false, rapport: 0, lastValence: none }

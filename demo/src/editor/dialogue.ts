@@ -1,5 +1,5 @@
 /** Dialogue tab: one NPC's sheet as an editable table, with a follow-up tree and live checker validation. */
-import { DIMS, EMOTIONS, NCELLS, parseCondition, type CheckResult, type Diagnostic, type NpcResult } from '../../tools/checker/core.mjs';
+import { DIMS, EMOTIONS, NCELLS, parseCondition, sceneList, type CheckResult, type Diagnostic, type NpcResult } from '../../tools/checker/core.mjs';
 import { h } from './dom';
 import type { Row, Table } from './csv';
 import type { Doc } from './model';
@@ -83,9 +83,9 @@ export class DialogueTab {
     } else {
       const thead = h('thead', {}, h('tr', {},
         h('th', { text: '' }), h('th', { text: 'id' }),
-        h('th', { text: 'conditions · priority · emotion' }), h('th', { class: 'wide', text: 'line' }),
+        h('th', { text: 'conditions · scene · priority · emotion' }), h('th', { class: 'wide', text: 'line' }),
         h('th', { class: 'wide', text: 'choices (text · effect · next)' }), h('th', { text: '' })));
-      wrap.append(h('table', { class: 'sheet' }, thead, this.tbody));
+      wrap.append(h('table', { class: 'sheet' }, thead, this.tbody), this.sceneHints());
       this.renderRows();
     }
     this.el.replaceChildren(this.head, h('div', { class: 'split' }, wrap, this.side));
@@ -126,7 +126,10 @@ export class DialogueTab {
         ...COND.slice(0, 2).map((c, di) => h('label', { class: 'cf' }, h('span', { text: COND_LABEL[c] }), condCell(c, di))),
         h('label', { class: 'cf' }, h('span', { text: 'priority' }), h('input', { ...at('priority'), class: 'prio', value: r.priority, size: 3, 'aria-label': `${r.id} priority` })),
         h('label', { class: 'cf' }, h('span', { text: 'emotion' }), selectEl(EMOTIONS, r.emotion ?? '', { ...at('emotion'), 'aria-label': `${r.id} emotion` })),
-        ...COND.slice(2).map((c, di) => h('label', { class: 'cf' }, h('span', { text: COND_LABEL[c] }), condCell(c, di + 2))))),
+        ...COND.slice(2).map((c, di) => h('label', { class: 'cf' }, h('span', { text: COND_LABEL[c] }), condCell(c, di + 2))),
+        // SPEC "Dialogue location": blank = anywhere, else scene ids joined by |
+        h('label', { class: 'cf cf-scene', title: 'Scene: blank = anywhere; one scene id, or several joined by |' }, h('span', { text: 'scene' }),
+          h('input', { ...at('scene'), class: 'scene-in', value: r.scene ?? '', list: `scene-hints-${this.npc}`, placeholder: 'anywhere', 'aria-label': `${r.id} scene` })))),
       h('td', { class: 'wide' }, h('textarea', { ...at('line'), rows: 3, 'aria-label': `${r.id} line` }, r.line ?? '')),
       h('td', { class: 'wide' }, choices),
       h('td', { class: 'acts' },
@@ -155,6 +158,7 @@ export class DialogueTab {
       if (!set(e)) return;
       const el = e.target as HTMLInputElement;
       if (el.dataset.c === 'rapport') this.checkRapport(el);
+      if (el.dataset.c === 'scene') this.checkScene(el);
       this.ctx.changed();
     });
     tb.addEventListener('change', (e) => {
@@ -186,6 +190,28 @@ export class DialogueTab {
     const err = v === '' ? null : parseCondition(1, v).error;
     el.classList.toggle('cell-err', !!err);
     el.title = err ?? '';
+  }
+
+  /** live hint while typing; the checker's UNKNOWN_SCENE / SCENE_NOT_APPEARED errors follow on validation */
+  private checkScene(el: HTMLInputElement): void {
+    const ids = new Set(this.ctx.model.scenes.map((s) => s.id));
+    const here = new Set(this.ctx.model.npcs.find((n) => n.id === this.npc)?.scenes ?? []);
+    const parts = sceneList(el.value);
+    const unknown = parts.filter((p) => !ids.has(p));
+    const away = parts.filter((p) => ids.has(p) && !here.has(p));
+    const err = unknown.length ? `not a scene id: ${unknown.join(', ')}` : away.length ? `${this.npc} has no appearance in ${away.join(', ')} (fine only if an event brings them there)` : '';
+    el.classList.toggle('cell-err', !!unknown.length);
+    el.classList.toggle('cell-warn', !unknown.length && !!away.length);
+    el.title = err;
+  }
+
+  /** suggestions for the scene cell: this NPC's scenes first, then |-joined pairs of them, then every other scene */
+  private sceneHints(): HTMLElement {
+    const m = this.ctx.model;
+    const mine = m.npcs.find((n) => n.id === this.npc)?.scenes ?? [];
+    const pairs = mine.flatMap((a, i) => mine.slice(i + 1).map((b) => `${a}|${b}`));
+    const others = m.scenes.map((s) => s.id).filter((id) => !mine.includes(id));
+    return h('datalist', { id: `scene-hints-${this.npc}` }, ...[...mine, ...pairs, ...others].map((v) => h('option', { value: v })));
   }
 
   private say(text: string, kind: 'ok' | 'err' = 'ok'): void {
@@ -343,11 +369,28 @@ export class DialogueTab {
         stat('dangling next', String(has('DANGLING_NEXT').length), !!has('DANGLING_NEXT').length),
         stat('unreachable', String(nr?.unreachable?.length ?? 0), !!nr?.unreachable?.length),
         stat('never win', String(nr?.neverWins?.length ?? 0), !!nr?.neverWins?.length),
-        stat('over budget', String(nr?.overBudget?.length ?? 0), !!nr?.overBudget?.length)),
-      h('p', { class: 'muted small', text: `Coverage = share of the ${NCELLS} parameter cells won by a non-fallback row.` }),
+        stat('over budget', String(nr?.overBudget?.length ?? 0), !!nr?.overBudget?.length),
+        stat(`unreachable at ${nr?.maxTalks ?? 1} talk/day`, String(nr?.limitUnreachable?.length ?? 0), !!nr?.limitUnreachable?.length)),
+      h('p', { class: 'muted small', text: `Coverage = share of the ${NCELLS} parameter cells won by a non-fallback row, in the weakest scene a conversation can start in. Reachability assumes at most ${nr?.maxTalks ?? 1} conversation(s) per person per day over 5 days (Talks/day in the header).` }),
+      this.scenePanel(nr),
       diagList(mine, (x) => this.pickDiag(x)),
       others.length ? h('p', { class: 'd-err small', text: `${others.length} error(s) in other files (${[...new Set(others.map((o) => o.file))].join(', ')}).` }) : null);
     this.side.replaceChildren(summary, this.selectedPanel(nr), this.treePanel(nr));
+  }
+
+  /** SPEC "Dialogue location": completeness per scene this NPC can be met in */
+  private scenePanel(nr: NpcResult | undefined): HTMLElement | null {
+    const list = nr?.scenes;
+    if (!list?.length) return null;
+    const talk = new Set(nr?.talkScenes ?? []);
+    return h('table', { class: 'scenes-tbl small' },
+      h('thead', {}, h('tr', {}, ...['scene', 'coverage', 'no row', 'ties', 'rows only here'].map((t) => h('th', { text: t })))),
+      h('tbody', {}, ...list.map((sc) => h('tr', {},
+        h('td', { text: sc.scene == null ? '(anywhere)' : `${sc.scene}${talk.has(sc.scene) ? '' : ' (events only)'}` }),
+        h('td', { text: `${(sc.coverage * 100).toFixed(1)}%` }),
+        h('td', { class: sc.noMatch ? 'd-err' : '', text: String(sc.noMatch) }),
+        h('td', { class: sc.ties.length ? 'd-err' : '', text: String(sc.ties.length) }),
+        h('td', { text: sc.located.join(', ') || '–' })))));
   }
 
   private pickDiag(x: Diagnostic): void {
@@ -369,10 +412,10 @@ export class DialogueTab {
     const ds = this.lastDiag.get(this.sel) ?? [];
     return h('section', { class: 'panel' },
       h('h3', {}, `Selected row `, h('code', { text: r.id || '(no id)' })),
-      h('p', { class: 'small' }, `Wins ${wins} of ${NCELLS} cells · conversation depth ${dep ?? '–'}${dep != null && dep < 3 ? ' (free to talk: depth < 3)' : ''}`),
+      h('p', { class: 'small' }, `${r.scene ? `Only in ${sceneList(r.scene).join(', ')} · ` : ''}Wins ${wins} cells (all scenes) · conversation depth ${dep ?? '–'}${dep != null && dep < 3 ? ' (free to talk: depth < 3)' : ''}`),
       h('div', { class: 'witness' },
         h('div', { class: 'muted small', text: info?.witness ? `Cheapest path: ${info.cost} action(s)` : 'Witness path' }),
-        h('code', { text: info?.witness ?? (nr?.skipped ? '(not analysed)' : 'unreachable: no sequence of choices or events reaches this row') })),
+        h('code', { text: info?.witness ?? (nr?.skipped ? '(not analysed)' : info?.witnessNoLimit ? `unreachable with ${nr?.maxTalks ?? 1} conversation(s) per day; without the limit (${info.costNoLimit} action(s)): ${info.witnessNoLimit}` : 'unreachable: no sequence of choices or events reaches this row') })),
       ds.length ? diagList(ds) : null);
   }
 
@@ -395,6 +438,7 @@ export class DialogueTab {
       const line = h('button', { class: `tnode${t.rows[this.sel]?.id === id ? ' on' : ''}`, onclick: () => this.selectId(id) },
         h('span', { class: 'via', text: via }),
         h('b', { text: id }),
+        r.scene ? h('span', { class: 'scene-tag', text: `@${sceneList(r.scene).join('|')}` }) : null,
         h('span', { class: 'turn', text: `turn ${turn}` }),
         h('span', { class: 'excerpt', text: (r.line || '').slice(0, 60) }),
         h('span', { class: 'meta', text: `${turn === 1 ? `${win[id] ?? 0} cells · depth ${dep.get(id)}${(dep.get(id) ?? 3) < 3 ? ' · free' : ''}` : ''}${cost != null ? ` · ${cost} act` : ''}` }));

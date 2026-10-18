@@ -53,4 +53,6 @@ export const DEFAULT_STRINGS: Record<string, string> = {
   'ui.via.invite': 'Invitation from {name}',
   'ui.via.call': 'Call from {name}',
   'ui.via.message': 'Message from {name}',
+  'ui.talkedToday': 'Talked already today',
+  'ui.via.door': '{name} at the door',
 };

@@ -1,4 +1,6 @@
 # Great Vote demo roster (12). Appearances: present with probability `chance` per (room seed, day, scene).
+# Nobody appears in `home`: visits there are events (events.csv, scene home) read as a knock or a call.
+# Walt and Mr. Lin keep the seated chess figure in the park; elsewhere they use a standing figure (per-appearance `figure`).
 # National leaders have no figure and no appearances: they are seen only on TV (home, clinic) and in news.
 npcs:
   - id: us_neighbor
@@ -13,7 +15,6 @@ npcs:
     appearances:
       - { scene: library, slot: near, chance: 0.8 }
       - { scene: park, slot: path_far, chance: 0.3 }
-      - { scene: home, slot: near, chance: 0.15 }
     initial: { met: false, rapport: 0, lastValence: none }
 
   - id: us_stranger_a
@@ -27,8 +28,8 @@ npcs:
     seated: true
     appearances:
       - { scene: park, slot: chess_right, chance: 0.85 }
-      - { scene: library, slot: reading_seat, chance: 0.3 }
-      - { scene: clinic, slot: waiting_seat, chance: 0.15 }
+      - { scene: library, slot: desk, chance: 0.3, figure: ch_us_stranger_a_fig_stand }     # standing with the paper; no stool
+      - { scene: clinic, slot: by_cooler, chance: 0.15, figure: ch_us_stranger_a_fig_stand } # standing, waiting to be called
     initial: { met: false, rapport: 0, lastValence: none }
 
   - id: us_stranger_b
@@ -109,7 +110,6 @@ npcs:
     appearances:
       - { scene: center_cn, slot: by_table, chance: 0.7 }
       - { scene: park, slot: by_tables, chance: 0.35 }
-      - { scene: home, slot: by_sofa, chance: 0.2 }
     initial: { met: false, rapport: 0, lastValence: none }
 
   - id: cn_stranger_a
@@ -123,7 +123,7 @@ npcs:
     seated: true
     appearances:
       - { scene: park, slot: chess_left, chance: 0.85 }
-      - { scene: center_cn, slot: seated_hall, chance: 0.4 }
+      - { scene: center_cn, slot: by_kitchen, chance: 0.4, figure: ch_cn_stranger_a_fig_stand }  # standing; no stool
     initial: { met: false, rapport: 0, lastValence: none }
 
   - id: cn_stranger_b

@@ -42,11 +42,23 @@ scenes:
         label: "Bedroom (go to bed)"
         zone: { x: 0.89, y: 0.12, w: 0.08, h: 0.46 }
         action: { type: end_day }
+    screens:
+      # TV glass corners (TL, TR, BR, BL) measured on bg_home_day. bg_home_eve was generated separately and its TV sits a
+      # little higher on the left: [[0.049, 0.085], [0.233, 0.137], [0.233, 0.350], [0.049, 0.371]] (`byBackground`, for
+      # the engine to pick up; the engine currently reads only `quad`).
+      - id: tv
+        quad: [[0.050, 0.100], [0.232, 0.138], [0.232, 0.352], [0.050, 0.377]]
+        byBackground:
+          bg_home_eve: [[0.049, 0.085], [0.233, 0.137], [0.233, 0.350], [0.049, 0.371]]
+    # SPEC 2026-10-18: nobody is at home at wake-up, so these slots are only for staging/tests. The camera is low (1.0 m),
+    # so a standing adult is taller than the camera: the head lands at 0.29 - 0.7 * (y - 0.29) and leaves the top of the
+    # frame for feet below y 0.70. Open floor exists only on the rug and the parquet in front of the coffee table.
     slots:
-      - { id: near, x: 0.79, y: 0.64 }     # a visitor on the rug in front of the sofa's right arm, clear of the coffee table and the bedroom door.
-                                           # Low camera (1.0 m): feet any nearer than this push the head out of the top of the frame.
-      - { id: by_hall, x: 0.93, y: 0.50 }  # in the hallway past the door (unused: would sit over the bedroom door hotspot)
-      - { id: by_sofa, x: 0.30, y: 0.62 }  # by the sofa's left arm, in front of the bookcase
+      - { id: near, x: 0.82, y: 0.68 }     # on the rug right of the coffee table, the sofa's right arm behind; clear of the
+                                           # table, the newspaper and the bedroom door. Head at about 0.02 (low camera).
+      - { id: by_hall, x: 0.935, y: 0.52 } # on the hallway floor seen through the bedroom doorway (do not use: covers the bed hotspot)
+      - { id: by_sofa, x: 0.34, y: 0.64 }  # on the rug's back-left corner in front of the basket and the sofa's left arm,
+                                           # left of the coffee table (overlaps only the bookshelf look-zone)
 
   - id: work
     name: Work
@@ -71,9 +83,9 @@ scenes:
         zone: { x: 0.87, y: 0.00, w: 0.13, h: 0.38 }
         action: { type: look, text: "The back of the clinic on Fifth, and past it the roof of the community center on Grand." }
     slots:
-      - { id: near, x: 0.24, y: 1.0 }      # feet on the bottom edge: head lands at about 0.17, just above the low horizon
-      - { id: desk_left, x: 0.30, y: 0.80 }
-      - { id: by_cabinet, x: 0.78, y: 0.74 }
+      - { id: near, x: 0.24, y: 1.0 }      # on the carpet in the foreground left, in front of the left desk row; feet on the bottom edge, head at about 0.17
+      - { id: desk_left, x: 0.34, y: 0.68 }   # on the open carpet between the left desk row and the centre desk, clear of the computer
+      - { id: by_cabinet, x: 0.78, y: 0.74 }  # on the carpet in front of the low wooden cabinet by the window
 
   - id: clinic
     name: Fifth Street Clinic
@@ -101,13 +113,19 @@ scenes:
         label: "Water cooler"
         zone: { x: 0.01, y: 0.23, w: 0.08, h: 0.40 }
         action: { type: look, text: "Paper cones, the kind that go soft if you hold them too long." }
+    screens:
+      - id: tv              # glass of the corner TV, measured on bg_clinic_day (left side panel and bezel excluded)
+        quad: [[0.052, 0.024], [0.170, 0.071], [0.160, 0.193], [0.042, 0.171]]
+    # Open floor: the wooden floor in the foreground, the rug around the coffee table (not the strip behind it, where the
+    # table would have to hide the legs), and the floor in front of the reception counter. Nothing stands in front of the
+    # coffee table: the figure would cover the magazines.
     slots:
-      - { id: near, x: 0.30, y: 1.0 }      # feet on the bottom edge: 0.81 of the frame, head at about 0.19
-      - { id: front_desk, x: 0.78, y: 0.80 }
-      - { id: by_cooler, x: 0.17, y: 0.80 }
-      - { id: by_chairs, x: 0.62, y: 0.70 }
-      - { id: by_table, x: 0.46, y: 0.90 }
-      - { id: waiting_seat, x: 0.36, y: 0.56 }   # seated, on the row of waiting chairs
+      - { id: near, x: 0.22, y: 1.0 }      # on the wooden floor in the left foreground, left of the coffee table; head at about 0.19
+      - { id: front_desk, x: 0.86, y: 0.80 }  # on the floor in front of the reception counter, facing it (over the reception look-zone only)
+      - { id: by_cooler, x: 0.13, y: 0.74 }   # on the floor in front of the potted plant, right of the water cooler
+      - { id: by_chairs, x: 0.72, y: 0.70 }   # on the rug's right end, right of the coffee table, the right-hand waiting chairs behind
+      - { id: by_table, x: 0.31, y: 0.62 }    # on the rug beside the coffee table's left end, the waiting chairs behind
+      - { id: waiting_seat, x: 0.73, y: 0.535, seated: true }   # on the right-most waiting chair (stool base at the chair legs)
 
   - id: library
     name: Elm Street Library
@@ -135,13 +153,15 @@ scenes:
         label: "Windows"
         zone: { x: 0.32, y: 0.12, w: 0.39, h: 0.30 }
         action: { type: look, text: "Bare trees and the church steeple on Grand. It looks colder out there than it is." }
+    # Open floor: the wooden aisle down the left, the rug under the reading tables, the rug in front of the circulation desk.
     slots:
-      - { id: near, x: 0.30, y: 1.08 }     # feet just below the frame (legs cropped): 0.80 of the frame, head at about 0.28
-      - { id: desk, x: 0.66, y: 0.88 }
-      - { id: reading_table, x: 0.53, y: 0.67 }
-      - { id: by_shelves, x: 0.12, y: 0.76 }
-      - { id: armchair, x: 0.28, y: 0.56 }
-      - { id: reading_seat, x: 0.45, y: 0.68 }   # seated, at the near end of the long table
+      - { id: near, x: 0.28, y: 1.08 }     # on the aisle floor in the foreground, feet just below the frame; head at about 0.28
+      - { id: desk, x: 0.66, y: 0.87 }     # on the small rug at the left end of the circulation desk
+      - { id: reading_table, x: 0.68, y: 0.67 }   # on the rug right of the long table, by the potted plant; clear of the newspapers
+      - { id: by_shelves, x: 0.19, y: 0.70 }      # on the aisle floor between the low bookcase and the tall shelves, browsing
+      - { id: armchair, x: 0.36, y: 0.56 }        # standing on the aisle floor just right of the green armchair
+      - { id: armchair_seat, x: 0.29, y: 0.515, seated: true }   # in the green armchair under the reading lamp
+      - { id: reading_seat, x: 0.49, y: 0.645, seated: true }    # on the chair at the near-left corner of the long table
 
   - id: park
     name: Riverside Park
@@ -182,13 +202,15 @@ scenes:
         zone: { x: 0.80, y: 0.42, w: 0.18, h: 0.50 }
         action: { type: look, text: "Joggers, a woman pushing a stroller with a dog in it, a man practising tai chi under the far trees." }
     slots:
-      - { id: chess_left, x: 0.13, y: 0.92 }    # seated, bench on the near-left of the nearest table
-      - { id: chess_right, x: 0.53, y: 0.90 }   # seated, bench on the near-right of the nearest table
-      - { id: path, x: 0.80, y: 0.80 }
-      - { id: by_tables, x: 0.66, y: 0.66 }
-      - { id: by_lamp, x: 0.74, y: 0.58 }
-      - { id: by_fence, x: 0.60, y: 0.60 }
-      - { id: path_far, x: 0.88, y: 0.62 }
+      # Open ground: the hexagonal paving around the tables and the asphalt path on the right. The fence line behind the
+      # tables is planted or hidden behind benches, so nobody stands right at it.
+      - { id: chess_left, x: 0.19, y: 0.86, seated: true }    # on the near-left bench of the nearest table (where Mr. Lin sits in bg_park_chess_day)
+      - { id: chess_right, x: 0.47, y: 0.86, seated: true }   # on the near-right bench of the nearest table (where Walt sits in bg_park_chess_day)
+      - { id: path, x: 0.89, y: 0.82 }      # on the asphalt path, right of the cobble edge
+      - { id: by_tables, x: 0.73, y: 0.67 } # on the paving right of the middle table's near bench, before the cobbles
+      - { id: by_lamp, x: 0.78, y: 0.555 }  # on the paving just right of the lamppost, behind the far table's right bench
+      - { id: by_fence, x: 0.62, y: 0.74 }  # on the paving in front of the middle table's near bench (table and fence behind)
+      - { id: path_far, x: 0.95, y: 0.60 }  # on the asphalt path where it bends away
 
   - id: center_cn
     name: Grand Avenue Community Center
@@ -217,12 +239,14 @@ scenes:
         zone: { x: 0.85, y: 0.21, w: 0.14, h: 0.28 }
         action: { type: look, text: "Two big pots on the stove. A handwritten sign: 'Wash your own bowl. This means you.'" }
     slots:
-      - { id: near, x: 0.24, y: 1.04 }     # in front of the stacked chairs, feet just below the frame: 0.80 of the frame, head at about 0.23
-      - { id: by_table, x: 0.50, y: 0.74 }
-      - { id: by_board, x: 0.74, y: 0.64 }
-      - { id: by_kitchen, x: 0.88, y: 0.60 }
-      - { id: mid_right, x: 0.60, y: 0.90 }
-      - { id: seated_hall, x: 0.44, y: 0.72 }   # seated, on the open floor left of the long table
+      # The hall is open floor everywhere below y 0.50. There is no free seating in the image (the folding chairs are
+      # stacked), so the one seated slot is a stool pulled up to the long table; the seated figures bring their stool.
+      - { id: near, x: 0.24, y: 1.04 }     # on the floor in front of the stacked folding chairs, feet just below the frame; head at about 0.23
+      - { id: by_table, x: 0.40, y: 0.58 } # on the floor just in front of the long table's left end (table behind)
+      - { id: by_board, x: 0.74, y: 0.64 } # on the floor in front of the notice board and the potted plant
+      - { id: by_kitchen, x: 0.88, y: 0.60 }   # on the floor at the kitchen doorway
+      - { id: mid_right, x: 0.56, y: 0.90 }    # on the open floor, centre right, in the foreground
+      - { id: seated_hall, x: 0.57, y: 0.66, seated: true }   # on a stool pulled up in front of the long table's right half
 
   - id: street
     name: Street

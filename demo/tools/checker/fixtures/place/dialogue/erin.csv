@@ -1,0 +1,10 @@
+id,met,rapport,lastValence,nationalLeader,playerLean,dayPhase,scene,priority,emotion,line,choice1,effect1,next1,choice2,effect2,next2,choice3,effect3,next3
+F,,,,,,,,0,neutral,Erin waves.,Bye,,,,,,,,
+E1,no,,,,,,,0,neutral,Hi. I'm Erin.,Hello,met yes; rapport +1,,,,,,,
+E2,yes,,,,,,park,0,warm,Nice day for the park.,It is,rapport +1,,,,,,,
+E3,yes,1,,,,,home,1,neutral,Come in a minute.,Sure,rapport +1,,,,,,,
+E4,yes,,,,,,garden,0,neutral,The garden is lovely.,Yes,,,,,,,,
+E5,yes,,,,,,work,0,neutral,Busy at work?,Yes,,,,,,,,
+E6,yes,3,,,,early,,1,warm,Already old friends.,Ha,,,,,,,,
+E8,yes,,,inclusive,,,park,0,neutral,Did you see the news?,Yes,,,,,,,,
+E9,yes,,,inclusive,balanced,,,0,neutral,Good news this week.,Yes,,,,,,,,

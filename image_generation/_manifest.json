@@ -1,6 +1,6 @@
 {
   "budget": 50,
-  "planned": 111,
+  "planned": 113,
   "reserved_for_retries": 5,
   "items": [
     {
@@ -1908,6 +1908,42 @@
       "save_prompt_used_as": "out/cast_anchor_tv_A.prompt.txt",
       "status": "pending",
       "file": "111_cast_anchor_tv_A.md"
+    },
+    {
+      "id": "ch_us_stranger_a_fig_stand_A",
+      "order": 112,
+      "part": 9,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_us_stranger_a_A",
+      "depends_on": [
+        "ch_us_stranger_a_ref_A"
+      ],
+      "attach": "out/ch_us_stranger_a_ref_A.png",
+      "save_image_as": "out/ch_us_stranger_a_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_us_stranger_a_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "112_ch_us_stranger_a_fig_stand_A.md"
+    },
+    {
+      "id": "ch_cn_stranger_a_fig_stand_A",
+      "order": 113,
+      "part": 9,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_cn_stranger_a_A",
+      "depends_on": [
+        "ch_cn_stranger_a_ref_A"
+      ],
+      "attach": "out/ch_cn_stranger_a_ref_A.png",
+      "save_image_as": "out/ch_cn_stranger_a_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_cn_stranger_a_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "113_ch_cn_stranger_a_fig_stand_A.md"
     }
   ]
 }

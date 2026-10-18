@@ -23,10 +23,18 @@ export function parseTable(text: string, expected: string[]): Table {
   return { columns, rows };
 }
 
+/** Where an optional column goes when it is added: right after this column (else at the end). */
+const OPTIONAL_AFTER: Record<string, string> = { scene: 'dayPhase' };
+
 /** Columns to write: the file's own header, plus any optional column that now holds a value. */
 export function outColumns(t: Table, optional: string[]): string[] {
   const cols = [...t.columns];
-  for (const o of optional) if (!cols.includes(o) && t.rows.some((r) => (r[o] ?? '') !== '')) cols.push(o);
+  for (const o of optional) {
+    if (cols.includes(o) || !t.rows.some((r) => (r[o] ?? '') !== '')) continue;
+    const at = OPTIONAL_AFTER[o] ? cols.indexOf(OPTIONAL_AFTER[o]) : -1;
+    if (at >= 0) cols.splice(at + 1, 0, o);
+    else cols.push(o);
+  }
   return cols;
 }
 

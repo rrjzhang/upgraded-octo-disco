@@ -1,0 +1,31 @@
+# Fixture for SPEC "Presence, place and conversation limits": the dialogue scene column, seated slots, screens.
+scenes:
+  - id: home
+    name: Home
+    community: neutral
+    background: bg_home_day
+    description: "Test home."
+    exits: [{ to: park, label: "Out" }, { to: work, label: "Work" }]
+    hotspots:
+      - { id: bed, label: "Bed", zone: { x: 0.8, y: 0.4, w: 0.15, h: 0.3 }, action: { type: end_day } }
+    screens:
+      - { id: tv, quad: [[0.10, 0.10], [0.30, 0.12], [0.30, 0.28], [0.10, 0.30]] }
+    slots:
+      - { id: left, x: 0.25, y: 0.90, scale: 0.5 }
+  - id: park
+    name: Park
+    community: us
+    background: bg_park_day
+    description: "Test park."
+    exits: [{ to: home, label: "Home" }]
+    slots:
+      - { id: stand, x: 0.40, y: 0.90, scale: 0.5 }          # open path
+      - { id: bench, x: 0.70, y: 0.90, scale: 0.4, seated: true }  # on the bench
+  - id: work
+    name: Work
+    community: neutral
+    background: bg_work_day
+    description: "Test office."
+    exits: [{ to: home, label: "Home" }]
+    slots:
+      - { id: desk, x: 0.5, y: 0.9, scale: 0.5 }

@@ -2,12 +2,12 @@
 import { load as loadYaml } from 'js-yaml';
 import Papa from 'papaparse';
 import type {
-  Content, DialogueRow, Emotion, EventRow, Manifest, NewsRow, Npc, Questionnaire, Scene, Slot, Hotspot, CondField,
+  Content, DialogueRow, Emotion, EventRow, Manifest, NewsRow, Npc, Questionnaire, Scene, Slot, Hotspot, CondField, Screen,
   CastInfo, OverrideInfo,
 } from './types';
 import { COND_FIELDS } from './types';
 import { DEFAULT_STRINGS } from './strings';
-import { validateEffects, validateCond } from './rules';
+import { validateEffects, validateCond, sceneList } from './rules';
 import { appUrl } from './util';
 
 export interface Source {
@@ -25,6 +25,8 @@ export const EVENT_COLUMNS = [
   'nationalLeader', 'chance', 'cost', 'emotion', 'text', 'choice1', 'effect1', 'choice2', 'effect2',
 ];
 export const NEWS_COLUMNS = ['id', 'channel', 'nationalLeader', 'dayMin', 'valence', 'headline', 'body'];
+/** Optional dialogue column (SPEC "Dialogue location"), placed after dayPhase: blank = anywhere, else scene ids joined by `|`. */
+export const DIALOGUE_OPTIONAL_COLUMNS = ['scene'];
 /** Optional columns (SPEC "Cast"): a cast id; blank or absent = unchanged behaviour. */
 export const EVENT_OPTIONAL_COLUMNS = ['portrait'];
 export const NEWS_OPTIONAL_COLUMNS = ['figure'];
@@ -166,7 +168,8 @@ function parseScenes(r: Reporter, file: string, text: string): Scene[] {
       slots: (Array.isArray(s.slots) ? s.slots : [])
         .filter((sl: any, j: number) =>
           sl?.id && typeof sl.x === 'number' && typeof sl.y === 'number' ? true : (r.error(file, `${where} slot #${j + 1}: needs id,x,y`), false))
-        .map((sl: any) => ({ id: str(sl.id), x: sl.x, y: sl.y, scale: typeof sl.scale === 'number' && sl.scale > 0 ? sl.scale : undefined })),
+        .map((sl: any) => ({ id: str(sl.id), x: sl.x, y: sl.y, scale: typeof sl.scale === 'number' && sl.scale > 0 ? sl.scale : undefined, seated: sl.seated === true })),
+      screens: parseScreens(r, file, where, s.screens),
       props: (Array.isArray(s.props) ? s.props : [])
         .filter((p: any, j: number) => (p?.asset ? true : (r.error(file, `${where} prop #${j + 1}: missing asset`), false)))
         .map((p: any) => ({ asset: str(p.asset), x: num(p.x, 0), y: num(p.y, 0), w: num(p.w, 0.1) })),
@@ -184,6 +187,35 @@ function parseScenes(r: Reporter, file: string, text: string): Scene[] {
   }
   if (!ids.has('home')) r.error(file, 'no scene with id "home" (the day starts there)');
   return out;
+}
+
+function parseScreens(r: Reporter, file: string, where: string, raw: unknown): Screen[] {
+  if (raw === undefined || raw === null) return [];
+  if (!Array.isArray(raw)) { r.error(file, `${where}: screens must be a list`); return []; }
+  const out: Screen[] = [];
+  raw.forEach((sc: any, j: number) => {
+    const isQuad = (q: any) => Array.isArray(q) && q.length === 4 && q.every((p: any) => Array.isArray(p) && p.length === 2 && p.every((v: any) => typeof v === 'number' && Number.isFinite(v)));
+    const toQuad = (q: number[][]) => q.map((p) => [p[0], p[1]] as [number, number]);
+    if (!isQuad(sc?.quad)) return r.error(file, `${where} screen #${j + 1}: needs quad: [[x,y],[x,y],[x,y],[x,y]] (top-left, top-right, bottom-right, bottom-left)`);
+    let byBackground: Record<string, [number, number][]> | undefined;
+    if (sc.byBackground && typeof sc.byBackground === 'object') {
+      byBackground = {};
+      for (const [bg, q] of Object.entries(sc.byBackground)) {
+        if (isQuad(q)) byBackground[bg] = toQuad(q as number[][]);
+        else r.error(file, `${where} screen #${j + 1}: byBackground.${bg} is not a quad`);
+      }
+    }
+    out.push({ id: str(sc.id, `screen${j + 1}`), quad: toQuad(sc.quad), byBackground });
+  });
+  return out;
+}
+
+/** True when a figure asset is a seated one (manifest `seated: true`, or an id with `_fig_sit`). */
+export function isSeatedFigure(m: Manifest, id: string | undefined): boolean {
+  if (!id) return false;
+  const e = assetEntry(m, m.figures, id);
+  if (e && typeof e.seated === 'boolean') return e.seated;
+  return /_fig_sit/.test(id);
 }
 
 function parseNpcs(r: Reporter, file: string, text: string, scenes: Map<string, Scene>): Npc[] {
@@ -209,7 +241,7 @@ function parseNpcs(r: Reporter, file: string, text: string, scenes: Map<string, 
       if (!sc) return r.error(file, `${where} appearance #${j + 1}: unknown scene "${a?.scene}"`), false;
       if (!sc.slots.some((s) => s.id === str(a.slot))) return r.error(file, `${where} appearance #${j + 1}: unknown slot "${a.slot}" in scene ${sc.id}`), false;
       return true;
-    }).map((a: any) => ({ scene: str(a.scene), slot: str(a.slot), chance: num(a.chance, 1) }));
+    }).map((a: any) => ({ scene: str(a.scene), slot: str(a.slot), chance: num(a.chance, 1), figure: str(a.figure) || undefined }));
     out.push({
       id: str(n.id),
       name: str(n.name, n.id),
@@ -231,8 +263,8 @@ function parseNpcs(r: Reporter, file: string, text: string, scenes: Map<string, 
   return out;
 }
 
-function parseDialogue(r: Reporter, npcId: string, file: string, text: string): DialogueRow[] {
-  const rows = parseCsv(r, file, text, DIALOGUE_COLUMNS);
+function parseDialogue(r: Reporter, npcId: string, file: string, text: string, sceneIds?: Set<string>): DialogueRow[] {
+  const rows = parseCsv(r, file, text, DIALOGUE_COLUMNS, DIALOGUE_OPTIONAL_COLUMNS);
   const out: DialogueRow[] = [];
   rows.forEach((row, i) => {
     const rowNum = i + 2;
@@ -248,6 +280,10 @@ function parseDialogue(r: Reporter, npcId: string, file: string, text: string): 
         if (err) r.error(file, `${where}: ${err}`);
       }
     }
+    const sceneCell = row.scene ?? '';
+    const scenes = sceneList(sceneCell);
+    if (scenes.length) specificity++; // a located row is more specific than the same row anywhere
+    if (sceneIds) for (const sc of scenes) if (!sceneIds.has(sc)) r.error(file, `${where}: scene "${sc}" is not a scene id in scenes.yaml`);
     const emotion = (row.emotion || 'neutral') as Emotion;
     if (!EMOTIONS.includes(emotion)) r.error(file, `${where}: unknown emotion "${row.emotion}"`);
     if (row.priority && !Number.isFinite(Number(row.priority))) r.error(file, `${where}: priority "${row.priority}" is not a number`);
@@ -259,7 +295,7 @@ function parseDialogue(r: Reporter, npcId: string, file: string, text: string): 
       });
     for (const c of choices) for (const e of validateEffects(c.effect)) r.error(file, `${where}: ${e}`);
     out.push({
-      id: row.id, npc: npcId, conds, specificity, rowNum,
+      id: row.id, npc: npcId, conds, scene: scenes.join('|'), scenes, specificity, rowNum,
       priority: num(row.priority, 0),
       emotion: EMOTIONS.includes(emotion) ? emotion : 'neutral',
       line: row.line ?? '',
@@ -272,7 +308,7 @@ function parseDialogue(r: Reporter, npcId: string, file: string, text: string): 
     ids.add(row.id);
   }
   for (const row of out) for (const c of row.choices) if (c.next && !ids.has(c.next)) r.error(file, `row ${row.rowNum} (${row.id}): next "${c.next}" not found in sheet`);
-  if (!out.some((x) => x.specificity === 0)) r.error(file, 'no fallback row (all six condition cells blank)');
+  if (!out.some((x) => x.specificity === 0)) r.error(file, 'no fallback row (all six condition cells and scene blank)');
   return out;
 }
 
@@ -516,10 +552,11 @@ export async function loadContent(src: Source, opts: LoadOptions = {}): Promise<
     }
   }
   const dialogue = new Map<string, DialogueRow[]>();
+  const sceneIds = new Set(scenes.map((s) => s.id));
   await Promise.all(
     npcs.map(async (n) => {
       const file = `content/dialogue/${n.id}.csv`;
-      const fromOv = tryOverride(`dialogue/${n.id}`, file, ovDialogue[n.id], (q, f, t) => parseDialogue(q, n.id, f, t));
+      const fromOv = tryOverride(`dialogue/${n.id}`, file, ovDialogue[n.id], (q, f, t) => parseDialogue(q, n.id, f, t, sceneIds));
       if (fromOv) { dialogue.set(n.id, fromOv); return; }
       const t = await src.text(file);
       if (t === null) {
@@ -529,7 +566,7 @@ export async function loadContent(src: Source, opts: LoadOptions = {}): Promise<
         dialogue.set(n.id, []);
         return;
       }
-      dialogue.set(n.id, parseDialogue(r, n.id, file, t));
+      dialogue.set(n.id, parseDialogue(r, n.id, file, t, sceneIds));
     }),
   );
 
@@ -570,6 +607,17 @@ export async function loadContent(src: Source, opts: LoadOptions = {}): Promise<
     if (n.figure && !assetEntry(manifest, manifest.figures, n.figure) && !hasImg('figures', n.figure)) r.warn('assets/manifest.json', `no figure "${n.figure}" for ${n.id} (silhouette shown)`);
   }
 
+  // a located dialogue row only matters where its NPC can be met (appearances, painted, talk zones, events naming them)
+  for (const n of npcs) {
+    const where = npcScenes(n, scenes, events);
+    for (const row of dialogue.get(n.id) ?? []) {
+      for (const sc of row.scenes) if (sceneIds.has(sc) && !where.has(sc)) r.warn(`content/dialogue/${n.id}.csv`, `row ${row.rowNum} (${row.id}): scene "${sc}" is not a scene ${n.id} appears in (${[...where].join(', ') || 'none'})`);
+    }
+    for (const a of n.appearances) {
+      if (a.figure && !assetEntry(manifest, manifest.figures, a.figure) && !hasImg('figures', a.figure)) r.warn('assets/manifest.json', `no figure "${a.figure}" for ${n.id} in ${a.scene} (their default figure is shown until it exists)`);
+    }
+  }
+
   // cast: names from content/cast.yaml (content owns them), else from the manifest's copy
   const cast = new Map<string, CastInfo>();
   for (const [id, m] of Object.entries(manifest.cast ?? {})) cast.set(id, { id, name: m.name || id, role: m.role || '' });
@@ -596,6 +644,17 @@ export async function loadContent(src: Source, opts: LoadOptions = {}): Promise<
     source: src.kind, scenes, sceneById, npcs, npcById, dialogue, events, news, eod, manifest, strings,
     assetUrl: src.assetUrl, errors: r.errors, cast, override: info, imageOverrides: images,
   };
+}
+
+/** Scenes an NPC can be met in: appearances, painted variants and talk zones naming them, and events with that npc and a scene. */
+export function npcScenes(n: Npc, scenes: Scene[], events: EventRow[]): Set<string> {
+  const out = new Set(n.appearances.map((a) => a.scene));
+  for (const s of scenes) {
+    if (s.painted?.npcs.includes(n.id)) out.add(s.id);
+    if (s.hotspots.some((hs) => hs.action.type === 'talk' && hs.action.npc === n.id)) out.add(s.id);
+  }
+  for (const e of events) if (e.npc === n.id && e.scene) out.add(e.scene);
+  return out;
 }
 
 export async function getSource(fixtures: boolean): Promise<Source> {

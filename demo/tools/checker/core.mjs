@@ -11,6 +11,13 @@ export const NEWS_COLUMNS = 'id,channel,nationalLeader,dayMin,valence,headline,b
 // optional trailing columns (SPEC 2026-10-18, cast): accepted when present, never required
 export const EVENT_OPTIONAL = ['portrait'];
 export const NEWS_OPTIONAL = ['figure'];
+// optional dialogue column (SPEC 2026-10-18 "Dialogue location"), placed after dayPhase: blank = anywhere, else scene ids joined by |
+export const DIALOGUE_OPTIONAL = ['scene'];
+/** SPEC "Conversation limit": default conversations per NPC per day, and the demo length the limit is spread over. */
+export const DEFAULT_TALKS = 1;
+export const DEMO_DAYS = 5;
+/** dayPhase index (DIMS[5]) of each demo day 1..5: early early mid late late */
+const DAY_PHASE = [0, 0, 1, 2, 2];
 
 export const DIMS = [
   { key: 'met', values: ['no', 'yes'] },
@@ -23,6 +30,8 @@ export const DIMS = [
 const RADIX = DIMS.map(d => d.values.length);
 export const NCELLS = RADIX.reduce((a, b) => a * b, 1); // 432
 const NSTATE = 24; // met x rapport x lastValence
+/** a dialogue `scene` cell: blank = anywhere, else scene ids separated by | */
+export const sceneList = (cell) => String(cell ?? '').split('|').map(x => x.trim()).filter(Boolean);
 export const NWORLD = 18; // nationalLeader x playerLean x dayPhase
 export const BUDGET = 40;
 /** Engine rule (src/rules.ts FREE_DEPTH / DIALOGUE_COST): opening a conversation whose row has depth < FREE_DEPTH is free. */
@@ -195,6 +204,7 @@ function applyEffects(s, mask, ops, inviteBit) {
 }
 
 // ---------------------------------------------------------------- schema validation
+const scenesHaveSeatedFlags = (scenes) => { for (const sc of scenes.values()) for (const sl of sc.slotById.values()) if (sl && sl.seated != null) return true; return false; };
 // asset lookup in a manifest section, following manifest.aliases (SPEC's base id -> manifest key) if present
 const hasAsset = (assets, section, id) => !!(assets?.[section]?.[id] || (assets?.aliases?.[id] && assets[section]?.[assets.aliases[id]]));
 const isFrac = (x) => typeof x === 'number' && x >= 0 && x <= 1;
@@ -212,7 +222,7 @@ function validateScenes(files, diag, assets) {
     if (!sc || typeof sc !== 'object') { diag.error('SCHEMA', rel, loc(), 'expected a mapping'); return; }
     if (!sc.id || typeof sc.id !== 'string') { diag.error('SCHEMA', rel, loc('id'), 'missing or non-string id'); return; }
     if (scenes.has(sc.id)) diag.error('DUPLICATE_ID', rel, loc('id'), `duplicate scene id "${sc.id}"`);
-    scenes.set(sc.id, { ...sc, slotIds: new Set() });
+    scenes.set(sc.id, { ...sc, slotIds: new Set(), slotById: new Map() });
     if (!sc.name) diag.error('SCHEMA', rel, loc('name'), 'missing name');
     if (!COMMUNITY_SCENE.includes(sc.community)) diag.error('BAD_VALUE', rel, loc('community'), `community "${sc.community}"; expected ${COMMUNITY_SCENE.join('|')}`);
     if (sc.background == null || sc.background === '') diag.error('SCHEMA', rel, loc('background'), 'missing background (use "none" for hub scenes)');
@@ -244,6 +254,33 @@ function validateScenes(files, diag, assets) {
       if (h.placeholder != null && typeof h.placeholder !== 'boolean') diag.error('BAD_VALUE', rel, loc(`${hp}.placeholder`), 'placeholder must be true or false');
       if (a.cost != null && !(Number.isInteger(a.cost) && a.cost >= 0)) diag.error('BAD_VALUE', rel, loc(`${hp}.action.cost`), `cost must be a non-negative integer, got ${JSON.stringify(a.cost)}`);
     }
+    if (sc.screens != null) {
+      if (!Array.isArray(sc.screens)) diag.error('SCHEMA', rel, loc('screens'), 'screens must be a list of { id, quad }');
+      else sc.screens.forEach((scr, j) => {
+        if (scr && scr.byBackground != null) {
+          if (typeof scr.byBackground !== 'object' || Array.isArray(scr.byBackground)) diag.error('SCHEMA', rel, loc(`screens[${j}].byBackground`), 'byBackground must map a background asset id to a quad');
+          else for (const [bg, bq] of Object.entries(scr.byBackground)) {
+            if (!(Array.isArray(bq) && bq.length === 4 && bq.every(pt => Array.isArray(pt) && pt.length === 2 && pt.every(v => typeof v === 'number' && v >= -0.2 && v <= 1.2)))) diag.error('BAD_VALUE', rel, loc(`screens[${j}].byBackground.${bg}`), 'expected four [x, y] fraction pairs');
+            else if (assets && !hasAsset(assets, 'backgrounds', bg)) diag.warn('UNKNOWN_ASSET', rel, loc(`screens[${j}].byBackground.${bg}`), `background "${bg}" not in assets/manifest.json`);
+          }
+        }
+        const q = scr && scr.quad;
+        const ok = Array.isArray(q) && q.length === 4 && q.every(pt => Array.isArray(pt) && pt.length === 2 && pt.every(v => typeof v === 'number' && v >= -0.2 && v <= 1.2));
+        if (!scr || !scr.id) diag.error('SCHEMA', rel, loc(`screens[${j}].id`), 'screen needs id');
+        if (!ok) diag.error('BAD_VALUE', rel, loc(`screens[${j}].quad`), 'quad must be four [x, y] fraction pairs: top-left, top-right, bottom-right, bottom-left');
+        else {
+          // corners in order and the quad convex (a crossed or folded quad would draw the still inside out)
+          let sign = 0, convex = true;
+          for (let k = 0; k < 4; k++) {
+            const [ax, ay] = q[k], [bx, by] = q[(k + 1) % 4], [cx, cy] = q[(k + 2) % 4];
+            const z = (bx - ax) * (cy - by) - (by - ay) * (cx - bx);
+            if (Math.abs(z) < 1e-12) continue;
+            if (!sign) sign = Math.sign(z); else if (Math.sign(z) !== sign) convex = false;
+          }
+          if (!convex || sign < 0) diag.error('BAD_VALUE', rel, loc(`screens[${j}].quad`), 'quad corners must go top-left, top-right, bottom-right, bottom-left (clockwise on screen) and form a convex shape');
+        }
+      });
+    }
     if (sc.painted != null) {
       const pt = sc.painted;
       if (!pt || typeof pt !== 'object' || !pt.background) diag.error('SCHEMA', rel, loc('painted'), 'painted needs { background, npcs }');
@@ -256,6 +293,8 @@ function validateScenes(files, diag, assets) {
       if (!sl || !sl.id) { diag.error('SCHEMA', rel, loc(`slots[${j}]`), 'slot needs id'); continue; }
       if (scenes.get(sc.id).slotIds.has(sl.id)) diag.error('DUPLICATE_ID', rel, loc(`slots[${j}].id`), `duplicate slot id "${sl.id}"`);
       scenes.get(sc.id).slotIds.add(sl.id);
+      scenes.get(sc.id).slotById.set(sl.id, sl);
+      if (sl.seated != null && typeof sl.seated !== 'boolean') diag.error('BAD_VALUE', rel, loc(`slots[${j}].seated`), `seated must be true|false, got ${JSON.stringify(sl.seated)}`);
       if (!isFrac(sl.x)) diag.error('BAD_VALUE', rel, loc(`slots[${j}].x`), `expected a fraction 0..1, got ${JSON.stringify(sl.x)}`);
       // y may run below the frame (feet cropped) up to 1.3
       if (!(typeof sl.y === 'number' && sl.y >= 0 && sl.y <= 1.3)) diag.error('BAD_VALUE', rel, loc(`slots[${j}].y`), `expected 0..1.3, got ${JSON.stringify(sl.y)}`);
@@ -277,6 +316,14 @@ function validateScenes(files, diag, assets) {
     }
   });
   return scenes;
+}
+
+/** A seated figure asset: manifest `seated: true`, or (without a manifest entry saying otherwise) an id containing `_fig_sit`. */
+export function isSeatedFigure(assets, id) {
+  if (!id) return false;
+  const e = assets?.figures?.[id] || (assets?.aliases?.[id] && assets?.figures?.[assets.aliases[id]]);
+  if (e && typeof e.seated === 'boolean') return e.seated;
+  return /_fig_sit/.test(id);
 }
 
 function validateNpcs(files, diag, scenes, assets) {
@@ -304,6 +351,15 @@ function validateNpcs(files, diag, scenes, assets) {
       if (!a || !scenes.has(a.scene)) { diag.error('UNKNOWN_SCENE', rel, loc(`appearances[${j}].scene`), `unknown scene "${a && a.scene}"`); return; }
       if (!scenes.get(a.scene).slotIds.has(a.slot)) diag.error('UNKNOWN_SLOT', rel, loc(`appearances[${j}].slot`), `scene "${a.scene}" has no slot "${a.slot}"; slots: ${[...scenes.get(a.scene).slotIds].join(', ') || '(none)'}`);
       if (!(typeof a.chance === 'number' && a.chance >= 0 && a.chance <= 1)) diag.error('BAD_VALUE', rel, loc(`appearances[${j}].chance`), `chance must be 0..1, got ${JSON.stringify(a.chance)}`);
+      if (a.figure != null && a.figure !== '' && typeof a.figure !== 'string') diag.error('BAD_VALUE', rel, loc(`appearances[${j}].figure`), `figure must be an asset id, got ${JSON.stringify(a.figure)}`);
+      if (a.figure && assets && !hasAsset(assets, 'figures', a.figure)) diag.warn('UNKNOWN_ASSET', rel, loc(`appearances[${j}].figure`), `figure "${a.figure}" not in assets/manifest.json`);
+      // SPEC "Per-appearance figure": a seated figure (it includes its stool) only on a slot marked seated: true.
+      // Enforced once scenes.yaml carries seated flags at all; until then every slot reads as not seated.
+      const fig = a.figure || n.figure;
+      const slot = scenes.get(a.scene).slotById.get(a.slot);
+      if (slot && scenesHaveSeatedFlags(scenes) && isSeatedFigure(assets, fig) && slot.seated !== true) {
+        diag.error('SEATED_SLOT', rel, loc(`appearances[${j}]`), `seated figure "${fig}" on slot "${a.slot}" in ${a.scene}, which is not marked seated: true; use a seated slot or a standing figure`);
+      }
     });
     if (apps.length && !n.figure) diag.error('SCHEMA', rel, loc('figure'), 'NPC has appearances but no figure');
     let init = n.initial;
@@ -378,10 +434,15 @@ function validateNews(files, diag, assets, castIds) {
   return rows;
 }
 
-function validateDialogue(files, npcId, diag, eventIds) {
+/**
+ * npcScenes: scenes this NPC can be met in (completeness scope); a row whose `scene` names any other scene is an error.
+ */
+function validateDialogue(files, npcId, diag, eventIds, scenes, npcScenes) {
   const rel = `dialogue/${npcId}.csv`;
-  const rows = readCsv(files[rel], rel, DIALOGUE_COLUMNS, diag, false);
+  const rows = readCsv(files[rel], rel, DIALOGUE_COLUMNS, diag, false, DIALOGUE_OPTIONAL);
   if (!rows) return null;
+  const header = (files[rel] || '').replace(/^\uFEFF/, '').split(/\r?\n/, 1)[0].split(',').map(x => x.trim());
+  if (header.includes('scene') && header.indexOf('scene') !== header.indexOf('dayPhase') + 1) diag.warn('COLUMN_ORDER', rel, { line: 1, column: 'scene' }, 'the optional scene column belongs right after dayPhase');
   const parsed = [];
   const ids = new Set();
   for (const r of rows) {
@@ -396,6 +457,13 @@ function validateDialogue(files, npcId, diag, eventIds) {
       if (pc.error) { diag.error('BAD_CONDITION', rel, loc(d.key), pc.error); bad = true; cond.push(null); }
       else cond.push(pc.set);
     });
+    const located = sceneList(r.scene);
+    let offScene = false;
+    for (const sc of located) {
+      if (!scenes.has(sc)) { diag.error('UNKNOWN_SCENE', rel, loc('scene'), `scene "${sc}" is not a scene id in scenes.yaml`); bad = true; }
+      else if (!npcScenes.has(sc) && (offScene = true)) diag.error('SCENE_NOT_APPEARED', rel, loc('scene'), `scene "${sc}": ${npcId} never appears there (scenes: ${[...npcScenes].join(', ') || 'none'}), so this row can never be selected`);
+    }
+    if (r.scene && !located.length) diag.error('BAD_VALUE', rel, loc('scene'), `"${r.scene}"; expected scene ids separated by | or blank`);
     let priority = 0;
     if (r.priority !== '' && r.priority != null) {
       if (/^-?\d+(\.\d+)?$/.test(r.priority)) priority = +r.priority;
@@ -412,55 +480,88 @@ function validateDialogue(files, npcId, diag, eventIds) {
       if (c) choices.push({ k, ops: pe.ops, next: n || null, nextLine: r.__line });
     }
     for (const k of [2, 3]) if (r[`choice${k}`] && !r[`choice${k - 1}`]) diag.warn('SCHEMA', rel, loc(`choice${k}`), `choice${k} given but choice${k - 1} is blank`);
-    const specificity = cond.filter(Boolean).length;
-    parsed.push({ id: r.id, line: r.__line, text: r.line, cond, priority, specificity, choices, bad, raw: r });
+    // a non-blank scene adds 1 to specificity (SPEC "Dialogue location"), so a located row beats the same row anywhere
+    const sceneSet = located.length ? new Set(located) : null;
+    const specificity = cond.filter(Boolean).length + (sceneSet ? 1 : 0);
+    parsed.push({ id: r.id, line: r.__line, text: r.line, cond, scenes: sceneSet, offScene, priority, specificity, choices, bad, raw: r });
   }
   // next targets
   for (const row of parsed) for (const ch of row.choices) {
     if (ch.next && !ids.has(ch.next)) diag.error('DANGLING_NEXT', rel, { line: row.line, row: row.id, column: `next${ch.k}` }, `next${ch.k} points to "${ch.next}", which is not a row id in this sheet`);
   }
-  return { rel, rows: parsed };
+  return { rel, rows: parsed, located: parsed.some(r => r.scenes) };
 }
 
 // ---------------------------------------------------------------- completeness
-function rowMatches(row, v) {
+function rowMatches(row, v, scene) {
+  if (row.scenes && !row.scenes.has(scene)) return false;
   for (let i = 0; i < 6; i++) if (row.cond[i] && !row.cond[i].has(v[i])) return false;
   return true;
 }
-function analyseCompleteness(sheet, diag) {
-  const { rel, rows } = sheet;
-  const usable = rows.filter(r => !r.bad);
-  const fallbacks = usable.filter(r => r.specificity === 0);
-  const fallback = fallbacks[0] || null;
-  if (!fallback) diag.error('MISSING_FALLBACK', rel, {}, 'no fallback row (all six condition cells blank); required by SPEC');
-  else if (fallback.priority !== 0) diag.warn('FALLBACK_PRIORITY', rel, { line: fallback.line, row: fallback.id, column: 'priority' }, `fallback row has priority ${fallback.priority}; SPEC requires 0`);
+/** Winning row per cell for one scene (scene null = "anywhere": only rows with a blank scene cell match). */
+function winnersFor(usable, scene) {
   const winners = new Array(NCELLS);
-  const ties = new Map(); // key -> {rows, cells}
-  let noMatch = 0, served = 0;
-  const winCount = new Map(rows.map(r => [r.id, 0]));
   for (let c = 0; c < NCELLS; c++) {
     const v = cellVector(c);
     let best = [];
     for (const r of usable) {
-      if (!rowMatches(r, v)) continue;
+      if (!rowMatches(r, v, scene)) continue;
       if (!best.length || r.priority > best[0].priority || (r.priority === best[0].priority && r.specificity > best[0].specificity)) best = [r];
       else if (r.priority === best[0].priority && r.specificity === best[0].specificity) best.push(r);
     }
-    if (!best.length) { winners[c] = null; noMatch++; continue; }
-    winners[c] = { row: best[0], tie: best.length > 1 ? best : null };
-    winCount.set(best[0].id, winCount.get(best[0].id) + 1);
-    if (best.length > 1) {
-      const key = best.map(r => r.id).join('|');
-      if (!ties.has(key)) ties.set(key, { rows: best, cells: [] });
-      ties.get(key).cells.push(c);
-    }
-    if (best[0] !== fallback) served++;
+    winners[c] = best.length ? { row: best[0], tie: best.length > 1 ? best : null } : null;
   }
+  return winners;
+}
+/**
+ * SPEC "Dialogue location": completeness is checked per scene the NPC can be met in. `scenes` is that list
+ * (empty for a TV-only NPC: then one pass with scene null). The fallback (all six conditions and scene blank)
+ * is mandatory regardless.
+ */
+function analyseCompleteness(sheet, diag, scenes) {
+  const { rel, rows } = sheet;
+  const usable = rows.filter(r => !r.bad);
+  const fallbacks = usable.filter(r => r.specificity === 0);
+  const fallback = fallbacks[0] || null;
+  if (!fallback) diag.error('MISSING_FALLBACK', rel, {}, 'no fallback row (all six condition cells and scene blank); required by SPEC');
+  else if (fallback.priority !== 0) diag.warn('FALLBACK_PRIORITY', rel, { line: fallback.line, row: fallback.id, column: 'priority' }, `fallback row has priority ${fallback.priority}; SPEC requires 0`);
+  const scope = scenes.length ? scenes : [null];
+  const winCount = new Map(rows.map(r => [r.id, 0]));
+  const ties = new Map(); // key -> {rows, cells (max per scene), scenes}
+  const perScene = [];
+  const byScene = new Map();
+  for (const sc of scope) {
+    const winners = winnersFor(usable, sc);
+    byScene.set(sc, winners);
+    let noMatch = 0, served = 0;
+    const local = new Map();
+    for (let c = 0; c < NCELLS; c++) {
+      const w = winners[c];
+      if (!w) { noMatch++; continue; }
+      winCount.set(w.row.id, winCount.get(w.row.id) + 1);
+      if (w.tie) {
+        const key = w.tie.map(r => r.id).join('|');
+        if (!local.has(key)) local.set(key, { rows: w.tie, cells: [] });
+        local.get(key).cells.push(c);
+      }
+      if (w.row !== fallback) served++;
+    }
+    for (const [key, t] of local) {
+      if (!ties.has(key)) ties.set(key, { rows: t.rows, cells: t.cells.length, example: t.cells[0], scenes: [] });
+      const g = ties.get(key);
+      g.cells = Math.max(g.cells, t.cells.length);
+      g.scenes.push(sc);
+    }
+    const located = usable.filter(r => r.scenes && r.scenes.has(sc)).map(r => r.id);
+    perScene.push({ scene: sc, coverage: served / NCELLS, served, noMatch, ties: [...local.values()].map(t => ({ rows: t.rows.map(r => r.id), cells: t.cells.length })), located });
+  }
+  const where = (list) => sheet.located && list[0] != null ? ` in ${list.length === scope.length && scope.length > 1 ? 'every scene' : `scene ${list.join(', ')}`}` : '';
   for (const t of ties.values()) {
     diag.error('TIE', rel, { line: t.rows[0].line, row: t.rows.map(r => r.id).join(',') },
-      `rows ${t.rows.map(r => r.id).join(', ')} tie (priority ${t.rows[0].priority}, specificity ${t.rows[0].specificity}) in ${t.cells.length} cell(s), e.g. ${cellLabel(t.cells[0])}`, { cells: t.cells.length });
+      `rows ${t.rows.map(r => r.id).join(', ')} tie (priority ${t.rows[0].priority}, specificity ${t.rows[0].specificity}) in ${t.cells} cell(s)${where(t.scenes)}, e.g. ${cellLabel(t.example)}`, { cells: t.cells, scenes: t.scenes.filter(x => x != null) });
   }
-  if (noMatch) diag.error('NO_MATCH', rel, {}, `${noMatch} of ${NCELLS} cells match no row at all`);
+  const worst = perScene.reduce((a, b) => (b.noMatch > a.noMatch ? b : a), perScene[0]);
+  if (worst.noMatch) diag.error('NO_MATCH', rel, {}, `${worst.noMatch} of ${NCELLS} cells match no row at all${where([worst.scene])}`);
   // rows that only appear as next targets are expected not to win cells
   const nextTargets = new Set(rows.flatMap(r => r.choices.map(c => c.next).filter(Boolean)));
   const neverWins = [];
@@ -468,12 +569,24 @@ function analyseCompleteness(sheet, diag) {
     if (winCount.get(r.id) > 0) continue;
     if (nextTargets.has(r.id)) continue;
     neverWins.push(r.id);
-    // find who shadows it
-    const anyCell = (() => { for (let c = 0; c < NCELLS; c++) if (rowMatches(r, cellVector(c))) return c; return -1; })();
-    const by = anyCell >= 0 && winners[anyCell] ? winners[anyCell].row.id : null;
-    diag.warn('NEVER_WINS', rel, { line: r.line, row: r.id }, anyCell < 0 ? 'row matches no cell' : `row never wins any cell (shadowed; e.g. ${by} wins at ${cellLabel(anyCell)})`);
+    if (r.offScene) continue; // already reported as SCENE_NOT_APPEARED
+    // find who shadows it (in a scene the row can match)
+    let anyCell = -1, anyScene = null;
+    for (const sc of scope) {
+      for (let c = 0; c < NCELLS && anyCell < 0; c++) if (rowMatches(r, cellVector(c), sc)) { anyCell = c; anyScene = sc; }
+      if (anyCell >= 0) break;
+    }
+    const w = anyCell >= 0 ? byScene.get(anyScene)[anyCell] : null;
+    diag.warn('NEVER_WINS', rel, { line: r.line, row: r.id }, anyCell < 0 ? (r.scenes ? 'row matches no cell in any scene this NPC appears in' : 'row matches no cell') : `row never wins any cell (shadowed; e.g. ${w ? w.row.id : '?'} wins at ${cellLabel(anyCell)}${where([anyScene])})`);
   }
-  return { winners, fallback, coverage: served / NCELLS, served, noMatch, ties: [...ties.values()].map(t => ({ rows: t.rows.map(r => r.id), cells: t.cells.length })), neverWins, winCount: Object.fromEntries(winCount), nextTargets };
+  // headline numbers: the weakest scene (a sheet is only as complete as its least-covered scene)
+  const minScene = perScene.reduce((a, b) => (b.coverage < a.coverage ? b : a), perScene[0]);
+  return {
+    winners: byScene.get(minScene.scene), byScene, scope, perScene, fallback,
+    coverage: minScene.coverage, served: minScene.served, noMatch: worst.noMatch,
+    ties: [...ties.values()].map(t => ({ rows: t.rows.map(r => r.id), cells: t.cells, scenes: t.scenes.filter(x => x != null) })),
+    neverWins, winCount: Object.fromEntries(winCount), nextTargets,
+  };
 }
 
 // ---------------------------------------------------------------- reachability
@@ -502,53 +615,60 @@ export function rowDepth(rows, row, cache = new Map()) {
 /** What opening a conversation on `row` costs (engine talkCost): 0 for a short conversation, else DIALOGUE_COST. */
 export const talkCost = (rows, row, cache) => (rowDepth(rows, row, cache) < FREE_DEPTH ? 0 : DIALOGUE_COST);
 
-function analyseReachability(npc, sheet, comp, events, invitedExternally, diag) {
-  const rel = sheet.rel;
+/**
+ * Dijkstra over (NPC state, invite flags, row on screen[, day, conversations today]).
+ *  - limit null: the old over-approximation (world variables, dayPhase included, free; any number of conversations).
+ *    Used to tell "unreachable at all" from "unreachable under the conversation limit".
+ *  - limit T: SPEC "Conversation limit": at most T conversations with this NPC per day over the 5-day demo. The day is
+ *    tracked (dayPhase follows it: days 1-2 early, 3 mid, 4-5 late), going to the next day is free, follow-ups via
+ *    `next` stay in the same conversation, and events do not count as conversations.
+ * Talking happens in any of `talkScenes`; the row shown is the winner in that scene (scene filter).
+ */
+function searchNpc(npc, sheet, comp, myEvents, inviteBit, startMask, talkScenes, limit) {
   const rowById = new Map(sheet.rows.map(r => [r.id, r]));
-  const myEvents = events.filter(e => e.npc === npc.id);
-  const inviteBit = new Map();
-  myEvents.filter(e => e.trigger === 'invite').forEach((e, i) => inviteBit.set(e.id, 1 << i));
-  let startMask = 0;
-  for (const [id, bit] of inviteBit) if (invitedExternally.has(id)) startMask |= bit;
-  const canTalk = npc.appearances.length > 0;
   const depthCache = new Map();
-
-  // node key: s|mask|showRowId('' = idle)
+  const limited = limit != null;
   const dist = new Map(), prev = new Map();
-  const key = (s, m, r) => `${s}|${m}|${r || ''}`;
+  const key = (s, m, r, day, used) => `${s}|${m}|${r || ''}|${day}|${used}`;
   const buckets = [];
   const push = (k, d, from, label) => {
     if (dist.has(k) && dist.get(k) <= d) return;
     dist.set(k, d); prev.set(k, { from, label });
     (buckets[d] ||= []).push(k);
   };
-  push(key(npc.start, startMask, ''), 0, null, null);
-  const choiceEdges = (s, m, row, base, labelPrefix, out) => {
+  push(key(npc.start, startMask, '', 0, 0), 0, null, null);
+  const choiceEdges = (s, m, row, base, day, used, out) => {
     for (const ch of row.choices) {
       const r = applyEffects(s, m, ch.ops, inviteBit);
       const nxt = ch.next && rowById.has(ch.next) ? ch.next : '';
       const cost = base + r.extra;
-      out.push({ k: key(r.s, r.mask, nxt), cost, label: `${labelPrefix}${row.id}/choice${ch.k} (+${cost})` });
+      out.push({ k: key(r.s, r.mask, nxt, day, used), cost, label: `${row.id}/choice${ch.k} (+${cost})` });
     }
   };
   for (let d = 0; d < buckets.length; d++) {
-    for (const k of buckets[d] || []) {
+    const bucket = buckets[d] || [];
+    for (let bi = 0; bi < bucket.length; bi++) { // zero-cost edges append to this bucket while it is walked
+      const k = bucket[bi];
       if (dist.get(k) !== d) continue;
-      const [ss, mm, rid] = k.split('|');
-      const s = +ss, m = +mm;
+      const [ss, mm, rid, dd, uu] = k.split('|');
+      const s = +ss, m = +mm, day = +dd, used = +uu;
       const out = [];
       if (rid) {
-        choiceEdges(s, m, rowById.get(rid), 0, '', out);
-        if (!rowById.get(rid).choices.length) out.push({ k: key(s, m, ''), cost: 0, label: null });
+        choiceEdges(s, m, rowById.get(rid), 0, day, used, out);
+        if (!rowById.get(rid).choices.length) out.push({ k: key(s, m, '', day, used), cost: 0, label: null });
       } else {
-        if (canTalk) {
+        if (talkScenes.length && (!limited || used < limit)) {
           const seenRows = new Set();
-          for (let w = 0; w < NWORLD; w++) {
-            const win = comp.winners[s * NWORLD + w];
-            if (!win || seenRows.has(win.row.id)) continue;
-            seenRows.add(win.row.id);
-            // the engine charges at talk start: free when the opening row is a short conversation (depth < 3)
-            choiceEdges(s, m, win.row, talkCost(sheet.rows, win.row, depthCache), '', out);
+          for (const sc of talkScenes) {
+            const winners = comp.byScene.get(sc);
+            for (let w = 0; w < NWORLD; w++) {
+              if (limited && w % 3 !== DAY_PHASE[day]) continue; // the day fixes dayPhase
+              const win = winners[s * NWORLD + w];
+              if (!win || seenRows.has(win.row.id)) continue;
+              seenRows.add(win.row.id);
+              // the engine charges at talk start: free when the opening row is a short conversation (depth < 3)
+              choiceEdges(s, m, win.row, talkCost(sheet.rows, win.row, depthCache), day, limited ? used + 1 : 0, out);
+            }
           }
         }
         const rap = stateVec(s)[1];
@@ -558,53 +678,97 @@ function analyseReachability(npc, sheet, comp, events, invitedExternally, diag) 
           for (const ch of e.choices) {
             const r = applyEffects(s, m, ch.ops, inviteBit);
             const cost = e.cost + r.extra;
-            out.push({ k: key(r.s, r.mask, ''), cost, label: `event:${e.id}/choice${ch.k} (+${cost})` });
+            out.push({ k: key(r.s, r.mask, '', day, used), cost, label: `event:${e.id}/choice${ch.k} (+${cost})` });
           }
         }
+        if (limited && day < DEMO_DAYS - 1) out.push({ k: key(s, m, '', day + 1, 0), cost: 0, label: `day ${day + 2}` });
       }
       for (const ed of out) push(ed.k, d + ed.cost, k, ed.label);
     }
   }
-  const pathTo = (k) => { const labels = []; while (k && prev.get(k)) { const p = prev.get(k); if (p.label) labels.push(p.label); k = p.from; } return labels.reverse(); };
-  // best idle cost per NPC state
-  const stateCost = new Array(NSTATE).fill(Infinity), stateKey = new Array(NSTATE).fill(null);
+  const pathTo = (k) => {
+    const labels = [];
+    while (k && prev.get(k)) { const p = prev.get(k); if (p.label) labels.push(p.label); k = p.from; }
+    // "day 2 → day 3 → day 4" (nights with no conversation) reads as just "day 4"
+    return labels.reverse().filter((l, i, a) => !(/^day \d$/.test(l) && /^day \d$/.test(a[i + 1] ?? '')));
+  };
+  // cheapest idle node from which a conversation can start, per cell (state x world; dayPhase follows the day when limited)
+  const cellCost = new Array(NCELLS).fill(Infinity), cellKey = new Array(NCELLS).fill(null);
   const showCost = new Map(), showKey = new Map();
   for (const [k, d] of dist) {
-    const [ss, , rid] = k.split('|');
-    if (!rid) { if (d < stateCost[+ss]) { stateCost[+ss] = d; stateKey[+ss] = k; } }
-    else if (!showCost.has(rid) || d < showCost.get(rid)) { showCost.set(rid, d); showKey.set(rid, k); }
+    const [ss, , rid, dd, uu] = k.split('|');
+    if (rid) { if (!showCost.has(rid) || d < showCost.get(rid)) { showCost.set(rid, d); showKey.set(rid, k); } continue; }
+    if (!talkScenes.length || (limited && +uu >= limit)) continue;
+    for (let w = 0; w < NWORLD; w++) {
+      if (limited && w % 3 !== DAY_PHASE[+dd]) continue;
+      const c = +ss * NWORLD + w;
+      if (d < cellCost[c]) { cellCost[c] = d; cellKey[c] = k; }
+    }
   }
-  const cellCost = new Array(NCELLS);
-  for (let c = 0; c < NCELLS; c++) cellCost[c] = canTalk ? stateCost[Math.floor(c / NWORLD)] : Infinity;
-  const rowsOut = {};
-  const unreachable = [], overBudget = [];
+  const rows = {};
   for (const r of sheet.rows) {
     if (r.bad) continue;
-    let best = Infinity, bestCell = -1, via = null;
-    for (let c = 0; c < NCELLS; c++) {
-      const w = comp.winners[c];
-      if (w && w.row === r && cellCost[c] < best) { best = cellCost[c]; bestCell = c; }
+    let best = Infinity, bestCell = -1, bestScene = null, via = null;
+    for (const sc of talkScenes) {
+      const winners = comp.byScene.get(sc);
+      for (let c = 0; c < NCELLS; c++) {
+        const w = winners[c];
+        if (w && w.row === r && cellCost[c] < best) { best = cellCost[c]; bestCell = c; bestScene = sc; }
+      }
     }
     if (showCost.has(r.id) && showCost.get(r.id) < best) { best = showCost.get(r.id); via = showKey.get(r.id); bestCell = -1; }
     let witness = null;
     if (best < Infinity) {
-      const labels = via ? pathTo(via) : pathTo(stateKey[Math.floor(bestCell / NWORLD)]);
+      const labels = via ? pathTo(via) : pathTo(cellKey[bestCell]);
       witness = [...labels, r.id].join(' → ');
-      if (bestCell >= 0) witness += `  [at ${cellLabel(bestCell)}]`; else witness += '  [via next]';
+      if (bestCell >= 0) witness += `  [at ${cellLabel(bestCell)}${sheet.located ? `, scene=${bestScene}` : ''}]`; else witness += '  [via next]';
     }
-    rowsOut[r.id] = { cost: best === Infinity ? null : best, witness, depth: rowDepth(sheet.rows, r, depthCache) };
+    rows[r.id] = { cost: best === Infinity ? null : best, witness };
+  }
+  const reachableStates = new Set([...dist.keys()].filter(k => k.split('|')[2] === '').map(k => k.split('|')[0])).size;
+  return { cellCost, rows, reachableStates };
+}
+
+function analyseReachability(npc, sheet, comp, events, invitedExternally, diag, talkScenes, maxTalks) {
+  const rel = sheet.rel;
+  const myEvents = events.filter(e => e.npc === npc.id);
+  const inviteBit = new Map();
+  myEvents.filter(e => e.trigger === 'invite').forEach((e, i) => inviteBit.set(e.id, 1 << i));
+  let startMask = 0;
+  for (const [id, bit] of inviteBit) if (invitedExternally.has(id)) startMask |= bit;
+  const canTalk = talkScenes.length > 0;
+  const depthCache = new Map();
+  const free = searchNpc(npc, sheet, comp, myEvents, inviteBit, startMask, talkScenes, null);
+  const lim = searchNpc(npc, sheet, comp, myEvents, inviteBit, startMask, talkScenes, maxTalks);
+  const rowsOut = {};
+  const unreachable = [], overBudget = [], limitUnreachable = [];
+  for (const r of sheet.rows) {
+    if (r.bad) continue;
+    const a = free.rows[r.id], b = lim.rows[r.id];
+    rowsOut[r.id] = {
+      cost: b.cost, witness: b.witness, depth: rowDepth(sheet.rows, r, depthCache),
+      // without the conversation limit (only differs when the limit makes the row dearer or unreachable)
+      ...(a.cost !== b.cost ? { costNoLimit: a.cost, witnessNoLimit: a.witness } : {}),
+    };
     if (!canTalk || comp.neverWins.includes(r.id)) continue; // never-win rows are reported once, as NEVER_WINS
-    if (best === Infinity) {
+    const talkWins = talkScenes.some(sc => comp.byScene.get(sc).some(w => w && w.row === r)) || comp.nextTargets.has(r.id);
+    if (a.cost == null && !talkWins) {
+      // it only wins in scenes where this NPC is met through events (e.g. a visit at home): no conversation starts there
+      const only = comp.scope.filter(sc => sc != null && !talkScenes.includes(sc) && comp.byScene.get(sc).some(w => w && w.row === r));
+      diag.info('EVENT_SCENE_ONLY', rel, { line: r.line, row: r.id }, `row wins only in ${only.join(', ') || 'no scene'}, where ${npc.id} is met through events, not conversation; completeness there is checked, reachability is not`);
+    } else if (a.cost == null) {
       unreachable.push(r.id);
       diag.error('UNREACHABLE', rel, { line: r.line, row: r.id }, `row is unreachable from initial state (${cellLabel(npc.start * NWORLD).split(', ').slice(0, 3).join(', ')}): no sequence of dialogue choices or events reaches a cell it wins`);
-    } else if (best > BUDGET) {
+    } else if (b.cost == null) {
+      limitUnreachable.push(r.id);
+      diag.error('LIMIT_UNREACHABLE', rel, { line: r.line, row: r.id }, `row is unreachable with at most ${maxTalks} conversation(s) per day over ${DEMO_DAYS} days (dayPhase follows the day); without the limit: ${a.cost} action(s) via ${a.witness}`, { talks: maxTalks });
+    } else if (b.cost > BUDGET) {
       overBudget.push(r.id);
-      diag.warn('OVER_BUDGET', rel, { line: r.line, row: r.id }, `row needs at least ${best} actions; budget is ${BUDGET}`);
+      diag.warn('OVER_BUDGET', rel, { line: r.line, row: r.id }, `row needs at least ${b.cost} actions; budget is ${BUDGET}`);
     }
   }
   if (!canTalk) diag.info('NO_APPEARANCES', rel, {}, `NPC ${npc.id} has no appearances, so dialogue can never start; reachability not enforced`);
-  const reachableStates = stateCost.filter(x => x < Infinity).length;
-  return { cellCost, rows: rowsOut, unreachable, overBudget, reachableStates, canTalk };
+  return { cellCost: lim.cellCost, rows: rowsOut, unreachable, limitUnreachable, overBudget, reachableStates: lim.reachableStates, canTalk };
 }
 
 // ---------------------------------------------------------------- main
@@ -615,9 +779,11 @@ function analyseReachability(npc, sheet, comp, events, invitedExternally, diag) 
  * input.manifest: manifest.json text, a parsed manifest object, or null when there is none
  * input.content: label for the content location (CLI: absolute path)
  * input.analyse: optional list of NPC ids; completeness/reachability run only for those (editor speed-up)
+ * input.maxTalks: conversations per NPC per day the reachability search allows (roomConfig.maxTalksPerNpcPerDay; default 1)
  */
 export function checkContent(input) {
   const { files = {}, manifest = null, content = '', analyse = null } = input || {};
+  const maxTalks = Number.isInteger(input?.maxTalks) && input.maxTalks > 0 ? input.maxTalks : DEFAULT_TALKS;
   const diag = new Diag();
   let assets = null;
   if (manifest != null) {
@@ -648,9 +814,23 @@ export function checkContent(input) {
     const id = f.slice(0, -4);
     if (!npcs.has(id)) diag.error('UNKNOWN_NPC', `dialogue/${f}`, {}, `sheet for unknown npc "${id}" (not in npcs.yaml)`);
   }
+  // where each NPC can be met: talkScenes (figure appearances, painted variants, talk zones) are where a
+  // conversation can start; completeness also covers scenes of events naming the NPC (SPEC "Dialogue location")
+  const talkScenesOf = new Map(), metScenesOf = new Map();
+  for (const [id, n] of npcs) {
+    const talk = new Set(n.appearances.filter(a => a && scenes.has(a.scene)).map(a => a.scene));
+    for (const sc of scenes.values()) {
+      if (sc.painted && Array.isArray(sc.painted.npcs) && sc.painted.npcs.includes(id)) talk.add(sc.id);
+      if ((sc.hotspots || []).some(h => h?.action?.type === 'talk' && h.action.npc === id)) talk.add(sc.id);
+    }
+    const met = new Set(talk);
+    for (const e of events) if (e.npc === id && e.scene && scenes.has(e.scene)) met.add(e.scene);
+    talkScenesOf.set(id, [...talk]);
+    metScenesOf.set(id, [...met]);
+  }
   const sheets = new Map();
   for (const id of npcs.keys()) {
-    const s = validateDialogue(files, id, diag, eventIds);
+    const s = validateDialogue(files, id, diag, eventIds, scenes, new Set(metScenesOf.get(id)));
     if (s) sheets.set(id, s);
     else if (npcs.get(id).appearances.length) diag.error('MISSING_SHEET', `dialogue/${id}.csv`, {}, `NPC ${id} appears in scenes but has no dialogue sheet`);
   }
@@ -670,16 +850,25 @@ export function checkContent(input) {
     const before = diag.list.length;
     if (!s) { npcResults.push({ id, name: npc.name, sheet: null, sheetRequired: npc.appearances.length > 0 }); continue; }
     if (analyse && !analyse.includes(id)) { npcResults.push({ id, name: npc.name, sheet: s.rel, skipped: true, rowCount: s.rows.length }); continue; }
-    const comp = analyseCompleteness(s, diag);
+    const comp = analyseCompleteness(s, diag, metScenesOf.get(id));
+    // headline coverage: the weakest scene a conversation can start in (events-only scenes stay listed per scene)
+    const talkPer = comp.perScene.filter(p => talkScenesOf.get(id).includes(p.scene));
+    if (talkPer.length) { const w = talkPer.reduce((a, b) => (b.coverage < a.coverage ? b : a)); comp.coverage = w.coverage; comp.served = w.served; comp.winners = comp.byScene.get(w.scene); }
     // invites of this NPC's events issued from outside this NPC's own model
     const external = new Set();
     for (const [evId, owners] of inviteSources) for (const o of owners) if (o !== id) external.add(evId);
-    const reach = analyseReachability(npc, s, comp, events, external, diag);
+    const reach = analyseReachability(npc, s, comp, events, external, diag, talkScenesOf.get(id).filter(x => comp.byScene.has(x)), maxTalks);
     const mine = diag.list.slice(before);
-    const cells = comp.winners.map((w, c) => w ? { row: w.row.id, spec: w.row.specificity, prio: w.row.priority, line: w.row.text, tie: w.tie ? w.tie.map(r => r.id) : null, cost: reach.cellCost[c] === Infinity ? null : reach.cellCost[c] } : { row: null, cost: reach.cellCost[c] === Infinity ? null : reach.cellCost[c] });
+    const cellsOf = (winners) => winners.map((w, c) => w ? { row: w.row.id, spec: w.row.specificity, prio: w.row.priority, line: w.row.text, tie: w.tie ? w.tie.map(r => r.id) : null, cost: reach.cellCost[c] === Infinity ? null : reach.cellCost[c] } : { row: null, cost: reach.cellCost[c] === Infinity ? null : reach.cellCost[c] });
+    const cells = cellsOf(comp.winners);
     npcResults.push({
       id, name: npc.name, sheet: s.rel, rowCount: s.rows.length, fallback: comp.fallback?.id ?? null,
       coverage: comp.coverage, served: comp.served, noMatch: comp.noMatch, ties: comp.ties, neverWins: comp.neverWins,
+      // per-scene completeness (SPEC "Dialogue location"); scene null = a TV-only NPC checked "anywhere"
+      scenes: comp.perScene, talkScenes: talkScenesOf.get(id), located: s.located,
+      // per-scene grids only when the sheet has located rows (otherwise every scene's grid is the same)
+      sceneCells: s.located ? Object.fromEntries([...comp.byScene].map(([sc, w]) => [sc, cellsOf(w)])) : undefined,
+      maxTalks, limitUnreachable: reach.limitUnreachable,
       unreachable: reach.unreachable, overBudget: reach.overBudget, reachableStates: reach.reachableStates, canTalk: reach.canTalk,
       rows: reach.rows, winCount: comp.winCount, cells,
       errors: mine.filter(d => d.severity === 'error').length, warnings: mine.filter(d => d.severity === 'warning').length,
@@ -687,5 +876,5 @@ export function checkContent(input) {
   }
   const counts = { error: 0, warning: 0, info: 0 };
   for (const d of diag.list) counts[d.severity]++;
-  return { content, generated: new Date().toISOString(), ok: counts.error === 0, counts, diagnostics: diag.list, npcs: npcResults };
+  return { content, generated: new Date().toISOString(), ok: counts.error === 0, counts, maxTalks, diagnostics: diag.list, npcs: npcResults };
 }

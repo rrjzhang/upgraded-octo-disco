@@ -1,14 +1,15 @@
 /** The game runtime: state transitions + plain-DOM rendering of the 1440x900 stage. */
 import type {
-  Content, DialogueRow, Questionnaire, Emotion, EventRow, GameState, Hotspot, ModuleId, NewsRow, Npc, Scene, Slot,
+  Content, DialogueRow, Questionnaire, Emotion, EventRow, GameState, Hotspot, ModuleId, NewsRow, Npc, Scene, Screen, Slot,
 } from './types';
 import {
-  DAY_ACTIONS, DEMO_DAYS, DIALOGUE_COST, FREE_DEPTH, applyEffects, dayPhaseOf, eventMatches, leanOf, phaseOf, rowDepth, selectRow,
+  DAY_ACTIONS, DEFAULT_TALKS_PER_DAY, DEMO_DAYS, DIALOGUE_COST, FREE_DEPTH, applyEffects, dayPhaseOf, eventMatches, leanOf, phaseOf, rowDepth, selectRow,
   type Delta,
 } from './rules';
 import { appendLog, debugEnabled, getRoom, readLog, saveState } from './store';
-import { assetEntry, figureHeight, overrideIds, questionnaireProblems } from './content';
-import { SILHOUETTE_BUST, appUrl, downloadText, h, seeded, silhouetteFigure, subst } from './util';
+import { assetEntry, figureHeight, isSeatedFigure, overrideIds, questionnaireProblems } from './content';
+import { SILHOUETTE_BUST, appUrl, downloadText, h, isDev, params, seeded, silhouetteFigure, subst } from './util';
+import { matrix3d } from './homography';
 
 const CULTURE_NAMES: Record<string, string> = { cn: 'Chinese', mx: 'Mexican', in: 'Indian' };
 const CULTURE_PACK_NAMES: Record<string, string> = { cn: 'China', mx: 'Mexico', in: 'India' };
@@ -22,8 +23,17 @@ type Panel =
   | { kind: 'text'; title?: string; text: string; rule?: string; figure?: string }
   | { kind: 'bed'; hs: string }; // going to bed with actions left: confirm first
 
-// slot null = the NPC is painted into the background (scene.painted); no figure is drawn and a `talk` hotspot stands for them
-interface Presence { npc: Npc; slot: Slot | null }
+// slot null = the NPC is painted into the background (scene.painted); no figure is drawn and a `talk` hotspot stands for them.
+// figure = the appearance's own figure asset (blank = the NPC's default).
+interface Presence { npc: Npc; slot: Slot | null; figure?: string }
+
+/** Longest the scene swap waits for its images before showing the scene anyway. */
+const PRELOAD_CAP_MS = 1500;
+/** Cross-fade between the old and the new scene. */
+const SWAP_FADE_MS = 150;
+/** The TV still is laid out at this size, then mapped onto the screen quad. */
+const TV_W = 1280;
+const TV_H = 720;
 
 interface OpenWindow {
   module: ModuleId;
@@ -56,6 +66,14 @@ export class Game {
   private debug = debugEnabled();
   /** rowDepth caches per NPC sheet */
   private depthCache = new Map<string, Map<string, number>>();
+  /** image URLs already loaded and decoded (a revisit swaps at once) */
+  private loaded = new Set<string>();
+  /** a scene swap is waiting for its images (the scene key it waits for): input is held, the old scene stays on screen */
+  private swapping: string | null = null;
+  /** the scene id currently drawn in the scene box (a change of scene preloads and cross-fades) */
+  private shownScene: string | null = null;
+  /** dev only: screen quads set with gv.screens(), per scene, in memory */
+  private devScreens = new Map<string, Screen[]>();
 
   constructor(host: HTMLElement, private c: Content, private s: GameState) {
     this.stage = h('div', { class: 'stage', id: 'stage' });
@@ -98,6 +116,7 @@ export class Game {
     s.scene = 'home';
     s.actions = DAY_ACTIONS;
     s.dayStartDone = s.day;
+    s.talks = { day: s.day, counts: {} };
     this.panel = { kind: 'idle' };
     this.queue = [];
     for (const id of s.invites) {
@@ -214,7 +233,7 @@ export class Game {
     if (!sc) return [];
     const out: Presence[] = [];
     if (this.paintedActive(sc)) for (const id of sc.painted!.npcs) out.push({ npc: this.c.npcById.get(id)!, slot: null });
-    const cands: { npc: Npc; slot: Slot; roll: number }[] = [];
+    const cands: { npc: Npc; slot: Slot; roll: number; figure?: string }[] = [];
     for (const n of this.c.npcs) {
       if (!this.inRoster(n)) continue;
       for (const a of n.appearances) {
@@ -222,7 +241,7 @@ export class Game {
         const roll = seeded(this.s.config.seed, 'presence', this.s.day, sceneId, n.id, a.slot)();
         if (roll >= a.chance) continue;
         const slot = sc.slots.find((x) => x.id === a.slot);
-        if (slot) cands.push({ npc: n, slot, roll });
+        if (slot) cands.push({ npc: n, slot, roll, figure: a.figure });
       }
     }
     cands.sort((a, b) => a.roll - b.roll || (a.npc.id < b.npc.id ? -1 : a.npc.id > b.npc.id ? 1 : 0));
@@ -230,7 +249,7 @@ export class Game {
     for (const cd of cands) {
       if (used.has(cd.slot.id) || out.some((p) => p.npc.id === cd.npc.id)) continue;
       used.add(cd.slot.id);
-      out.push({ npc: cd.npc, slot: cd.slot });
+      out.push({ npc: cd.npc, slot: cd.slot, figure: cd.figure });
     }
     if (dev) for (const pl of this.devPlaced.get(sceneId) ?? []) {
       const n = this.c.npcById.get(pl.npc);
@@ -250,7 +269,17 @@ export class Game {
       leader: this.s.config.nationalLeader,
       npcs: this.s.npcs,
       requirePresence,
+      canAppear: (npc: string, scene: string) => this.canAppear(npc, scene),
     };
+  }
+
+  /** The NPC can be present in the scene at all: an appearance, a painted variant or a talk zone naming them. */
+  private canAppear(npcId: string, sceneId: string): boolean {
+    const n = this.c.npcById.get(npcId);
+    const sc = this.c.sceneById.get(sceneId);
+    if (!n || !sc) return false;
+    return n.appearances.some((a) => a.scene === sceneId) || !!sc.painted?.npcs.includes(npcId)
+      || sc.hotspots.some((hs) => hs.action.type === 'talk' && hs.action.npc === npcId);
   }
 
   // ---- image resolution: researcher override (IndexedDB gv/images, SPEC key scheme) first, manifest second
@@ -297,12 +326,20 @@ export class Game {
     return { url: neutral, placeholder: !ov('neutral') && !!p?.placeholder };
   }
 
-  private figureFor(n: Npc): { url: string; placeholder: boolean; aspect: number } {
-    const o = this.ovImg('figures', n.figure);
-    if (o) return { url: o.url, placeholder: false, aspect: o.w && o.h ? o.w / o.h : 0.45 };
-    const f = assetEntry(this.c.manifest, this.c.manifest.figures, n.figure);
-    if (!f?.file) return { url: silhouetteFigure(n.seated), placeholder: true, aspect: n.seated ? 300 / 500 : 300 / 700 };
-    return { url: this.c.assetUrl(f.file), placeholder: !!f.placeholder, aspect: f.w && f.h ? f.w / f.h : 0.45 };
+  /**
+   * The figure drawn for a presence: the appearance's own `figure` when it names one, else the NPC's default.
+   * `seated` follows the asset actually drawn (manifest `seated`, or `_fig_sit` in the id); the NPC's flag covers its default.
+   */
+  private figureFor(n: Npc, appearanceFigure?: string): { url: string; placeholder: boolean; aspect: number; seated: boolean } {
+    // an appearance's own figure whose art does not exist yet falls back to the NPC's default figure
+    const own = appearanceFigure && (this.ovImg('figures', appearanceFigure) || assetEntry(this.c.manifest, this.c.manifest.figures, appearanceFigure)?.file) ? appearanceFigure : undefined;
+    const id = own || n.figure;
+    const seated = own ? isSeatedFigure(this.c.manifest, own) : n.seated;
+    const o = this.ovImg('figures', id);
+    if (o) return { url: o.url, placeholder: false, aspect: o.w && o.h ? o.w / o.h : 0.45, seated };
+    const f = assetEntry(this.c.manifest, this.c.manifest.figures, id);
+    if (!f?.file) return { url: silhouetteFigure(seated), placeholder: true, aspect: seated ? 300 / 500 : 300 / 700, seated };
+    return { url: this.c.assetUrl(f.file), placeholder: !!f.placeholder, aspect: f.w && f.h ? f.w / f.h : 0.45, seated };
   }
 
   /** A cast member's bust or TV still: override `cast/<id>/<bust|tv>`, then manifest.cast; url '' when missing. */
@@ -364,7 +401,7 @@ export class Game {
     appendLog(this.s, { type: 'move', target: sceneId, from });
     this.save();
     if (!this.tired()) this.rollEnterEvent(sceneId);
-    this.render();
+    this.render(); // a different scene: render() preloads its images and cross-fades
   }
 
   private rollEnterEvent(sceneId: string): void {
@@ -459,15 +496,53 @@ export class Game {
     return !this.tired() && this.s.actions > 0 && this.s.actions >= cost;
   }
 
+  /**
+   * Conversations allowed per NPC per day: the room's `maxTalksPerNpcPerDay` (default 1). In dev mode `&talks=N`
+   * overrides it for the tab (and the DEV1 room has no value, so it stays 1).
+   */
+  get maxTalks(): number {
+    const dev = isDev ? Number(params.get('talks')) : NaN;
+    if (Number.isInteger(dev) && dev > 0) return dev;
+    const v = Number(this.s.config.maxTalksPerNpcPerDay);
+    return Number.isInteger(v) && v > 0 ? v : DEFAULT_TALKS_PER_DAY;
+  }
+
+  /** Conversations with `npcId` started today. */
+  talksToday(npcId: string): number {
+    const t = this.s.talks;
+    return t && t.day === this.s.day ? t.counts[npcId] ?? 0 : 0;
+  }
+
+  /** Already had today's conversation(s) with this NPC (SPEC "Conversation limit"). */
+  talkedOut(npcId: string): boolean {
+    return this.talksToday(npcId) >= this.maxTalks;
+  }
+
+  private countTalk(npcId: string): void {
+    if (!this.s.talks || this.s.talks.day !== this.s.day) this.s.talks = { day: this.s.day, counts: {} };
+    this.s.talks.counts[npcId] = (this.s.talks.counts[npcId] ?? 0) + 1;
+  }
+
   /** "Talk to Dana (1 action)" / "(free)" / "(no actions left)": the same words for aria-label and hover title. */
   private talkLabel(n: Npc, cost: number): string {
+    if (this.talkedOut(n.id)) return `${n.name}: ${this.str('ui.talkedToday')}`;
     const why = this.s.actions <= 0 ? this.str('ui.noActionsShort') : cost ? this.costWords(cost) : this.str('ui.free');
     return `${this.str('ui.talkTo', { name: n.name })} (${why})`;
   }
 
-  talkTo(npcId: string): void {
+  /** `force` (dev only, gv.talk(npc, {force:true})) ignores the per-day conversation limit. */
+  talkTo(npcId: string, opts: { force?: boolean } = {}): void {
     const n = this.c.npcById.get(npcId);
     if (!n) return;
+    if (this.talkedOut(n.id) && !opts.force) {
+      // the figure is disabled; this covers gv.talk and anything else that calls in directly
+      console.info(`[talk] ${n.id}: already talked ${this.talksToday(n.id)} time(s) today (limit ${this.maxTalks})`);
+      if (!(this.panel.kind === 'dialogue' && this.panel.npc === n.id)) {
+        this.panel = { kind: 'idle', note: `${n.name}: ${this.str('ui.talkedToday')}` };
+        this.render();
+      }
+      return;
+    }
     this.endConvo('left'); // talking to someone else (or the same person afresh) leaves the current conversation
     const cost = this.talkCost(n);
     if (!this.canTalk(cost)) {
@@ -481,7 +556,8 @@ export class Game {
       this.panel = { kind: 'idle', note: `(No dialogue for ${n.name} yet.)` };
     } else {
       this.panel = { kind: 'dialogue', npc: n.id, row: row.row, tie: row.tie };
-      appendLog(this.s, { type: 'dialogue', target: n.id, rule: row.row.id, cost, delta: { actions: [before, this.s.actions] } });
+      this.countTalk(n.id);
+      appendLog(this.s, { type: 'dialogue', target: n.id, rule: row.row.id, cost, talk: this.talksToday(n.id), delta: { actions: [before, this.s.actions] }, ...(opts.force ? { forced: true } : {}) });
       this.startConvo(n.id, row.row.id);
     }
     this.save();
@@ -496,6 +572,7 @@ export class Game {
       nationalLeader: this.s.config.nationalLeader,
       playerLean: leanOf(this.s.spent),
       dayPhase: dayPhaseOf(this.s.day),
+      scene: this.s.scene, // rows with a `scene` cell only match where they are set
     });
     if (!sel.row) {
       if (!quiet) console.error(`[dialogue] ${n.id}: no row matched (missing fallback?)`);
@@ -614,6 +691,7 @@ export class Game {
           content = tv;
           rule = tv.stories[0]?.id;
           if (rule) this.s.seenNews.push(rule);
+          this.s.tvWatched = { day: this.s.day, phase: phaseOf(this.s.actions), story: rule };
         }
         appendLog(this.s, { type: 'window', target: mod, rule, delta: before !== this.s.actions ? { actions: [before, this.s.actions] } : undefined });
         this.save();
@@ -798,7 +876,10 @@ export class Game {
         if (n > this.s.actions) return this.reply('state', { ok: false });
         const before = this.s.actions;
         this.spend(n);
-        if (w.module === 'tv' && typeof m.story === 'string') this.s.seenNews.push(m.story);
+        if (w.module === 'tv' && typeof m.story === 'string') {
+          this.s.seenNews.push(m.story);
+          this.s.tvWatched = { day: this.s.day, phase: phaseOf(this.s.actions), story: m.story };
+        }
         appendLog(this.s, { type: 'window', target: w.module, op: 'spend', rule: typeof m.story === 'string' ? m.story : undefined, delta: { actions: [before, this.s.actions] } });
         this.save();
         this.renderTop();
@@ -851,6 +932,8 @@ export class Game {
   }
 
   render(): void {
+    // a different scene (or background variant) is held back until its images are in: see beginSwap()
+    if (this.sceneKey() !== this.shownScene) { this.beginSwap(); return; }
     // whatever replaced the dialogue panel (a hotspot's text, a note, an event) means the player left the conversation
     if (this.s.convo && !(this.panel.kind === 'dialogue' && this.panel.npc === this.s.convo.npc)) this.endConvo('left');
     const focusKey = (document.activeElement as HTMLElement | null)?.dataset?.fk;
@@ -864,6 +947,115 @@ export class Game {
       if (el && !(el as HTMLButtonElement).disabled) el.focus();
       else this.right.querySelector<HTMLElement>('.choice')?.focus();
     }
+  }
+
+  // ------------------------------------------------------------------ scene swap (SPEC "Figures appear with the scene")
+  /** What the scene box shows: the scene and its background variant (evening, painted). A change preloads and fades. */
+  private sceneKey(): string {
+    const sc = this.scene;
+    return `${sc.id}|${sc.background === 'none' ? 'none' : this.bgFor(sc)?.id ?? ''}`;
+  }
+
+  /** Every image the scene box will draw right away: background, props, present figures, the TV screen still. */
+  private sceneImageUrls(sc: Scene): string[] {
+    const urls: string[] = [];
+    if (sc.background !== 'none') {
+      const bg = this.bgFor(sc);
+      if (bg?.url) urls.push(bg.url);
+      for (const p of this.paintedActive(sc) ? [] : sc.props) {
+        const m = assetEntry(this.c.manifest, this.c.manifest.props, p.asset);
+        if (m?.file) urls.push(this.c.assetUrl(m.file));
+      }
+      for (const pr of this.presentIn(sc.id)) if (pr.slot) urls.push(this.figureFor(pr.npc, pr.figure).url);
+      if (this.screensFor(sc).length) { const st = this.screenStory(); if (st?.image) urls.push(st.image); }
+    }
+    return [...new Set(urls)].filter((u) => u && !u.startsWith('data:'));
+  }
+
+  private keepAlive = new Map<string, HTMLImageElement>();
+  private preload(url: string): Promise<void> {
+    if (this.loaded.has(url)) return Promise.resolve();
+    return new Promise<void>((resolve) => {
+      const img = new Image();
+      const done = () => { this.loaded.add(url); resolve(); };
+      img.onload = () => { img.decode().then(done, done); };
+      img.onerror = done; // a broken image falls back to its placeholder when drawn; never hold the scene for it
+      img.src = url;
+      this.keepAlive.set(url, img);
+    });
+  }
+
+  /**
+   * Holds the old scene on screen (input paused) while the new scene's images load and decode, at most
+   * PRELOAD_CAP_MS, then draws the new scene under a snapshot of the old one and fades the snapshot out.
+   */
+  private beginSwap(): void {
+    const key = this.sceneKey();
+    if (this.swapping === key) return;
+    this.swapping = key;
+    const sc = this.scene;
+    const need = this.sceneImageUrls(sc).filter((u) => !this.loaded.has(u));
+    const finish = () => {
+      if (this.swapping !== key) return; // superseded by another swap
+      this.swapping = null;
+      this.stage.classList.remove('swapping');
+      const first = this.shownScene === null;
+      const ghost = first ? null : (this.sceneBox.cloneNode(true) as HTMLElement);
+      this.shownScene = key;
+      this.render();
+      if (ghost) {
+        ghost.classList.add('scene-ghost');
+        ghost.removeAttribute('aria-live');
+        ghost.setAttribute('aria-hidden', 'true');
+        ghost.querySelectorAll('button').forEach((b) => b.setAttribute('tabindex', '-1'));
+        this.sceneBox.after(ghost);
+        requestAnimationFrame(() => requestAnimationFrame(() => ghost.classList.add('out')));
+        setTimeout(() => ghost.remove(), SWAP_FADE_MS + 60);
+      } else {
+        this.sceneBox.classList.add('fade-in');
+        setTimeout(() => this.sceneBox.classList.remove('fade-in'), SWAP_FADE_MS + 60);
+      }
+    };
+    if (!need.length) return finish();
+    this.stage.classList.add('swapping');
+    let timer = 0;
+    const cap = new Promise<void>((r) => { timer = window.setTimeout(() => { console.info(`[scene] ${sc.id}: images still loading after ${PRELOAD_CAP_MS} ms; showing the scene`); r(); }, PRELOAD_CAP_MS); });
+    void Promise.race([Promise.all(need.map((u) => this.preload(u))), cap]).then(() => { clearTimeout(timer); finish(); });
+  }
+
+  // ------------------------------------------------------------------ TV screens (SPEC "TV screens show the news")
+  private screensFor(sc: Scene): Screen[] {
+    return this.devScreens.get(sc.id) ?? sc.screens ?? [];
+  }
+
+  /** The story a room TV shows: what tvContent() would open with, or, once watched this phase, the next story. */
+  private screenStory(): { id: string; image: string | null } | null {
+    const tv = this.tvContent();
+    if (!tv.stories.length) return null;
+    const w = this.s.tvWatched;
+    const watched = !!w && w.day === this.s.day && w.phase === phaseOf(this.s.actions);
+    const st = watched ? tv.stories.find((x) => x.id !== w!.story) ?? tv.stories[0] : tv.stories[0];
+    return { id: st.id, image: st.image ?? null };
+  }
+
+  /** A TV glass: the still laid out at 1280 x 720 and projected onto the quad (scene-box pixels) with matrix3d. */
+  private screenEl(scr: Screen): HTMLElement {
+    // the screen as measured on the background actually drawn (the evening render may put the TV a little elsewhere)
+    const bgId = this.bgFor(this.scene)?.id;
+    const q = (bgId && scr.byBackground?.[bgId]) || scr.quad;
+    const quad = q.map(([x, y]) => [x * IMG_W, y * IMG_H] as [number, number]);
+    const st = this.screenStory();
+    const glass = h('div', {
+      class: `tv-glass${st?.image ? '' : ' dark'}`, 'data-story': st?.id ?? '',
+      style: `width:${TV_W}px;height:${TV_H}px;transform:${matrix3d(quad, TV_W, TV_H)};`,
+    });
+    if (st?.image) {
+      const img = h('img', { src: st.image, alt: '', draggable: 'false' });
+      img.addEventListener('error', () => { img.remove(); glass.classList.add('dark'); });
+      glass.append(img);
+    }
+    glass.append(h('div', { class: 'tv-sheen' }));
+    return h('div', { class: 'tv-screen', 'aria-hidden': 'true', 'data-screen': scr.id }, glass);
   }
 
   private renderTop(): void {
@@ -942,6 +1134,8 @@ export class Game {
       prop.addEventListener('error', () => prop.remove());
       box.append(prop);
     }
+    // the TV glass sits over the background and props, under the hotspot (the click still opens the TV)
+    for (const scr of this.screensFor(sc)) box.append(this.screenEl(scr));
 
     const tired = this.tired();
     const present = this.presentIn(sc.id);
@@ -952,43 +1146,48 @@ export class Game {
       if (a.type === 'talk' && !talkNpc) continue;
       const cost = talkNpc ? this.talkCost(talkNpc) : a.cost ?? (a.type === 'window' || a.type === 'news' ? 1 : 0);
       const blockedMove = a.type === 'move' && this.moveBlocked(String(a.to));
-      const disabled = talkNpc ? !this.canTalk(cost) : tired || cost > this.s.actions || blockedMove;
-      const label = talkNpc ? this.str('ui.talkTo', { name: talkNpc.name }) : hs.label;
-      const costTxt = talkNpc ? this.talkLabel(talkNpc, cost).slice(label.length) : cost ? ` (${this.costWords(cost)})` : blockedMove ? ` (${this.str('ui.tired')})` : '';
+      const talked = !!talkNpc && this.talkedOut(talkNpc.id);
+      const disabled = talkNpc ? talked || !this.canTalk(cost) : tired || cost > this.s.actions || blockedMove;
+      const label = talkNpc ? (talked ? this.talkLabel(talkNpc, cost) : this.str('ui.talkTo', { name: talkNpc.name })) : hs.label;
+      const costTxt = talkNpc ? (talked ? '' : this.talkLabel(talkNpc, cost).slice(label.length)) : cost ? ` (${this.costWords(cost)})` : blockedMove ? ` (${this.str('ui.tired')})` : '';
       const speaking = !!talkNpc && ((this.panel.kind === 'dialogue' && this.panel.npc === talkNpc.id) || (this.panel.kind === 'event' && this.panel.ev.npc === talkNpc.id));
       const b = h('button', {
-        class: `hotspot${hs.placeholder ? ' ph' : ''}${talkNpc ? ' talk' : ''}${speaking ? ' speaking' : ''}`,
+        class: `hotspot${hs.placeholder ? ' ph' : ''}${talkNpc ? ' talk' : ''}${speaking ? ' speaking' : ''}${talked ? ' talked' : ''}`,
         'data-fk': `hs:${hs.id}`, 'aria-label': `${label}${costTxt}`, title: `${label}${costTxt}`,
         disabled, onclick: () => this.hotspot(hs),
         style: `left:${hs.zone.x * 100}%;top:${hs.zone.y * 100}%;width:${hs.zone.w * 100}%;height:${hs.zone.h * 100}%;`,
       },
       hs.placeholder ? h('span', { class: 'ph-mark', text: `${this.str('ui.pendingArt')} · ${hs.label}` }) : null,
-      h('span', { class: 'hs-label' }, label, this.costDots(cost)));
+      talked ? h('span', { class: 'hs-label talked-label', text: this.str('ui.talkedToday') }) : h('span', { class: 'hs-label' }, label, this.costDots(cost)));
       box.append(b);
     }
 
-    const figures = present.filter((p): p is { npc: Npc; slot: Slot } => p.slot !== null).sort((a, b) => a.slot.y - b.slot.y);
-    for (const { npc, slot } of figures) {
-      const fig = this.figureFor(npc);
-      const hgt = figureHeight(sc, slot, npc.seated) * IMG_H;
+    const figures = present.filter((p): p is Presence & { slot: Slot } => p.slot !== null).sort((a, b) => a.slot.y - b.slot.y);
+    for (const { npc, slot, figure } of figures) {
+      const fig = this.figureFor(npc, figure);
+      const hgt = figureHeight(sc, slot, fig.seated) * IMG_H;
       const wid = hgt * fig.aspect;
       const left = slot.x * IMG_W - wid / 2;
       const top = slot.y * IMG_H - hgt;
       const speaking = (this.panel.kind === 'dialogue' && this.panel.npc === npc.id) || (this.panel.kind === 'event' && this.panel.ev.npc === npc.id);
       const cost = this.talkCost(npc);
       const talkLabel = this.talkLabel(npc, cost);
+      // SPEC "Conversation limit": still standing there, but today's conversation has been had
+      const talked = this.talkedOut(npc.id) && !speaking;
       const btn = h('button', {
-        class: `figure${speaking ? ' speaking' : ''}${npc.seated ? ' seated' : ''}${cost ? '' : ' free'}`, 'data-fk': `npc:${npc.id}`,
+        class: `figure${speaking ? ' speaking' : ''}${fig.seated ? ' seated' : ''}${cost ? '' : ' free'}${talked ? ' talked' : ''}`, 'data-fk': `npc:${npc.id}`,
         'aria-label': talkLabel, title: talkLabel, 'data-cost': cost,
-        disabled: !this.canTalk(cost), onclick: () => this.talkTo(npc.id),
+        disabled: talked || !this.canTalk(cost), onclick: () => this.talkTo(npc.id),
         style: `left:${left}px;top:${top}px;width:${wid}px;height:${hgt}px;z-index:${10 + Math.round(slot.y * 100)};`,
       },
-      h('span', { class: 'shadow', style: `width:${wid * (npc.seated ? 0.9 : 0.7)}px;height:${Math.max(8, hgt * 0.05)}px;` }),
+      h('span', { class: 'shadow', style: `width:${wid * (fig.seated ? 0.9 : 0.7)}px;height:${Math.max(8, hgt * 0.05)}px;` }),
       h('img', { src: fig.url, alt: '', draggable: 'false' }),
-      h('span', { class: 'fig-label', 'aria-hidden': 'true' }, npc.name, this.costDots(cost)),
+      talked
+        ? h('span', { class: 'fig-label talked-label', 'aria-hidden': 'true', text: this.str('ui.talkedToday') })
+        : h('span', { class: 'fig-label', 'aria-hidden': 'true' }, npc.name, this.costDots(cost)),
       fig.placeholder ? this.pendingTag() : null);
       const img = btn.querySelector('img')!;
-      img.addEventListener('error', () => { img.src = silhouetteFigure(npc.seated); });
+      img.addEventListener('error', () => { img.src = silhouetteFigure(fig.seated); });
       box.append(btn);
       // dev guide (shown with H): where this figure's head lands, to compare with the horizon line
       if (this.debug) box.append(h('div', { class: 'dev-guide dev-head', style: `top:${top}px;left:${left - 12}px;width:${wid + 24}px;`, title: `${npc.name}: feet ${slot.y}, ${slot.scale ? 'scale override' : 'horizon formula'}` },
@@ -1073,7 +1272,11 @@ export class Game {
   private viaLabel(ev: EventRow, name: string): string | null {
     if (!ev.npc) return null;
     if (this.presentIn(this.s.scene).some((p) => p.npc.id === ev.npc)) return null;
-    const key = ev.trigger === 'invite' ? 'ui.via.invite' : ev.trigger === 'day_start' ? 'ui.via.call' : 'ui.via.message';
+    // an `enter` event from someone who is not here is a visit (the text says they knock) or a call
+    const key = ev.trigger === 'invite' ? 'ui.via.invite'
+      : ev.trigger === 'day_start' ? 'ui.via.call'
+        : ev.trigger === 'enter' ? (/\b(knock|knocks|knocking|doorbell|at the door)\b/i.test(ev.text) ? 'ui.via.door' : 'ui.via.call')
+          : 'ui.via.message';
     return this.str(key, { name });
   }
 
@@ -1290,7 +1493,21 @@ export class Game {
       actions: (n: number) => { this.s.actions = n; this.save(); this.render(); },
       lean: (home: number, us: number) => { this.s.spent.home = home; this.s.spent.us = us; this.save(); this.render(); return leanOf(this.s.spent); },
       goto: (scene: string) => this.moveTo(scene),
-      talk: (npc: string) => this.talkTo(npc),
+      /** Starts a conversation; `{ force: true }` ignores the per-day conversation limit (dev only). */
+      talk: (npc: string, opts: { force?: boolean } = {}) => this.talkTo(npc, opts),
+      /** Conversations per NPC today and the limit. */
+      talks: () => ({ limit: this.maxTalks, day: this.s.day, counts: { ...(this.s.talks?.day === this.s.day ? this.s.talks.counts : {}) } }),
+      /**
+       * Dev only: TV screen quads for a scene, in memory (never saved). gv.screens('home', [[x,y],[x,y],[x,y],[x,y]])
+       * sets one screen (fractions of the background: top-left, top-right, bottom-right, bottom-left); gv.screens('home', null) clears.
+       */
+      screens: (scene?: string, quad?: [number, number][] | null) => {
+        const id = scene ?? this.s.scene;
+        if (quad === null) this.devScreens.delete(id);
+        else if (quad) this.devScreens.set(id, [{ id: 'dev', quad }]);
+        this.render();
+        return this.screensFor(this.c.sceneById.get(id) ?? this.scene);
+      },
       present: (scene?: string) => this.presentIn(scene ?? this.s.scene).map((p) => `${p.npc.id}@${p.slot ? p.slot.id : 'painted'}`),
       panel: () => this.panel,
       /** Puts an NPC on a slot of the current scene (dev, for checking figure sizes); gv.place() clears. In memory only: never saved. */

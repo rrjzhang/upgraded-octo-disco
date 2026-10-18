@@ -7,12 +7,12 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 
 const here = path.dirname(new URL(import.meta.url).pathname);
-const run = (fixture) => {
+const run = (fixture, extra = []) => {
   const report = fs.mkdtempSync(path.join(os.tmpdir(), `gv-check-${fixture}-`));
-  const p = spawnSync(process.execPath, [path.join(here, 'check.mjs'), '--content', path.join(here, 'fixtures', fixture), '--report', report, '--json'], { encoding: 'utf8' });
+  const p = spawnSync(process.execPath, [path.join(here, 'check.mjs'), '--content', path.join(here, 'fixtures', fixture), '--report', report, '--json', ...extra], { encoding: 'utf8' });
   assert.ok(fs.existsSync(path.join(report, 'index.html')), `${fixture}: index.html written`);
   assert.ok(fs.existsSync(path.join(report, 'results.json')), `${fixture}: results.json written`);
-  return { code: p.status, result: JSON.parse(p.stdout), stderr: p.stderr };
+  return { code: p.status, result: JSON.parse(p.stdout), full: JSON.parse(fs.readFileSync(path.join(report, 'results.json'), 'utf8')), stderr: p.stderr };
 };
 let failures = 0;
 const t = (name, fn) => { try { fn(); console.log(`ok   ${name}`); } catch (e) { failures++; console.log(`FAIL ${name}\n     ${e.message}`); } };
@@ -37,7 +37,8 @@ t('good: short conversations are free, a depth-3 opening costs 1 (engine rowDept
   assert.equal(a.rows.A1.depth, 2); assert.equal(a.rows.A2.cost, 0, a.rows.A2.witness); // A1 -> A2 is depth 2: free
   assert.equal(b.rows.B3.depth, 3); // B3 -> B4 -> B5
   assert.equal(b.rows.B3.cost, 1, b.rows.B3.witness); // B1 free, B2 free + actions -1
-  assert.match(b.rows.B3.witness, /B1\/choice1 \(\+0\) → B2\/choice1 \(\+1\) → B3/);
+  // one conversation per day (default limit): B2 is a late-phase row, so the path waits for day 4
+  assert.match(b.rows.B3.witness, /B1\/choice1 \(\+0\) → day 4 → B2\/choice1 \(\+1\) → day 5 → B3/);
   assert.equal(b.rows.B4.cost, 2, b.rows.B4.witness); // opening B3 costs 1
   assert.match(b.rows.B5.witness, /B3\/choice1 \(\+1\) → B4\/choice1 \(\+0\) → B5/);
 });
@@ -58,6 +59,46 @@ t('bad: nothing else is reported', () => {
 t('bad: C3 (tie partner) is still reachable via C5/choice1', () => {
   const c = bad.result.npcs.find(n => n.id === 'carol');
   assert.ok(c.rows.C3.witness.includes('C5/choice1'), c.rows.C3.witness);
+});
+
+const place = run('place');
+const pfind = (code, file, row) => place.result.diagnostics.filter(d => d.code === code && d.file === file && (row == null || d.row === row));
+const erin = place.result.npcs.find(n => n.id === 'erin');
+t('place: exit 1, exactly the expected findings', () => {
+  assert.equal(place.code, 1);
+  const codes = place.result.diagnostics.filter(d => d.severity !== 'info').map(d => `${d.code}:${d.row ?? ''}`).sort();
+  assert.deepEqual(codes, ['LIMIT_UNREACHABLE:E6', 'SCENE_NOT_APPEARED:E5', 'SEATED_SLOT:', 'TIE:E8,E9', 'UNKNOWN_SCENE:E4']);
+});
+t('place: scene column accepted after dayPhase, no column errors', () => assert.equal(place.result.diagnostics.filter(d => /COLUMN/.test(d.code)).length, 0));
+t('place: completeness per scene (erin: home, park; frank: park, work, home via event)', () => {
+  assert.deepEqual(erin.scenes.map(s => s.scene), ['home', 'park']);
+  const frank = place.result.npcs.find(n => n.id === 'frank');
+  assert.deepEqual(frank.scenes.map(s => s.scene), ['park', 'work', 'home']);
+  assert.deepEqual(frank.talkScenes, ['park', 'work']);
+  for (const n of [erin, frank]) for (const s of n.scenes) assert.equal(s.noMatch, 0);
+});
+t('place: located row E2 wins in park, never at home (specificity +1 for scene)', () => {
+  const cells = place.full.npcs.find(n => n.id === 'erin').sceneCells;
+  const won = (sc) => cells[sc].filter(c => c.row === 'E2').length;
+  assert.ok(won('park') > 0); assert.equal(won('home'), 0);
+  assert.equal(cells.park.find(c => c.row === 'E2').spec, 2);
+});
+t('place: tie only in the scene where both rows match', () => {
+  const d = pfind('TIE', 'dialogue/erin.csv', 'E8,E9'); assert.equal(d.length, 1); assert.deepEqual(d[0].scenes, ['park']);
+});
+t('place: SEATED_SLOT names the seated default figure on the standing slot, not the standing override', () => {
+  const d = place.result.diagnostics.filter(x => x.code === 'SEATED_SLOT');
+  assert.equal(d.length, 1); assert.match(d[0].message, /ch_frank_fig_sit.*"stand" in park/); assert.match(d[0].path, /appearances\[1\]/);
+});
+t('place: E6 (rapport 3 while early) unreachable with 1 talk/day, reachable without the limit', () => {
+  assert.equal(erin.rows.E6.cost, null); assert.equal(erin.rows.E6.costNoLimit, 0); assert.deepEqual(erin.limitUnreachable, ['E6']);
+});
+const place2 = run('place', ['--talks', '2']);
+t('place --talks 2: E6 becomes reachable (two conversations on day 1)', () => {
+  const e = place2.result.npcs.find(n => n.id === 'erin');
+  assert.equal(place2.result.maxTalks, 2);
+  assert.ok(e.rows.E6.witness, 'witness'); assert.deepEqual(e.limitUnreachable, []);
+  assert.equal(place2.result.diagnostics.filter(d => d.code === 'LIMIT_UNREACHABLE').length, 0);
 });
 
 console.log(failures ? `\n${failures} test(s) failed` : '\nall tests passed');

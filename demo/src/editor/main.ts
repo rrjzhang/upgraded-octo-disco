@@ -18,6 +18,9 @@ const model = new Model();
 let result: CheckResult | null = null;
 let timer = 0;
 let current: TabId = 'dialogue';
+/** SPEC "Conversation limit": conversations per NPC per day the reachability search assumes (editor setting, default 1) */
+const TALKS_KEY = 'gv:editor:talks';
+let maxTalks = (() => { try { const v = Number(localStorage.getItem(TALKS_KEY)); return Number.isInteger(v) && v > 0 ? v : 1; } catch { return 1; } })();
 
 const ctx: Ctx = {
   model,
@@ -37,7 +40,7 @@ let tabs: Record<TabId, Tab>;
 function validate(): void {
   const tab = tabs[current];
   const t0 = performance.now();
-  result = checkContent({ files: model.checkerFiles(), manifest: model.manifest, content: 'editor working copy', analyse: tab.analyse() });
+  result = checkContent({ files: model.checkerFiles(), manifest: model.manifest, content: 'editor working copy', analyse: tab.analyse(), maxTalks });
   (window as any).__gvEditorCheckMs = Math.round(performance.now() - t0);
   tab.onResult();
 }
@@ -65,7 +68,7 @@ function refreshHeader(): void {
 async function save(): Promise<void> {
   try {
     const o = await model.save();
-    const full = checkContent({ files: model.checkerFiles(), manifest: model.manifest, content: 'saved' });
+    const full = checkContent({ files: model.checkerFiles(), manifest: model.manifest, content: 'saved', maxTalks });
     toast(`Saved${o ? '' : ' (no text differs from bundled; override cleared)'}. Checker on all sheets: ${full.counts.error} error(s), ${full.counts.warning} warning(s).`, full.counts.error ? 'err' : 'ok');
   } catch (e) {
     toast(`Save failed: ${(e as Error).message}`, 'err');
@@ -176,6 +179,14 @@ async function boot(): Promise<void> {
     tabsNav,
     statusChip,
     h('span', { class: 'grow' }),
+    h('label', { class: 'fld talks', title: 'Conversations per person per day the reachability check assumes (the room setting maxTalksPerNpcPerDay; checker --talks N)' },
+      'Talks/day ', h('input', { id: 'talks-setting', type: 'number', min: 1, max: 8, step: 1, value: String(maxTalks), 'aria-label': 'Conversations per person per day', onchange: (e: Event) => {
+        const v = Math.floor(Number((e.target as HTMLInputElement).value));
+        if (!(v >= 1 && v <= 8)) { (e.target as HTMLInputElement).value = String(maxTalks); return; }
+        maxTalks = v;
+        try { localStorage.setItem(TALKS_KEY, String(v)); } catch { /* ignore */ }
+        validate();
+      } })),
     changesBtn,
     saveBtn,
     h('button', { onclick: () => void exportChanged(), text: 'Export', title: 'Download each changed file (CSV, PNG)' }),

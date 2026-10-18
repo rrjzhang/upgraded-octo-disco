@@ -27,7 +27,9 @@ export interface Hotspot { id: string; label: string; zone: Zone; action: Hotspo
 // through `talk` hotspots instead of clickable cut-outs.
 export interface Painted { background: string; npcs: string[] }
 /** Where a figure's feet stand (fractions of the image; y may exceed 1 to crop the legs). `scale` overrides the horizon formula. */
-export interface Slot { id: string; x: number; y: number; scale?: number }
+export interface Slot { id: string; x: number; y: number; scale?: number; /** a seated spot (on real seating); seated figures may only use these */ seated?: boolean }
+/** A TV screen painted into the background: the glass corners (top-left, top-right, bottom-right, bottom-left) as fractions of the image. */
+export interface Screen { id: string; quad: [number, number][]; /** a different quad for a background variant (e.g. bg_home_eve), keyed by its asset id */ byBackground?: Record<string, [number, number][]> }
 export interface Prop { asset: string; x: number; y: number; w: number }
 export interface Exit { to: string; label: string }
 
@@ -43,13 +45,16 @@ export interface Scene {
   slots: Slot[];
   props: Prop[];
   painted?: Painted;
+  /** TV glass quads the engine draws the current story onto (SPEC "TV screens show the news") */
+  screens: Screen[];
   /** Eye-level line as a fraction of the image height (where the vanishing lines meet). */
   horizon: number;
   /** Camera height in metres (default 1.6). */
   cameraHeight: number;
 }
 
-export interface Appearance { scene: string; slot: string; chance: number }
+/** `figure`: asset id used in this scene instead of the NPC's default figure (blank = default). */
+export interface Appearance { scene: string; slot: string; chance: number; figure?: string }
 
 export interface NpcState { met: 'yes' | 'no'; rapport: number; lastValence: Valence }
 
@@ -76,6 +81,9 @@ export interface DialogueRow {
   id: string;
   npc: string;
   conds: Record<CondField, string>;
+  /** optional `scene` column: raw cell ('' = anywhere) and its `|`-separated scene ids */
+  scene: string;
+  scenes: string[];
   priority: number;
   specificity: number;
   emotion: Emotion;
@@ -200,6 +208,8 @@ export interface RoomConfig {
   questionnaireUrl?: string;
   /** A pinned override snapshot (SPEC); not applied by the demo engine yet: overrides are per browser. */
   override?: { text: unknown; imageKeys: string[] };
+  /** Conversations allowed per NPC per day (default 1; SPEC "Conversation limit"). */
+  maxTalksPerNpcPerDay?: number;
 }
 
 export interface PlayerInfo {
@@ -235,6 +245,10 @@ export interface GameState {
   /** The event on screen (already fired and paid for) and the ones queued behind it, so a reload shows them again. */
   openEvent?: string;
   queuedEvents?: string[];
+  /** conversations started today per NPC (reset at day start); follow-ups inside a conversation do not count */
+  talks?: { day: number; counts: Record<string, number> };
+  /** when the TV was last watched (the room screen then shows the next story for the rest of that phase) */
+  tvWatched?: { day: number; phase: Phase; story?: string };
   surveyDay?: number; // day whose end-of-day survey is open; a reload reopens it instead of dropping it
   finished: boolean;
   started: string;

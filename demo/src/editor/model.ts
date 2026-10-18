@@ -1,6 +1,6 @@
 /** Editor state: bundled content, the saved override, and the working copy. */
 import { load as loadYaml } from 'js-yaml';
-import { DIALOGUE_COLUMNS, EVENT_COLUMNS, NEWS_COLUMNS, EVENT_OPTIONAL, NEWS_OPTIONAL } from '../../tools/checker/core.mjs';
+import { DIALOGUE_COLUMNS, DIALOGUE_OPTIONAL, EVENT_COLUMNS, NEWS_COLUMNS, EVENT_OPTIONAL, NEWS_OPTIONAL } from '../../tools/checker/core.mjs';
 import { parseTable, serialize, cloneTable, type Table } from './csv';
 import { appUrl } from '../util';
 import { readOverride, writeOverride, listImages, putImage, deleteImage, clearImages, type Override, type ImageRecord } from './store';
@@ -29,6 +29,10 @@ export interface NpcInfo {
   portrait: string;
   figure?: string;
   seated: boolean;
+  /** scenes the NPC has an appearance in (the dialogue `scene` cell offers these first) */
+  scenes: string[];
+  /** per-appearance figure asset -> scenes it is used in */
+  appearanceFigures: Map<string, string[]>;
 }
 export interface SceneInfo {
   id: string;
@@ -121,6 +125,12 @@ export class Model {
     this.npcs = listOf(this.npcsText, 'npcs').filter((n) => n?.id).map((n) => ({
       id: String(n.id), name: String(n.name ?? n.id), role: String(n.role ?? ''), portrait: String(n.portrait ?? `ch_${n.id}`),
       figure: n.figure ? String(n.figure) : undefined, seated: n.seated === true,
+      scenes: [...new Set<string>((Array.isArray(n.appearances) ? n.appearances : []).filter((a: any) => a?.scene).map((a: any) => String(a.scene)))],
+      appearanceFigures: (Array.isArray(n.appearances) ? n.appearances : []).filter((a: any) => a?.figure).reduce((m: Map<string, string[]>, a: any) => {
+        const f = String(a.figure);
+        m.set(f, [...(m.get(f) ?? []), String(a.scene)]);
+        return m;
+      }, new Map<string, string[]>()),
     }));
     this.scenes = listOf(this.scenesText, 'scenes').filter((s) => s?.id).map((s) => ({
       id: String(s.id), name: String(s.name ?? s.id), background: String(s.background ?? 'none'),
@@ -130,7 +140,7 @@ export class Model {
     this.addDoc('events.csv', 'events', EVENT_COLUMNS, EVENT_OPTIONAL, eventsB, ov?.events);
     this.addDoc('news.csv', 'news', NEWS_COLUMNS, NEWS_OPTIONAL, newsB, ov?.news);
     const sheets = await Promise.all(this.npcs.map((n) => fetchText(`content/dialogue/${n.id}.csv`)));
-    this.npcs.forEach((n, i) => this.addDoc(`dialogue/${n.id}.csv`, 'dialogue', DIALOGUE_COLUMNS, [], sheets[i], ov?.dialogue?.[n.id], n.id));
+    this.npcs.forEach((n, i) => this.addDoc(`dialogue/${n.id}.csv`, 'dialogue', DIALOGUE_COLUMNS, DIALOGUE_OPTIONAL, sheets[i], ov?.dialogue?.[n.id], n.id));
     const known = new Set(this.npcs.map((n) => n.id));
     const extra = Object.entries(ov?.dialogue ?? {}).filter(([id]) => !known.has(id));
     if (extra.length) this.keep.dialogue = Object.fromEntries(extra);

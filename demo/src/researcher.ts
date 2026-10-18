@@ -38,6 +38,8 @@ async function main(): Promise<void> {
   const leader = h('select', { id: 'leader' }, h('option', { value: 'enforcement', text: 'enforcement' }), h('option', { value: 'inclusive', text: 'inclusive' }));
   const seed = h('input', { id: 'seed', type: 'number', min: 0, step: 1 });
   const note = h('input', { id: 'note', type: 'text', placeholder: 'optional, e.g. session or participant group' });
+  // SPEC "Conversation limit": conversations a participant may have with each person per day
+  const talks = h('input', { id: 'talks', type: 'number', min: 1, max: 8, step: 1, value: '1', 'aria-describedby': 'talks-help' });
   const qJson = h('textarea', {
     id: 'qjson', class: 'q-json mono', rows: 6, spellcheck: 'false',
     placeholder: 'Optional. Paste questionnaire JSON (same schema as content/questionnaire/eod.json) to replace the bundled end-of-day survey for this room.',
@@ -99,7 +101,7 @@ async function main(): Promise<void> {
       table.append(h('tr', {},
         h('td', { class: 'mono', text: r.code }),
         h('td', { class: 'mono', text: r.password }),
-        h('td', { text: r.config.nationalLeader }),
+        h('td', { text: `${r.config.nationalLeader} · ${r.config.maxTalksPerNpcPerDay ?? 1} talk/day` }),
         h('td', { text: (r.config.created ?? '').slice(0, 16).replace('T', ' ') }),
         h('td', { text: status }),
         h('td', { text: String(lines) }),
@@ -116,7 +118,9 @@ async function main(): Promise<void> {
     h('div', { class: 'grid2' },
       h('label', { for: 'leader', text: 'National leader condition' }), leader,
       h('label', { for: 'seed', text: 'Event seed' }), seed,
-      h('label', { for: 'note', text: 'Note' }), note),
+      h('label', { for: 'note', text: 'Note' }), note,
+      h('label', { for: 'talks', text: 'Conversations per person per day' }),
+      h('div', {}, talks, h('span', { id: 'talks-help', class: 'muted', text: ' Default 1. After that many, the person shows "Talked already today". Run the checker with --talks N to match.' }))),
     Object.keys(picks).length ? h('h2', { text: 'Roster candidates' }) : null,
     pickRows,
     h('h2', { text: 'End-of-day questionnaire' }),
@@ -133,6 +137,12 @@ async function main(): Promise<void> {
     e.preventDefault();
     const q = readQuestionnaire();
     if (!q) return;
+    const maxTalks = Math.floor(Number(talks.value));
+    if (!(maxTalks >= 1 && maxTalks <= 8)) {
+      qErr.replaceChildren(h('ul', { class: 'errlist' }, h('li', { text: 'Conversations per person per day: a whole number from 1 to 8.' })));
+      talks.focus();
+      return;
+    }
     const code = mintCode();
     const password = `${pick(WORDS)}-${pick(WORDS)}`;
     const config: RoomConfig = {
@@ -142,6 +152,7 @@ async function main(): Promise<void> {
       rosterPicks: Object.fromEntries(Object.entries(picks).map(([k, s]) => [k, s.value])),
       created: isoNow(),
       note: note.value.trim() || undefined,
+      maxTalksPerNpcPerDay: maxTalks,
       ...q,
     };
     const rec: RoomRecord = { code, password, config };

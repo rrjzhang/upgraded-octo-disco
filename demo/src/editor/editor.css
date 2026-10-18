@@ -142,3 +142,11 @@ textarea.json { font: 11px ui-monospace, Menlo, monospace; width: 100%; min-widt
 #toasts { position: fixed; bottom: 16px; right: 16px; display: flex; flex-direction: column; gap: 6px; z-index: 60; max-width: 460px; }
 .toast { background: var(--ink); color: var(--panel); padding: 8px 12px; border-radius: 6px; font-size: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.2); }
 .toast.ok { border-left: 4px solid #6cc1b6; } .toast.err { border-left: 4px solid var(--amber); }
+
+/* dialogue scene column (SPEC "Dialogue location") */
+.cf-scene { grid-column: span 2; }
+.cf-scene .scene-in { width: 100%; min-width: 9em; }
+.scene-tag { font-size: 11px; color: #1F6F6B; background: rgba(31,111,107,.1); border-radius: 3px; padding: 0 4px; margin: 0 4px; }
+.scenes-tbl { border-collapse: collapse; margin: 6px 0 8px; width: 100%; }
+.scenes-tbl th, .scenes-tbl td { text-align: left; padding: 2px 6px; border-bottom: 1px solid #e3dccd; }
+.fld.talks input { width: 3.5em; }

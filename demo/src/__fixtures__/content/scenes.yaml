@@ -10,6 +10,8 @@ scenes:
       - { to: street, label: "Front door" }
     props:
       - { asset: prop_fx_tv, x: 0.06, y: 0.10, w: 0.16 }
+    screens:   # the fixture TV prop's glass (a flat rectangle; the real scenes give a perspective quad)
+      - { id: tv, quad: [[0.0733, 0.144], [0.2067, 0.144], [0.2067, 0.264], [0.0733, 0.264]] }
     hotspots:
       - id: tv
         label: "TV"

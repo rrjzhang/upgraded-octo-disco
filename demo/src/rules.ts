@@ -56,9 +56,22 @@ export function rapportMatches(cell: string, r: number): boolean {
   return false;
 }
 
-export interface Ctx extends NpcState { nationalLeader: Leader; playerLean: Lean; dayPhase: DayPhase }
+/**
+ * `scene`: the scene the conversation happens in. A row whose `scene` cell is non-blank only matches there
+ * (SPEC "Dialogue location"); with `scene` undefined, only rows with a blank `scene` cell match.
+ */
+export interface Ctx extends NpcState { nationalLeader: Leader; playerLean: Lean; dayPhase: DayPhase; scene?: string }
+
+/** Default conversations per NPC per day (SPEC "Conversation limit"). */
+export const DEFAULT_TALKS_PER_DAY = 1;
+
+/** Parses a dialogue `scene` cell: blank = anywhere, else scene ids separated by `|`. */
+export function sceneList(cell: string): string[] {
+  return (cell ?? '').split('|').map((x) => x.trim()).filter(Boolean);
+}
 
 export function rowMatches(row: DialogueRow, ctx: Ctx): boolean {
+  if (row.scenes?.length && (ctx.scene === undefined || !row.scenes.includes(ctx.scene))) return false;
   for (const f of COND_FIELDS) {
     const cell = row.conds[f];
     if (cell === '') continue;
@@ -167,11 +180,15 @@ export interface EventCtx {
   leader: Leader;
   npcs: GameState['npcs'];
   requirePresence: boolean;
+  /** whether `npc` has an appearance (figure, painted or talk zone) in `scene`; an event there from someone who never appears is a visit or a call */
+  canAppear?: (npc: string, scene: string) => boolean;
 }
 
 export function eventMatches(ev: EventRow, c: EventCtx): boolean {
   if (ev.scene && ev.scene !== c.scene) return false;
-  if (ev.npc && c.requirePresence && !c.present.has(ev.npc)) return false;
+  // an NPC who can stand in this scene must be there; one who never appears in it arrives at the door or on the phone
+  const visit = !!ev.scene && !!c.canAppear && !c.canAppear(ev.npc, ev.scene);
+  if (ev.npc && c.requirePresence && !visit && !c.present.has(ev.npc)) return false;
   if (ev.minRapport !== null) {
     const ns = ev.npc ? c.npcs[ev.npc] : undefined;
     if (!ns || ns.rapport < ev.minRapport) return false;

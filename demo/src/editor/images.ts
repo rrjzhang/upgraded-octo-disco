@@ -54,6 +54,12 @@ export function enumerateSlots(model: Model): Slot[] {
       const file = fk ? m.figures![fk].file : null;
       add({ key: `figures/${n.figure}`, group: grp, label: `figure${n.seated ? ' (seated)' : ''}`, kind: 'figure', file, exportName: file ? base(file) : `${n.figure}.png` });
     }
+    // per-appearance figures (SPEC "Per-appearance figure"): a different asset in some scenes
+    for (const [fig, scenes] of n.appearanceFigures) {
+      const fk = findKey(m, m.figures, fig);
+      const file = fk ? m.figures![fk].file : null;
+      add({ key: `figures/${fig}`, group: grp, label: `figure in ${scenes.join(', ')}${/_fig_sit/.test(fig) ? ' (seated)' : ''}`, kind: 'figure', file, exportName: file ? base(file) : `${fig}.png` });
+    }
   }
   const bg = (id: string, label: string, group: string) => {
     const k = findKey(m, m.backgrounds, id);

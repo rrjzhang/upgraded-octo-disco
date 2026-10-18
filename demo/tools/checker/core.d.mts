@@ -9,7 +9,21 @@ export interface Diagnostic {
   path?: string;
   message: string;
   cells?: number;
+  /** TIE: the scenes the tie occurs in (only when the sheet has located rows) */
+  scenes?: string[];
+  talks?: number;
 }
+export interface SceneCompleteness {
+  /** null = a TV-only NPC, checked "anywhere" (only blank-scene rows match) */
+  scene: string | null;
+  coverage: number;
+  served: number;
+  noMatch: number;
+  ties: { rows: string[]; cells: number }[];
+  /** rows whose scene cell names this scene */
+  located: string[];
+}
+export type Cell = { row: string | null; spec?: number; prio?: number; line?: string; tie?: string[] | null; cost: number | null };
 export interface NpcResult {
   id: string;
   name?: string;
@@ -27,9 +41,18 @@ export interface NpcResult {
   overBudget?: string[];
   reachableStates?: number;
   canTalk?: boolean;
-  rows?: Record<string, { cost: number | null; witness: string | null; depth?: number }>;
+  rows?: Record<string, { cost: number | null; witness: string | null; depth?: number; costNoLimit?: number | null; witnessNoLimit?: string | null }>;
+  scenes?: SceneCompleteness[];
+  /** scenes where a conversation can start (appearances, painted, talk zones) */
+  talkScenes?: string[];
+  /** the sheet has rows with a non-blank scene cell */
+  located?: boolean;
+  sceneCells?: Record<string, Cell[]>;
+  maxTalks?: number;
+  /** rows reachable without the conversation limit but not with it */
+  limitUnreachable?: string[];
   winCount?: Record<string, number>;
-  cells?: { row: string | null; spec?: number; prio?: number; line?: string; tie?: string[] | null; cost: number | null }[];
+  cells?: Cell[];
   errors?: number;
   warnings?: number;
 }
@@ -38,6 +61,7 @@ export interface CheckResult {
   generated: string;
   ok: boolean;
   counts: { error: number; warning: number; info: number };
+  maxTalks: number;
   diagnostics: Diagnostic[];
   npcs: NpcResult[];
 }
@@ -46,6 +70,8 @@ export interface CheckInput {
   manifest?: string | object | null;
   content?: string;
   analyse?: string[] | null;
+  /** conversations per NPC per day for the reachability search (default 1) */
+  maxTalks?: number;
 }
 export function checkContent(input: CheckInput): CheckResult;
 export function formatDiag(d: Diagnostic): string;
@@ -56,6 +82,11 @@ export const EVENT_COLUMNS: string[];
 export const NEWS_COLUMNS: string[];
 export const EVENT_OPTIONAL: string[];
 export const NEWS_OPTIONAL: string[];
+export const DIALOGUE_OPTIONAL: string[];
+export const DEFAULT_TALKS: number;
+export const DEMO_DAYS: number;
+export function sceneList(cell: string): string[];
+export function isSeatedFigure(assets: any, id: string | undefined): boolean;
 export const DIMS: { key: string; values: string[] }[];
 export const NCELLS: number;
 export const NWORLD: number;
