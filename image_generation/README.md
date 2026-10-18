@@ -45,6 +45,7 @@ This section exists because a generator deleted a script and part of this README
 - Part 4 (37 to 40): the neighbour slot across three communities, and the other two community centers.
 - Part 5 (41 to 45): the president, a TV still, the TV prop, the clinic and the office.
 - Part 6 (46 to 50, Round 2): the living room and clinic with the TV generated into the image, and the park with the two chess players seated at the table (an edit of the game's own composite, plus a text-only comparison).
+- Part 12 (183 to 192, Round 7): wardrobe v2 for the two Mexican-pack leaders whose stance shows in one clothing accent: Don Aurelio (separation) in a cream guayabera with a tooled belt, Pilar (integration) with an embroidered neckline under her cardigan. Ray (assimilation) and the three non-leaders keep their original clothes. The `_v2` files sit beside the originals; the asset build prefers the highest version present and nothing is overwritten.
 
 ## Notes for the humans
 

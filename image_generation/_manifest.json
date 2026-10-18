@@ -1,6 +1,6 @@
 {
   "budget": 50,
-  "planned": 181,
+  "planned": 192,
   "reserved_for_retries": 5,
   "items": [
     {
@@ -3144,6 +3144,202 @@
       "save_prompt_used_as": "out/ch_in_leader_sep_fig_stand_A.prompt.txt",
       "status": "pending",
       "file": "181_ch_in_leader_sep_fig_stand_A.md"
+    },
+    {
+      "id": "prop_radio_A",
+      "order": 182,
+      "part": 11,
+      "style": "A",
+      "kind": "prop",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "prop_radio_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/prop_radio_A.png",
+      "save_prompt_used_as": "out/prop_radio_A.prompt.txt",
+      "status": "pending",
+      "file": "182_prop_radio_A.md"
+    },
+    {
+      "id": "ch_mx_leader_sep_ref_A_v2",
+      "order": 183,
+      "part": 12,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "ch_mx_leader_sep_A",
+      "depends_on": [
+        "ch_mx_leader_sep_ref_A"
+      ],
+      "attach": "out/ch_mx_leader_sep_ref_A.png",
+      "save_image_as": "out/ch_mx_leader_sep_ref_A_v2.png",
+      "save_prompt_used_as": "out/ch_mx_leader_sep_ref_A_v2.prompt.txt",
+      "status": "pending",
+      "file": "183_ch_mx_leader_sep_ref_A_v2.md"
+    },
+    {
+      "id": "ch_mx_leader_sep_neutral_A_v2",
+      "order": 184,
+      "part": 12,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_sep_A",
+      "depends_on": [
+        "ch_mx_leader_sep_ref_A_v2"
+      ],
+      "attach": "out/ch_mx_leader_sep_ref_A_v2.png",
+      "save_image_as": "out/ch_mx_leader_sep_neutral_A_v2.png",
+      "save_prompt_used_as": "out/ch_mx_leader_sep_neutral_A_v2.prompt.txt",
+      "status": "pending",
+      "file": "184_ch_mx_leader_sep_neutral_A_v2.md"
+    },
+    {
+      "id": "ch_mx_leader_sep_warm_A_v2",
+      "order": 185,
+      "part": 12,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_sep_A",
+      "depends_on": [
+        "ch_mx_leader_sep_ref_A_v2"
+      ],
+      "attach": "out/ch_mx_leader_sep_ref_A_v2.png",
+      "save_image_as": "out/ch_mx_leader_sep_warm_A_v2.png",
+      "save_prompt_used_as": "out/ch_mx_leader_sep_warm_A_v2.prompt.txt",
+      "status": "pending",
+      "file": "185_ch_mx_leader_sep_warm_A_v2.md"
+    },
+    {
+      "id": "ch_mx_leader_sep_guarded_A_v2",
+      "order": 186,
+      "part": 12,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_sep_A",
+      "depends_on": [
+        "ch_mx_leader_sep_ref_A_v2"
+      ],
+      "attach": "out/ch_mx_leader_sep_ref_A_v2.png",
+      "save_image_as": "out/ch_mx_leader_sep_guarded_A_v2.png",
+      "save_prompt_used_as": "out/ch_mx_leader_sep_guarded_A_v2.prompt.txt",
+      "status": "pending",
+      "file": "186_ch_mx_leader_sep_guarded_A_v2.md"
+    },
+    {
+      "id": "ch_mx_leader_sep_fig_stand_A_v2",
+      "order": 187,
+      "part": 12,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_sep_A",
+      "depends_on": [
+        "ch_mx_leader_sep_ref_A_v2"
+      ],
+      "attach": "out/ch_mx_leader_sep_ref_A_v2.png",
+      "save_image_as": "out/ch_mx_leader_sep_fig_stand_A_v2.png",
+      "save_prompt_used_as": "out/ch_mx_leader_sep_fig_stand_A_v2.prompt.txt",
+      "status": "pending",
+      "file": "187_ch_mx_leader_sep_fig_stand_A_v2.md"
+    },
+    {
+      "id": "ch_mx_leader_int_ref_A_v2",
+      "order": 188,
+      "part": 12,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "ch_mx_leader_int_A",
+      "depends_on": [
+        "ch_mx_leader_int_ref_A"
+      ],
+      "attach": "out/ch_mx_leader_int_ref_A.png",
+      "save_image_as": "out/ch_mx_leader_int_ref_A_v2.png",
+      "save_prompt_used_as": "out/ch_mx_leader_int_ref_A_v2.prompt.txt",
+      "status": "pending",
+      "file": "188_ch_mx_leader_int_ref_A_v2.md"
+    },
+    {
+      "id": "ch_mx_leader_int_neutral_A_v2",
+      "order": 189,
+      "part": 12,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_int_A",
+      "depends_on": [
+        "ch_mx_leader_int_ref_A_v2"
+      ],
+      "attach": "out/ch_mx_leader_int_ref_A_v2.png",
+      "save_image_as": "out/ch_mx_leader_int_neutral_A_v2.png",
+      "save_prompt_used_as": "out/ch_mx_leader_int_neutral_A_v2.prompt.txt",
+      "status": "pending",
+      "file": "189_ch_mx_leader_int_neutral_A_v2.md"
+    },
+    {
+      "id": "ch_mx_leader_int_warm_A_v2",
+      "order": 190,
+      "part": 12,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_int_A",
+      "depends_on": [
+        "ch_mx_leader_int_ref_A_v2"
+      ],
+      "attach": "out/ch_mx_leader_int_ref_A_v2.png",
+      "save_image_as": "out/ch_mx_leader_int_warm_A_v2.png",
+      "save_prompt_used_as": "out/ch_mx_leader_int_warm_A_v2.prompt.txt",
+      "status": "pending",
+      "file": "190_ch_mx_leader_int_warm_A_v2.md"
+    },
+    {
+      "id": "ch_mx_leader_int_guarded_A_v2",
+      "order": 191,
+      "part": 12,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_int_A",
+      "depends_on": [
+        "ch_mx_leader_int_ref_A_v2"
+      ],
+      "attach": "out/ch_mx_leader_int_ref_A_v2.png",
+      "save_image_as": "out/ch_mx_leader_int_guarded_A_v2.png",
+      "save_prompt_used_as": "out/ch_mx_leader_int_guarded_A_v2.prompt.txt",
+      "status": "pending",
+      "file": "191_ch_mx_leader_int_guarded_A_v2.md"
+    },
+    {
+      "id": "ch_mx_leader_int_fig_stand_A_v2",
+      "order": 192,
+      "part": 12,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_int_A",
+      "depends_on": [
+        "ch_mx_leader_int_ref_A_v2"
+      ],
+      "attach": "out/ch_mx_leader_int_ref_A_v2.png",
+      "save_image_as": "out/ch_mx_leader_int_fig_stand_A_v2.png",
+      "save_prompt_used_as": "out/ch_mx_leader_int_fig_stand_A_v2.prompt.txt",
+      "status": "pending",
+      "file": "192_ch_mx_leader_int_fig_stand_A_v2.md"
     }
   ]
 }
