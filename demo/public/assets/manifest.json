@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-18T08:44:44.819Z",
+  "generated": "2026-10-18T08:50:23.261Z",
   "source": "image_generation/out (_A set)",
   "backgrounds": {
     "bg_home_day": {
@@ -249,22 +249,23 @@
         "ch_cn_leader_sep_ref_A_3"
       ]
     },
-    "in_neighbor": {
-      "neutral": "portrait/in_neighbor_neutral.png",
+    "us_leader_asm": {
+      "neutral": "portrait/placeholder_neutral.png",
       "warm": null,
       "guarded": null,
       "worried": null,
-      "placeholder": false,
-      "fromReference": true,
-      "sources": [
-        "ch_in_neighbor_ref_A"
-      ],
-      "referenceCrop": {
-        "x": 229,
-        "y": 0,
-        "w": 560,
-        "h": 560
-      }
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
+    },
+    "cn_leader_asm": {
+      "neutral": "portrait/placeholder_neutral.png",
+      "warm": null,
+      "guarded": null,
+      "worried": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
     },
     "mx_neighbor": {
       "neutral": "portrait/mx_neighbor_neutral.png",
@@ -282,6 +283,113 @@
         "w": 560,
         "h": 560
       }
+    },
+    "mx_stranger_a": {
+      "neutral": "portrait/placeholder_neutral.png",
+      "warm": null,
+      "guarded": null,
+      "worried": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
+    },
+    "mx_stranger_b": {
+      "neutral": "portrait/placeholder_neutral.png",
+      "warm": null,
+      "guarded": null,
+      "worried": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
+    },
+    "mx_leader_asm": {
+      "neutral": "portrait/placeholder_neutral.png",
+      "warm": null,
+      "guarded": null,
+      "worried": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
+    },
+    "mx_leader_int": {
+      "neutral": "portrait/placeholder_neutral.png",
+      "warm": null,
+      "guarded": null,
+      "worried": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
+    },
+    "mx_leader_sep": {
+      "neutral": "portrait/placeholder_neutral.png",
+      "warm": null,
+      "guarded": null,
+      "worried": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
+    },
+    "in_neighbor": {
+      "neutral": "portrait/in_neighbor_neutral.png",
+      "warm": null,
+      "guarded": null,
+      "worried": null,
+      "placeholder": false,
+      "fromReference": true,
+      "sources": [
+        "ch_in_neighbor_ref_A"
+      ],
+      "referenceCrop": {
+        "x": 229,
+        "y": 0,
+        "w": 560,
+        "h": 560
+      }
+    },
+    "in_stranger_a": {
+      "neutral": "portrait/placeholder_neutral.png",
+      "warm": null,
+      "guarded": null,
+      "worried": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
+    },
+    "in_stranger_b": {
+      "neutral": "portrait/placeholder_neutral.png",
+      "warm": null,
+      "guarded": null,
+      "worried": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
+    },
+    "in_leader_asm": {
+      "neutral": "portrait/placeholder_neutral.png",
+      "warm": null,
+      "guarded": null,
+      "worried": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
+    },
+    "in_leader_int": {
+      "neutral": "portrait/placeholder_neutral.png",
+      "warm": null,
+      "guarded": null,
+      "worried": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
+    },
+    "in_leader_sep": {
+      "neutral": "portrait/placeholder_neutral.png",
+      "warm": null,
+      "guarded": null,
+      "worried": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
     }
   },
   "aliases": {
@@ -299,8 +407,20 @@
     "ch_cn_stranger_b": "cn_stranger_b",
     "ch_cn_leader_int": "cn_leader_int",
     "ch_cn_leader_sep": "cn_leader_sep",
+    "ch_us_leader_asm": "us_leader_asm",
+    "ch_cn_leader_asm": "cn_leader_asm",
+    "ch_mx_neighbor": "mx_neighbor",
+    "ch_mx_stranger_a": "mx_stranger_a",
+    "ch_mx_stranger_b": "mx_stranger_b",
+    "ch_mx_leader_asm": "mx_leader_asm",
+    "ch_mx_leader_int": "mx_leader_int",
+    "ch_mx_leader_sep": "mx_leader_sep",
     "ch_in_neighbor": "in_neighbor",
-    "ch_mx_neighbor": "mx_neighbor"
+    "ch_in_stranger_a": "in_stranger_a",
+    "ch_in_stranger_b": "in_stranger_b",
+    "ch_in_leader_asm": "in_leader_asm",
+    "ch_in_leader_int": "in_leader_int",
+    "ch_in_leader_sep": "in_leader_sep"
   },
   "figures": {
     "ch_us_neighbor_fig_stand": {
@@ -399,6 +519,104 @@
       "w": 300,
       "h": 700,
       "seated": true,
+      "placeholder": true
+    },
+    "ch_us_leader_asm_fig_stand": {
+      "file": "figure/placeholder_stand.png",
+      "w": 260,
+      "h": 700,
+      "seated": false,
+      "placeholder": true
+    },
+    "ch_cn_leader_asm_fig_stand": {
+      "file": "figure/placeholder_stand.png",
+      "w": 260,
+      "h": 700,
+      "seated": false,
+      "placeholder": true
+    },
+    "ch_mx_neighbor_fig_stand": {
+      "file": "figure/placeholder_stand.png",
+      "w": 260,
+      "h": 700,
+      "seated": false,
+      "placeholder": true
+    },
+    "ch_mx_stranger_a_fig_stand": {
+      "file": "figure/placeholder_stand.png",
+      "w": 260,
+      "h": 700,
+      "seated": false,
+      "placeholder": true
+    },
+    "ch_mx_stranger_b_fig_stand": {
+      "file": "figure/placeholder_stand.png",
+      "w": 260,
+      "h": 700,
+      "seated": false,
+      "placeholder": true
+    },
+    "ch_mx_leader_asm_fig_stand": {
+      "file": "figure/placeholder_stand.png",
+      "w": 260,
+      "h": 700,
+      "seated": false,
+      "placeholder": true
+    },
+    "ch_mx_leader_int_fig_stand": {
+      "file": "figure/placeholder_stand.png",
+      "w": 260,
+      "h": 700,
+      "seated": false,
+      "placeholder": true
+    },
+    "ch_mx_leader_sep_fig_stand": {
+      "file": "figure/placeholder_stand.png",
+      "w": 260,
+      "h": 700,
+      "seated": false,
+      "placeholder": true
+    },
+    "ch_in_neighbor_fig_stand": {
+      "file": "figure/placeholder_stand.png",
+      "w": 260,
+      "h": 700,
+      "seated": false,
+      "placeholder": true
+    },
+    "ch_in_stranger_a_fig_stand": {
+      "file": "figure/placeholder_stand.png",
+      "w": 260,
+      "h": 700,
+      "seated": false,
+      "placeholder": true
+    },
+    "ch_in_stranger_b_fig_stand": {
+      "file": "figure/placeholder_stand.png",
+      "w": 260,
+      "h": 700,
+      "seated": false,
+      "placeholder": true
+    },
+    "ch_in_leader_asm_fig_stand": {
+      "file": "figure/placeholder_stand.png",
+      "w": 260,
+      "h": 700,
+      "seated": false,
+      "placeholder": true
+    },
+    "ch_in_leader_int_fig_stand": {
+      "file": "figure/placeholder_stand.png",
+      "w": 260,
+      "h": 700,
+      "seated": false,
+      "placeholder": true
+    },
+    "ch_in_leader_sep_fig_stand": {
+      "file": "figure/placeholder_stand.png",
+      "w": 260,
+      "h": 700,
+      "seated": false,
       "placeholder": true
     }
   },

@@ -215,6 +215,7 @@ scenes:
   - id: center_cn
     name: Grand Avenue Community Center
     community: home
+    pack: cn
     background: bg_center_cn_day
     lighting: warm_indoor
     horizon: 0.28        # kitchen door (2.1 m) gives 0.27, long table (0.75 m) gives 0.29; camera about 1.6 m
@@ -248,6 +249,89 @@ scenes:
       - { id: mid_right, x: 0.56, y: 0.90 }    # on the open floor, centre right, in the foreground
       - { id: seated_hall, x: 0.57, y: 0.66, seated: true }   # on a stool pulled up in front of the long table's right half
 
+  - id: center_mx
+    name: San José Parish Hall
+    community: home
+    pack: mx
+    background: bg_center_mx_day
+    lighting: warm_indoor
+    horizon: 0.36        # long table (0.75 m, floor 0.59, top 0.49) gives 0.38, kitchen door (2.1 m, floor 0.60, top 0.275) gives 0.35;
+                         # the floor/wall line runs at 0.595. Camera about 1.6 m
+    cameraHeight: 1.6
+    description: "The hall behind San José. Papel picado left up from September, folding chairs stacked by the windows, coffee going in the kitchen."
+    exits:
+      - { to: street, label: "Back to the street" }
+    hotspots:
+      - id: papel_picado
+        label: "Paper banners"
+        zone: { x: 0.15, y: 0.00, w: 0.85, h: 0.17 }
+        action: { type: look, text: "Papel picado strung wall to wall, left up from the September fiesta. One string has come loose over the kitchen door and nobody tall enough has been in since." }
+      - id: mural
+        label: "Mural"
+        zone: { x: 0.27, y: 0.20, w: 0.55, h: 0.26 }
+        action: { type: look, text: "Mountains, agave, a white church and a big sun. The youth group painted it in 2004. When the hall was redone they painted over the names in the corner, all but one 'Beto' nobody had the heart to cover." }
+      - id: table
+        label: "Long table"
+        zone: { x: 0.40, y: 0.47, w: 0.30, h: 0.12 }
+        action: { type: look, text: "A striped cloth, sunflowers in a clay jug, a sign-up sheet for the Saturday food pantry, and a raffle book for the roof fund: five dollars a ticket, first prize a set of tires." }
+      - id: kitchen
+        label: "Kitchen"
+        zone: { x: 0.85, y: 0.28, w: 0.12, h: 0.32 }
+        action: { type: look, text: "Two coffee urns, a stack of foil trays and a whiteboard with the pantry shifts. Someone has written 'NO' next to 'Thursday 6am'." }
+    slots:
+      # Open floor everywhere below the wall line (y 0.595) except the stacked folding chairs on the left (x < 0.23 down to
+      # y 0.73). No free seating in the image (the chairs are stacked), so the one seated slot is a stool in front of the
+      # long table, as in center_cn; the seated figures bring their stool.
+      - { id: near, x: 0.24, y: 1.04 }       # on the floor in the left foreground, below the stacked chairs, feet just below the frame; head at about 0.33
+      - { id: by_chairs, x: 0.30, y: 0.72 }  # on the open floor just right of the stacked folding chairs, the potted plant behind
+      - { id: by_table, x: 0.37, y: 0.635 }  # on the floor in front of the long table's left end (table and mural behind)
+      - { id: by_kitchen, x: 0.84, y: 0.65 } # on the floor just left of the kitchen doorway, under the mural's right end
+      - { id: mid_right, x: 0.66, y: 0.86 }  # on the open floor, centre right, in the foreground
+      - { id: by_window, x: 0.08, y: 0.90 }  # on the floor in the left foreground by the windows, the stacked chairs behind
+      - { id: seated_hall, x: 0.56, y: 0.665, seated: true }   # on a stool pulled up in front of the long table's middle
+
+  - id: center_in
+    name: India Association Hall
+    community: home
+    pack: in
+    background: bg_center_in_day
+    lighting: warm_indoor
+    horizon: 0.28        # kitchen door (2.1 m, floor 0.42, top 0.24) gives 0.28; stage front (about 0.8 m, floor 0.44, top 0.37) gives 0.30;
+                         # the floor/wall line runs at 0.44. Camera about 1.6 m
+    cameraHeight: 1.6
+    description: "The main hall. A small stage with marigolds along its edge, chairs stacked on trolleys by the windows, a rangoli by the door."
+    exits:
+      - { to: street, label: "Back to the street" }
+    hotspots:
+      - id: stage
+        label: "Stage"
+        zone: { x: 0.24, y: 0.11, w: 0.45, h: 0.33 }
+        action: { type: look, text: "A brass lamp and a wooden lectern, marigold garlands still fresh along the edge. Last night's dance practice left a hair clip on the steps." }
+      - id: board
+        label: "Notice board"
+        zone: { x: 0.70, y: 0.25, w: 0.07, h: 0.11 }
+        action: { type: look, text: "Language school Sundays 10am. Free tax help in February, ask for Anil. Cricket league: need one more for Saturday. Lost: one steel tiffin, blue lid." }
+      - id: kitchen
+        label: "Kitchen"
+        zone: { x: 0.785, y: 0.24, w: 0.055, h: 0.19 }
+        action: { type: look, text: "Big steel pots and a rice cooker the size of a bucket. A sign-up sheet for who brings chai on Sundays. The Tuesday column is empty." }
+      - id: rangoli
+        label: "Rangoli"
+        zone: { x: 0.86, y: 0.56, w: 0.14, h: 0.07 }
+        action: { type: look, text: "Coloured powder in petals and a lamp, orange, yellow and green. Someone has put masking tape around it with 'please walk around' written on it." }
+    slots:
+      # Open floor everywhere below the wall line (y 0.44) except the chair trolleys on the left (x < 0.17 down to y 0.52),
+      # the doormat and the rangoli by the entrance on the right. No free seating (the chairs are on trolleys), so the one
+      # seated slot is a stool on the floor in front of the stage.
+      - { id: near, x: 0.24, y: 1.04 }       # on the floor in the left foreground, feet just below the frame; head at about 0.23
+      - { id: by_chairs, x: 0.24, y: 0.60 }  # on the open floor just right of the stacked chair trolleys
+      - { id: by_stage, x: 0.40, y: 0.50 }   # on the floor in front of the stage's left half (stage and garlands behind)
+      - { id: by_board, x: 0.63, y: 0.52 }   # on the floor in front of the stage's right steps, left of the notice board
+      - { id: by_door, x: 0.93, y: 0.50 }    # just inside the entrance, on the floor between the brass planter and the glass doors,
+                                             # behind the doormat (clear of the rangoli, the board and the kitchen doorway)
+      - { id: mid_right, x: 0.62, y: 0.86 }  # on the open floor, centre right, in the foreground
+      - { id: seated_hall, x: 0.52, y: 0.53, seated: true }   # on a stool pulled up in front of the stage's middle
+
   - id: street
     name: Street
     community: neutral
@@ -261,5 +345,7 @@ scenes:
       - { to: library, label: "Elm Street Library" }
       - { to: park, label: "Riverside Park" }
       - { to: center_cn, label: "Grand Avenue Community Center" }
+      - { to: center_mx, label: "San José Parish Hall" }
+      - { to: center_in, label: "India Association Hall" }
     hotspots: []
     slots: []

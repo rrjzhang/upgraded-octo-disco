@@ -1,6 +1,6 @@
 {
   "budget": 50,
-  "planned": 113,
+  "planned": 181,
   "reserved_for_retries": 5,
   "items": [
     {
@@ -1944,6 +1944,1206 @@
       "save_prompt_used_as": "out/ch_cn_stranger_a_fig_stand_A.prompt.txt",
       "status": "pending",
       "file": "113_ch_cn_stranger_a_fig_stand_A.md"
+    },
+    {
+      "id": "ch_us_leader_asm_ref_A",
+      "order": 114,
+      "part": 10,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "ch_us_leader_asm_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/ch_us_leader_asm_ref_A.png",
+      "save_prompt_used_as": "out/ch_us_leader_asm_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "114_ch_us_leader_asm_ref_A.md"
+    },
+    {
+      "id": "ch_us_leader_asm_neutral_A",
+      "order": 115,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_us_leader_asm_A",
+      "depends_on": [
+        "ch_us_leader_asm_ref_A"
+      ],
+      "attach": "out/ch_us_leader_asm_ref_A.png",
+      "save_image_as": "out/ch_us_leader_asm_neutral_A.png",
+      "save_prompt_used_as": "out/ch_us_leader_asm_neutral_A.prompt.txt",
+      "status": "pending",
+      "file": "115_ch_us_leader_asm_neutral_A.md"
+    },
+    {
+      "id": "ch_us_leader_asm_warm_A",
+      "order": 116,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_us_leader_asm_A",
+      "depends_on": [
+        "ch_us_leader_asm_ref_A"
+      ],
+      "attach": "out/ch_us_leader_asm_ref_A.png",
+      "save_image_as": "out/ch_us_leader_asm_warm_A.png",
+      "save_prompt_used_as": "out/ch_us_leader_asm_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "116_ch_us_leader_asm_warm_A.md"
+    },
+    {
+      "id": "ch_us_leader_asm_guarded_A",
+      "order": 117,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_us_leader_asm_A",
+      "depends_on": [
+        "ch_us_leader_asm_ref_A"
+      ],
+      "attach": "out/ch_us_leader_asm_ref_A.png",
+      "save_image_as": "out/ch_us_leader_asm_guarded_A.png",
+      "save_prompt_used_as": "out/ch_us_leader_asm_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "117_ch_us_leader_asm_guarded_A.md"
+    },
+    {
+      "id": "ch_us_leader_asm_fig_stand_A",
+      "order": 118,
+      "part": 10,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_us_leader_asm_A",
+      "depends_on": [
+        "ch_us_leader_asm_ref_A"
+      ],
+      "attach": "out/ch_us_leader_asm_ref_A.png",
+      "save_image_as": "out/ch_us_leader_asm_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_us_leader_asm_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "118_ch_us_leader_asm_fig_stand_A.md"
+    },
+    {
+      "id": "ch_cn_leader_asm_ref_A",
+      "order": 119,
+      "part": 10,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "ch_cn_leader_asm_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/ch_cn_leader_asm_ref_A.png",
+      "save_prompt_used_as": "out/ch_cn_leader_asm_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "119_ch_cn_leader_asm_ref_A.md"
+    },
+    {
+      "id": "ch_cn_leader_asm_neutral_A",
+      "order": 120,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_cn_leader_asm_A",
+      "depends_on": [
+        "ch_cn_leader_asm_ref_A"
+      ],
+      "attach": "out/ch_cn_leader_asm_ref_A.png",
+      "save_image_as": "out/ch_cn_leader_asm_neutral_A.png",
+      "save_prompt_used_as": "out/ch_cn_leader_asm_neutral_A.prompt.txt",
+      "status": "pending",
+      "file": "120_ch_cn_leader_asm_neutral_A.md"
+    },
+    {
+      "id": "ch_cn_leader_asm_warm_A",
+      "order": 121,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_cn_leader_asm_A",
+      "depends_on": [
+        "ch_cn_leader_asm_ref_A"
+      ],
+      "attach": "out/ch_cn_leader_asm_ref_A.png",
+      "save_image_as": "out/ch_cn_leader_asm_warm_A.png",
+      "save_prompt_used_as": "out/ch_cn_leader_asm_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "121_ch_cn_leader_asm_warm_A.md"
+    },
+    {
+      "id": "ch_cn_leader_asm_guarded_A",
+      "order": 122,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_cn_leader_asm_A",
+      "depends_on": [
+        "ch_cn_leader_asm_ref_A"
+      ],
+      "attach": "out/ch_cn_leader_asm_ref_A.png",
+      "save_image_as": "out/ch_cn_leader_asm_guarded_A.png",
+      "save_prompt_used_as": "out/ch_cn_leader_asm_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "122_ch_cn_leader_asm_guarded_A.md"
+    },
+    {
+      "id": "ch_cn_leader_asm_fig_stand_A",
+      "order": 123,
+      "part": 10,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_cn_leader_asm_A",
+      "depends_on": [
+        "ch_cn_leader_asm_ref_A"
+      ],
+      "attach": "out/ch_cn_leader_asm_ref_A.png",
+      "save_image_as": "out/ch_cn_leader_asm_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_cn_leader_asm_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "123_ch_cn_leader_asm_fig_stand_A.md"
+    },
+    {
+      "id": "ch_mx_neighbor_neutral_A",
+      "order": 124,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_neighbor_A",
+      "depends_on": [
+        "ch_mx_neighbor_ref_A"
+      ],
+      "attach": "out/ch_mx_neighbor_ref_A.png",
+      "save_image_as": "out/ch_mx_neighbor_neutral_A.png",
+      "save_prompt_used_as": "out/ch_mx_neighbor_neutral_A.prompt.txt",
+      "status": "pending",
+      "file": "124_ch_mx_neighbor_neutral_A.md"
+    },
+    {
+      "id": "ch_mx_neighbor_warm_A",
+      "order": 125,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_neighbor_A",
+      "depends_on": [
+        "ch_mx_neighbor_ref_A"
+      ],
+      "attach": "out/ch_mx_neighbor_ref_A.png",
+      "save_image_as": "out/ch_mx_neighbor_warm_A.png",
+      "save_prompt_used_as": "out/ch_mx_neighbor_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "125_ch_mx_neighbor_warm_A.md"
+    },
+    {
+      "id": "ch_mx_neighbor_guarded_A",
+      "order": 126,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_neighbor_A",
+      "depends_on": [
+        "ch_mx_neighbor_ref_A"
+      ],
+      "attach": "out/ch_mx_neighbor_ref_A.png",
+      "save_image_as": "out/ch_mx_neighbor_guarded_A.png",
+      "save_prompt_used_as": "out/ch_mx_neighbor_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "126_ch_mx_neighbor_guarded_A.md"
+    },
+    {
+      "id": "ch_mx_neighbor_fig_stand_A",
+      "order": 127,
+      "part": 10,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_mx_neighbor_A",
+      "depends_on": [
+        "ch_mx_neighbor_ref_A"
+      ],
+      "attach": "out/ch_mx_neighbor_ref_A.png",
+      "save_image_as": "out/ch_mx_neighbor_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_mx_neighbor_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "127_ch_mx_neighbor_fig_stand_A.md"
+    },
+    {
+      "id": "ch_mx_stranger_a_ref_A",
+      "order": 128,
+      "part": 10,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "ch_mx_stranger_a_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/ch_mx_stranger_a_ref_A.png",
+      "save_prompt_used_as": "out/ch_mx_stranger_a_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "128_ch_mx_stranger_a_ref_A.md"
+    },
+    {
+      "id": "ch_mx_stranger_a_neutral_A",
+      "order": 129,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_stranger_a_A",
+      "depends_on": [
+        "ch_mx_stranger_a_ref_A"
+      ],
+      "attach": "out/ch_mx_stranger_a_ref_A.png",
+      "save_image_as": "out/ch_mx_stranger_a_neutral_A.png",
+      "save_prompt_used_as": "out/ch_mx_stranger_a_neutral_A.prompt.txt",
+      "status": "pending",
+      "file": "129_ch_mx_stranger_a_neutral_A.md"
+    },
+    {
+      "id": "ch_mx_stranger_a_warm_A",
+      "order": 130,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_stranger_a_A",
+      "depends_on": [
+        "ch_mx_stranger_a_ref_A"
+      ],
+      "attach": "out/ch_mx_stranger_a_ref_A.png",
+      "save_image_as": "out/ch_mx_stranger_a_warm_A.png",
+      "save_prompt_used_as": "out/ch_mx_stranger_a_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "130_ch_mx_stranger_a_warm_A.md"
+    },
+    {
+      "id": "ch_mx_stranger_a_guarded_A",
+      "order": 131,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_stranger_a_A",
+      "depends_on": [
+        "ch_mx_stranger_a_ref_A"
+      ],
+      "attach": "out/ch_mx_stranger_a_ref_A.png",
+      "save_image_as": "out/ch_mx_stranger_a_guarded_A.png",
+      "save_prompt_used_as": "out/ch_mx_stranger_a_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "131_ch_mx_stranger_a_guarded_A.md"
+    },
+    {
+      "id": "ch_mx_stranger_a_fig_stand_A",
+      "order": 132,
+      "part": 10,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_mx_stranger_a_A",
+      "depends_on": [
+        "ch_mx_stranger_a_ref_A"
+      ],
+      "attach": "out/ch_mx_stranger_a_ref_A.png",
+      "save_image_as": "out/ch_mx_stranger_a_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_mx_stranger_a_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "132_ch_mx_stranger_a_fig_stand_A.md"
+    },
+    {
+      "id": "ch_mx_stranger_b_ref_A",
+      "order": 133,
+      "part": 10,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "ch_mx_stranger_b_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/ch_mx_stranger_b_ref_A.png",
+      "save_prompt_used_as": "out/ch_mx_stranger_b_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "133_ch_mx_stranger_b_ref_A.md"
+    },
+    {
+      "id": "ch_mx_stranger_b_neutral_A",
+      "order": 134,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_stranger_b_A",
+      "depends_on": [
+        "ch_mx_stranger_b_ref_A"
+      ],
+      "attach": "out/ch_mx_stranger_b_ref_A.png",
+      "save_image_as": "out/ch_mx_stranger_b_neutral_A.png",
+      "save_prompt_used_as": "out/ch_mx_stranger_b_neutral_A.prompt.txt",
+      "status": "pending",
+      "file": "134_ch_mx_stranger_b_neutral_A.md"
+    },
+    {
+      "id": "ch_mx_stranger_b_warm_A",
+      "order": 135,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_stranger_b_A",
+      "depends_on": [
+        "ch_mx_stranger_b_ref_A"
+      ],
+      "attach": "out/ch_mx_stranger_b_ref_A.png",
+      "save_image_as": "out/ch_mx_stranger_b_warm_A.png",
+      "save_prompt_used_as": "out/ch_mx_stranger_b_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "135_ch_mx_stranger_b_warm_A.md"
+    },
+    {
+      "id": "ch_mx_stranger_b_guarded_A",
+      "order": 136,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_stranger_b_A",
+      "depends_on": [
+        "ch_mx_stranger_b_ref_A"
+      ],
+      "attach": "out/ch_mx_stranger_b_ref_A.png",
+      "save_image_as": "out/ch_mx_stranger_b_guarded_A.png",
+      "save_prompt_used_as": "out/ch_mx_stranger_b_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "136_ch_mx_stranger_b_guarded_A.md"
+    },
+    {
+      "id": "ch_mx_stranger_b_fig_stand_A",
+      "order": 137,
+      "part": 10,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_mx_stranger_b_A",
+      "depends_on": [
+        "ch_mx_stranger_b_ref_A"
+      ],
+      "attach": "out/ch_mx_stranger_b_ref_A.png",
+      "save_image_as": "out/ch_mx_stranger_b_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_mx_stranger_b_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "137_ch_mx_stranger_b_fig_stand_A.md"
+    },
+    {
+      "id": "ch_mx_leader_asm_ref_A",
+      "order": 138,
+      "part": 10,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "ch_mx_leader_asm_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/ch_mx_leader_asm_ref_A.png",
+      "save_prompt_used_as": "out/ch_mx_leader_asm_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "138_ch_mx_leader_asm_ref_A.md"
+    },
+    {
+      "id": "ch_mx_leader_asm_neutral_A",
+      "order": 139,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_asm_A",
+      "depends_on": [
+        "ch_mx_leader_asm_ref_A"
+      ],
+      "attach": "out/ch_mx_leader_asm_ref_A.png",
+      "save_image_as": "out/ch_mx_leader_asm_neutral_A.png",
+      "save_prompt_used_as": "out/ch_mx_leader_asm_neutral_A.prompt.txt",
+      "status": "pending",
+      "file": "139_ch_mx_leader_asm_neutral_A.md"
+    },
+    {
+      "id": "ch_mx_leader_asm_warm_A",
+      "order": 140,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_asm_A",
+      "depends_on": [
+        "ch_mx_leader_asm_ref_A"
+      ],
+      "attach": "out/ch_mx_leader_asm_ref_A.png",
+      "save_image_as": "out/ch_mx_leader_asm_warm_A.png",
+      "save_prompt_used_as": "out/ch_mx_leader_asm_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "140_ch_mx_leader_asm_warm_A.md"
+    },
+    {
+      "id": "ch_mx_leader_asm_guarded_A",
+      "order": 141,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_asm_A",
+      "depends_on": [
+        "ch_mx_leader_asm_ref_A"
+      ],
+      "attach": "out/ch_mx_leader_asm_ref_A.png",
+      "save_image_as": "out/ch_mx_leader_asm_guarded_A.png",
+      "save_prompt_used_as": "out/ch_mx_leader_asm_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "141_ch_mx_leader_asm_guarded_A.md"
+    },
+    {
+      "id": "ch_mx_leader_asm_fig_stand_A",
+      "order": 142,
+      "part": 10,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_asm_A",
+      "depends_on": [
+        "ch_mx_leader_asm_ref_A"
+      ],
+      "attach": "out/ch_mx_leader_asm_ref_A.png",
+      "save_image_as": "out/ch_mx_leader_asm_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_mx_leader_asm_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "142_ch_mx_leader_asm_fig_stand_A.md"
+    },
+    {
+      "id": "ch_mx_leader_int_ref_A",
+      "order": 143,
+      "part": 10,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "ch_mx_leader_int_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/ch_mx_leader_int_ref_A.png",
+      "save_prompt_used_as": "out/ch_mx_leader_int_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "143_ch_mx_leader_int_ref_A.md"
+    },
+    {
+      "id": "ch_mx_leader_int_neutral_A",
+      "order": 144,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_int_A",
+      "depends_on": [
+        "ch_mx_leader_int_ref_A"
+      ],
+      "attach": "out/ch_mx_leader_int_ref_A.png",
+      "save_image_as": "out/ch_mx_leader_int_neutral_A.png",
+      "save_prompt_used_as": "out/ch_mx_leader_int_neutral_A.prompt.txt",
+      "status": "pending",
+      "file": "144_ch_mx_leader_int_neutral_A.md"
+    },
+    {
+      "id": "ch_mx_leader_int_warm_A",
+      "order": 145,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_int_A",
+      "depends_on": [
+        "ch_mx_leader_int_ref_A"
+      ],
+      "attach": "out/ch_mx_leader_int_ref_A.png",
+      "save_image_as": "out/ch_mx_leader_int_warm_A.png",
+      "save_prompt_used_as": "out/ch_mx_leader_int_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "145_ch_mx_leader_int_warm_A.md"
+    },
+    {
+      "id": "ch_mx_leader_int_guarded_A",
+      "order": 146,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_int_A",
+      "depends_on": [
+        "ch_mx_leader_int_ref_A"
+      ],
+      "attach": "out/ch_mx_leader_int_ref_A.png",
+      "save_image_as": "out/ch_mx_leader_int_guarded_A.png",
+      "save_prompt_used_as": "out/ch_mx_leader_int_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "146_ch_mx_leader_int_guarded_A.md"
+    },
+    {
+      "id": "ch_mx_leader_int_fig_stand_A",
+      "order": 147,
+      "part": 10,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_int_A",
+      "depends_on": [
+        "ch_mx_leader_int_ref_A"
+      ],
+      "attach": "out/ch_mx_leader_int_ref_A.png",
+      "save_image_as": "out/ch_mx_leader_int_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_mx_leader_int_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "147_ch_mx_leader_int_fig_stand_A.md"
+    },
+    {
+      "id": "ch_mx_leader_sep_ref_A",
+      "order": 148,
+      "part": 10,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "ch_mx_leader_sep_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/ch_mx_leader_sep_ref_A.png",
+      "save_prompt_used_as": "out/ch_mx_leader_sep_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "148_ch_mx_leader_sep_ref_A.md"
+    },
+    {
+      "id": "ch_mx_leader_sep_neutral_A",
+      "order": 149,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_sep_A",
+      "depends_on": [
+        "ch_mx_leader_sep_ref_A"
+      ],
+      "attach": "out/ch_mx_leader_sep_ref_A.png",
+      "save_image_as": "out/ch_mx_leader_sep_neutral_A.png",
+      "save_prompt_used_as": "out/ch_mx_leader_sep_neutral_A.prompt.txt",
+      "status": "pending",
+      "file": "149_ch_mx_leader_sep_neutral_A.md"
+    },
+    {
+      "id": "ch_mx_leader_sep_warm_A",
+      "order": 150,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_sep_A",
+      "depends_on": [
+        "ch_mx_leader_sep_ref_A"
+      ],
+      "attach": "out/ch_mx_leader_sep_ref_A.png",
+      "save_image_as": "out/ch_mx_leader_sep_warm_A.png",
+      "save_prompt_used_as": "out/ch_mx_leader_sep_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "150_ch_mx_leader_sep_warm_A.md"
+    },
+    {
+      "id": "ch_mx_leader_sep_guarded_A",
+      "order": 151,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_sep_A",
+      "depends_on": [
+        "ch_mx_leader_sep_ref_A"
+      ],
+      "attach": "out/ch_mx_leader_sep_ref_A.png",
+      "save_image_as": "out/ch_mx_leader_sep_guarded_A.png",
+      "save_prompt_used_as": "out/ch_mx_leader_sep_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "151_ch_mx_leader_sep_guarded_A.md"
+    },
+    {
+      "id": "ch_mx_leader_sep_fig_stand_A",
+      "order": 152,
+      "part": 10,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_mx_leader_sep_A",
+      "depends_on": [
+        "ch_mx_leader_sep_ref_A"
+      ],
+      "attach": "out/ch_mx_leader_sep_ref_A.png",
+      "save_image_as": "out/ch_mx_leader_sep_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_mx_leader_sep_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "152_ch_mx_leader_sep_fig_stand_A.md"
+    },
+    {
+      "id": "ch_in_neighbor_neutral_A",
+      "order": 153,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_neighbor_A",
+      "depends_on": [
+        "ch_in_neighbor_ref_A"
+      ],
+      "attach": "out/ch_in_neighbor_ref_A.png",
+      "save_image_as": "out/ch_in_neighbor_neutral_A.png",
+      "save_prompt_used_as": "out/ch_in_neighbor_neutral_A.prompt.txt",
+      "status": "pending",
+      "file": "153_ch_in_neighbor_neutral_A.md"
+    },
+    {
+      "id": "ch_in_neighbor_warm_A",
+      "order": 154,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_neighbor_A",
+      "depends_on": [
+        "ch_in_neighbor_ref_A"
+      ],
+      "attach": "out/ch_in_neighbor_ref_A.png",
+      "save_image_as": "out/ch_in_neighbor_warm_A.png",
+      "save_prompt_used_as": "out/ch_in_neighbor_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "154_ch_in_neighbor_warm_A.md"
+    },
+    {
+      "id": "ch_in_neighbor_guarded_A",
+      "order": 155,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_neighbor_A",
+      "depends_on": [
+        "ch_in_neighbor_ref_A"
+      ],
+      "attach": "out/ch_in_neighbor_ref_A.png",
+      "save_image_as": "out/ch_in_neighbor_guarded_A.png",
+      "save_prompt_used_as": "out/ch_in_neighbor_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "155_ch_in_neighbor_guarded_A.md"
+    },
+    {
+      "id": "ch_in_neighbor_fig_stand_A",
+      "order": 156,
+      "part": 10,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_in_neighbor_A",
+      "depends_on": [
+        "ch_in_neighbor_ref_A"
+      ],
+      "attach": "out/ch_in_neighbor_ref_A.png",
+      "save_image_as": "out/ch_in_neighbor_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_in_neighbor_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "156_ch_in_neighbor_fig_stand_A.md"
+    },
+    {
+      "id": "ch_in_stranger_a_ref_A",
+      "order": 157,
+      "part": 10,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "ch_in_stranger_a_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/ch_in_stranger_a_ref_A.png",
+      "save_prompt_used_as": "out/ch_in_stranger_a_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "157_ch_in_stranger_a_ref_A.md"
+    },
+    {
+      "id": "ch_in_stranger_a_neutral_A",
+      "order": 158,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_stranger_a_A",
+      "depends_on": [
+        "ch_in_stranger_a_ref_A"
+      ],
+      "attach": "out/ch_in_stranger_a_ref_A.png",
+      "save_image_as": "out/ch_in_stranger_a_neutral_A.png",
+      "save_prompt_used_as": "out/ch_in_stranger_a_neutral_A.prompt.txt",
+      "status": "pending",
+      "file": "158_ch_in_stranger_a_neutral_A.md"
+    },
+    {
+      "id": "ch_in_stranger_a_warm_A",
+      "order": 159,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_stranger_a_A",
+      "depends_on": [
+        "ch_in_stranger_a_ref_A"
+      ],
+      "attach": "out/ch_in_stranger_a_ref_A.png",
+      "save_image_as": "out/ch_in_stranger_a_warm_A.png",
+      "save_prompt_used_as": "out/ch_in_stranger_a_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "159_ch_in_stranger_a_warm_A.md"
+    },
+    {
+      "id": "ch_in_stranger_a_guarded_A",
+      "order": 160,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_stranger_a_A",
+      "depends_on": [
+        "ch_in_stranger_a_ref_A"
+      ],
+      "attach": "out/ch_in_stranger_a_ref_A.png",
+      "save_image_as": "out/ch_in_stranger_a_guarded_A.png",
+      "save_prompt_used_as": "out/ch_in_stranger_a_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "160_ch_in_stranger_a_guarded_A.md"
+    },
+    {
+      "id": "ch_in_stranger_a_fig_stand_A",
+      "order": 161,
+      "part": 10,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_in_stranger_a_A",
+      "depends_on": [
+        "ch_in_stranger_a_ref_A"
+      ],
+      "attach": "out/ch_in_stranger_a_ref_A.png",
+      "save_image_as": "out/ch_in_stranger_a_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_in_stranger_a_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "161_ch_in_stranger_a_fig_stand_A.md"
+    },
+    {
+      "id": "ch_in_stranger_b_ref_A",
+      "order": 162,
+      "part": 10,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "ch_in_stranger_b_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/ch_in_stranger_b_ref_A.png",
+      "save_prompt_used_as": "out/ch_in_stranger_b_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "162_ch_in_stranger_b_ref_A.md"
+    },
+    {
+      "id": "ch_in_stranger_b_neutral_A",
+      "order": 163,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_stranger_b_A",
+      "depends_on": [
+        "ch_in_stranger_b_ref_A"
+      ],
+      "attach": "out/ch_in_stranger_b_ref_A.png",
+      "save_image_as": "out/ch_in_stranger_b_neutral_A.png",
+      "save_prompt_used_as": "out/ch_in_stranger_b_neutral_A.prompt.txt",
+      "status": "pending",
+      "file": "163_ch_in_stranger_b_neutral_A.md"
+    },
+    {
+      "id": "ch_in_stranger_b_warm_A",
+      "order": 164,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_stranger_b_A",
+      "depends_on": [
+        "ch_in_stranger_b_ref_A"
+      ],
+      "attach": "out/ch_in_stranger_b_ref_A.png",
+      "save_image_as": "out/ch_in_stranger_b_warm_A.png",
+      "save_prompt_used_as": "out/ch_in_stranger_b_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "164_ch_in_stranger_b_warm_A.md"
+    },
+    {
+      "id": "ch_in_stranger_b_guarded_A",
+      "order": 165,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_stranger_b_A",
+      "depends_on": [
+        "ch_in_stranger_b_ref_A"
+      ],
+      "attach": "out/ch_in_stranger_b_ref_A.png",
+      "save_image_as": "out/ch_in_stranger_b_guarded_A.png",
+      "save_prompt_used_as": "out/ch_in_stranger_b_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "165_ch_in_stranger_b_guarded_A.md"
+    },
+    {
+      "id": "ch_in_stranger_b_fig_stand_A",
+      "order": 166,
+      "part": 10,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_in_stranger_b_A",
+      "depends_on": [
+        "ch_in_stranger_b_ref_A"
+      ],
+      "attach": "out/ch_in_stranger_b_ref_A.png",
+      "save_image_as": "out/ch_in_stranger_b_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_in_stranger_b_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "166_ch_in_stranger_b_fig_stand_A.md"
+    },
+    {
+      "id": "ch_in_leader_asm_ref_A",
+      "order": 167,
+      "part": 10,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "ch_in_leader_asm_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/ch_in_leader_asm_ref_A.png",
+      "save_prompt_used_as": "out/ch_in_leader_asm_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "167_ch_in_leader_asm_ref_A.md"
+    },
+    {
+      "id": "ch_in_leader_asm_neutral_A",
+      "order": 168,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_leader_asm_A",
+      "depends_on": [
+        "ch_in_leader_asm_ref_A"
+      ],
+      "attach": "out/ch_in_leader_asm_ref_A.png",
+      "save_image_as": "out/ch_in_leader_asm_neutral_A.png",
+      "save_prompt_used_as": "out/ch_in_leader_asm_neutral_A.prompt.txt",
+      "status": "pending",
+      "file": "168_ch_in_leader_asm_neutral_A.md"
+    },
+    {
+      "id": "ch_in_leader_asm_warm_A",
+      "order": 169,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_leader_asm_A",
+      "depends_on": [
+        "ch_in_leader_asm_ref_A"
+      ],
+      "attach": "out/ch_in_leader_asm_ref_A.png",
+      "save_image_as": "out/ch_in_leader_asm_warm_A.png",
+      "save_prompt_used_as": "out/ch_in_leader_asm_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "169_ch_in_leader_asm_warm_A.md"
+    },
+    {
+      "id": "ch_in_leader_asm_guarded_A",
+      "order": 170,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_leader_asm_A",
+      "depends_on": [
+        "ch_in_leader_asm_ref_A"
+      ],
+      "attach": "out/ch_in_leader_asm_ref_A.png",
+      "save_image_as": "out/ch_in_leader_asm_guarded_A.png",
+      "save_prompt_used_as": "out/ch_in_leader_asm_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "170_ch_in_leader_asm_guarded_A.md"
+    },
+    {
+      "id": "ch_in_leader_asm_fig_stand_A",
+      "order": 171,
+      "part": 10,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_in_leader_asm_A",
+      "depends_on": [
+        "ch_in_leader_asm_ref_A"
+      ],
+      "attach": "out/ch_in_leader_asm_ref_A.png",
+      "save_image_as": "out/ch_in_leader_asm_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_in_leader_asm_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "171_ch_in_leader_asm_fig_stand_A.md"
+    },
+    {
+      "id": "ch_in_leader_int_ref_A",
+      "order": 172,
+      "part": 10,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "ch_in_leader_int_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/ch_in_leader_int_ref_A.png",
+      "save_prompt_used_as": "out/ch_in_leader_int_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "172_ch_in_leader_int_ref_A.md"
+    },
+    {
+      "id": "ch_in_leader_int_neutral_A",
+      "order": 173,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_leader_int_A",
+      "depends_on": [
+        "ch_in_leader_int_ref_A"
+      ],
+      "attach": "out/ch_in_leader_int_ref_A.png",
+      "save_image_as": "out/ch_in_leader_int_neutral_A.png",
+      "save_prompt_used_as": "out/ch_in_leader_int_neutral_A.prompt.txt",
+      "status": "pending",
+      "file": "173_ch_in_leader_int_neutral_A.md"
+    },
+    {
+      "id": "ch_in_leader_int_warm_A",
+      "order": 174,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_leader_int_A",
+      "depends_on": [
+        "ch_in_leader_int_ref_A"
+      ],
+      "attach": "out/ch_in_leader_int_ref_A.png",
+      "save_image_as": "out/ch_in_leader_int_warm_A.png",
+      "save_prompt_used_as": "out/ch_in_leader_int_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "174_ch_in_leader_int_warm_A.md"
+    },
+    {
+      "id": "ch_in_leader_int_guarded_A",
+      "order": 175,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_leader_int_A",
+      "depends_on": [
+        "ch_in_leader_int_ref_A"
+      ],
+      "attach": "out/ch_in_leader_int_ref_A.png",
+      "save_image_as": "out/ch_in_leader_int_guarded_A.png",
+      "save_prompt_used_as": "out/ch_in_leader_int_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "175_ch_in_leader_int_guarded_A.md"
+    },
+    {
+      "id": "ch_in_leader_int_fig_stand_A",
+      "order": 176,
+      "part": 10,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_in_leader_int_A",
+      "depends_on": [
+        "ch_in_leader_int_ref_A"
+      ],
+      "attach": "out/ch_in_leader_int_ref_A.png",
+      "save_image_as": "out/ch_in_leader_int_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_in_leader_int_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "176_ch_in_leader_int_fig_stand_A.md"
+    },
+    {
+      "id": "ch_in_leader_sep_ref_A",
+      "order": 177,
+      "part": 10,
+      "style": "A",
+      "kind": "reference",
+      "aspect": "2:3",
+      "transparent_background": false,
+      "chat_group": "ch_in_leader_sep_A",
+      "depends_on": [],
+      "attach": "none",
+      "save_image_as": "out/ch_in_leader_sep_ref_A.png",
+      "save_prompt_used_as": "out/ch_in_leader_sep_ref_A.prompt.txt",
+      "status": "pending",
+      "file": "177_ch_in_leader_sep_ref_A.md"
+    },
+    {
+      "id": "ch_in_leader_sep_neutral_A",
+      "order": 178,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_leader_sep_A",
+      "depends_on": [
+        "ch_in_leader_sep_ref_A"
+      ],
+      "attach": "out/ch_in_leader_sep_ref_A.png",
+      "save_image_as": "out/ch_in_leader_sep_neutral_A.png",
+      "save_prompt_used_as": "out/ch_in_leader_sep_neutral_A.prompt.txt",
+      "status": "pending",
+      "file": "178_ch_in_leader_sep_neutral_A.md"
+    },
+    {
+      "id": "ch_in_leader_sep_warm_A",
+      "order": 179,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_leader_sep_A",
+      "depends_on": [
+        "ch_in_leader_sep_ref_A"
+      ],
+      "attach": "out/ch_in_leader_sep_ref_A.png",
+      "save_image_as": "out/ch_in_leader_sep_warm_A.png",
+      "save_prompt_used_as": "out/ch_in_leader_sep_warm_A.prompt.txt",
+      "status": "pending",
+      "file": "179_ch_in_leader_sep_warm_A.md"
+    },
+    {
+      "id": "ch_in_leader_sep_guarded_A",
+      "order": 180,
+      "part": 10,
+      "style": "A",
+      "kind": "bust",
+      "aspect": "1:1",
+      "transparent_background": true,
+      "chat_group": "ch_in_leader_sep_A",
+      "depends_on": [
+        "ch_in_leader_sep_ref_A"
+      ],
+      "attach": "out/ch_in_leader_sep_ref_A.png",
+      "save_image_as": "out/ch_in_leader_sep_guarded_A.png",
+      "save_prompt_used_as": "out/ch_in_leader_sep_guarded_A.prompt.txt",
+      "status": "pending",
+      "file": "180_ch_in_leader_sep_guarded_A.md"
+    },
+    {
+      "id": "ch_in_leader_sep_fig_stand_A",
+      "order": 181,
+      "part": 10,
+      "style": "A",
+      "kind": "figure",
+      "aspect": "2:3",
+      "transparent_background": true,
+      "chat_group": "ch_in_leader_sep_A",
+      "depends_on": [
+        "ch_in_leader_sep_ref_A"
+      ],
+      "attach": "out/ch_in_leader_sep_ref_A.png",
+      "save_image_as": "out/ch_in_leader_sep_fig_stand_A.png",
+      "save_prompt_used_as": "out/ch_in_leader_sep_fig_stand_A.prompt.txt",
+      "status": "pending",
+      "file": "181_ch_in_leader_sep_fig_stand_A.md"
     }
   ]
 }

@@ -177,3 +177,333 @@ npcs:
       - { scene: center_cn, slot: near, chance: 0.75 }
       - { scene: park, slot: by_lamp, chance: 0.2 }
     initial: { met: false, rapport: 0, lastValence: none }
+
+  # ---- Assimilation leaders (SPEC "Culture packs, stances and the assimilation leaders", 2026-10-18 evening) ----
+  # integrationLean for assimilationists is high-ish (they want people blended in) but they would let the heritage side
+  # go; integrationists sit around 7, separatists around 1-2.
+
+  - id: us_leader_asm
+    name: Frank DeLuca
+    pack: shared
+    community: us
+    role: local_leader
+    stance: assimilation
+    profile:
+      integrationLean: 8
+      warmth: 6
+      talkative: 7
+      backstory: "Third-generation owner of DeLuca Hardware on Fifth; his grandfather came from Calabria with eleven words of English and the Italian was gone by Frank's father. Has hired forty teenagers in thirty years and sponsors a Little League team. Friendly, practical, proud that his family 'just got on with it.'"
+      motivation: "Wants the player to make it here, his way: show up, sound local, come to the Fifth Street merchants' breakfast."
+      voice: "Plain, brisk, store anecdotes, starts sentences with 'Look,'. Means well and says so. Never says 'those people'; says 'English at the counter, that's all I ask.'"
+      topics: [the hardware store, his grandfather, hiring kids, the merchants' breakfast, Little League, the counter]
+      avoid: [his own family's Italian, which he doesn't speak, national politics by name]
+    portrait: ch_us_leader_asm
+    figure: ch_us_leader_asm_fig_stand
+    seated: false
+    appearances:
+      - { scene: library, slot: by_shelves, chance: 0.3 }
+      - { scene: clinic, slot: by_chairs, chance: 0.3 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: cn_leader_asm
+    name: Alan Fong
+    pack: cn
+    community: home
+    role: local_leader
+    stance: assimilation
+    profile:
+      integrationLean: 8
+      warmth: 5
+      talkative: 5
+      backstory: "Came from Hong Kong at twelve; pharmacist, owns Fong's Pharmacy on Grand and fills the seniors' pill organizers for the center every Thursday. His children Ethan and Chloe don't speak Cantonese and he is at peace with it. Turns down Mr. Guo's board seat every year."
+      motivation: "Wants the player to get both feet here: English name first on the card, the soccer barbecue, not the festival committee."
+      voice: "Efficient, numbers, 'Honestly' before the hard part. Kind in deeds, dry in words. Never sentimental about Hong Kong; says 'My kids won't need any of this, and that's fine.'"
+      topics: [the pharmacy, pill organizers, Ethan's college applications, the soccer team, Mr. Guo's committees]
+      avoid: [his mother's opinions, festivals]
+    portrait: ch_cn_leader_asm
+    figure: ch_cn_leader_asm_fig_stand
+    seated: false
+    appearances:
+      - { scene: center_cn, slot: mid_right, chance: 0.35 }
+      - { scene: clinic, slot: front_desk, chance: 0.3 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  # ---- mx pack: San José Parish Hall (center_mx) ----
+
+  - id: mx_neighbor
+    name: Sra. Reyes
+    pack: mx
+    community: home
+    role: neighbor
+    stance: none
+    profile:
+      integrationLean: 5
+      warmth: 8
+      talkative: 7
+      backstory: "Lucía Reyes, 2A, right under the player. Came from Oaxaca at twenty-three; shift supervisor in the hospital laundry for nineteen years. Husband Héctor drives the number 6 bus; son Daniel is in the heating-and-air program at the community college, daughter Ana is fifteen. Sorts the food pantry at the parish hall on Saturdays."
+      motivation: "Wants the player fed, carrying boxes on Saturday, and to fix the shower that drips into her ceiling."
+      voice: "Brisk and teasing, two questions at once, calls the player by apartment number. Food and chores before feelings. Never complains about work."
+      topics: [the food pantry, Daniel's college, her niece's quinceañera budget, Héctor's bus route, the dripping shower]
+      avoid: [money troubles, her papers, Oaxaca unless asked]
+    portrait: ch_mx_neighbor
+    figure: ch_mx_neighbor_fig_stand
+    seated: false
+    appearances:
+      - { scene: center_mx, slot: by_table, chance: 0.7 }
+      - { scene: park, slot: by_tables, chance: 0.35 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: mx_stranger_a
+    name: Don Ernesto
+    pack: mx
+    community: home
+    role: stranger
+    stance: none
+    profile:
+      integrationLean: 5
+      warmth: 6
+      talkative: 6
+      backstory: "Ernesto Villaseñor, born in Tepatitlán, Jalisco; a notario in Guadalajara for twenty-two years. Here he prepares taxes from a folding table in the parish hall every spring, forty dollars, twenty for students. Widowed; reads three newspapers; his granddaughter plays third-chair violin."
+      motivation: "Wants the player to keep their receipts and to warn people off the fake 'notario' flyers."
+      voice: "Formal and precise, 'permit me a correction', small footnotes. Dry humour delivered straight. Never raises his voice; never gives advice he isn't sure of."
+      topics: [taxes, the notario scam, the library's form drawer, his granddaughter's violin, ITIN filings]
+      avoid: [his late wife, Guadalajara politics]
+    portrait: ch_mx_stranger_a
+    figure: ch_mx_stranger_a_fig_stand
+    seated: false
+    appearances:
+      - { scene: center_mx, slot: by_kitchen, chance: 0.4 }
+      - { scene: library, slot: desk, chance: 0.3 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: mx_stranger_b
+    name: Sol
+    pack: mx
+    community: bicultural
+    role: stranger
+    stance: none
+    profile:
+      integrationLean: 7
+      warmth: 7
+      talkative: 8
+      backstory: "Marisol Herrera, twenty-four, born here to parents from Michoacán. Nursing student, works nights at a pharmacy counter, studies at the library every afternoon. Has interpreted for her family since she was eight; coaches her cousins' under-10 soccer team on Saturdays."
+      motivation: "Wants someone who gets being the visiting team in both places, and a study break."
+      voice: "Fast, dry, self-deprecating; jokes are how she says the serious thing. Never explains her culture unprompted; never says 'my people'."
+      topics: [pharmacology exams, interpreting for her mom, the soccer team, the pantry, her tía's comments]
+      avoid: [her dad's green card details, pity]
+    portrait: ch_mx_stranger_b
+    figure: ch_mx_stranger_b_fig_stand
+    seated: false
+    appearances:
+      - { scene: center_mx, slot: mid_right, chance: 0.3 }
+      - { scene: library, slot: armchair, chance: 0.35 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: mx_leader_asm
+    name: Ray Treviño
+    pack: mx
+    community: home
+    role: local_leader
+    stance: assimilation
+    profile:
+      integrationLean: 8
+      warmth: 5
+      talkative: 7
+      backstory: "Ramón 'Ray' Treviño came from Monterrey at nine; a teacher said 'Raymond' on the first day and he kept it. Independent insurance agent with an office on Grand, Chamber of Commerce board, sponsors the parish softball team's uniforms. His kids Tyler and Megan don't speak Spanish."
+      motivation: "Wants the player to get ahead the way he did: the Chamber breakfast, a résumé that reads 'Community' not 'Cultural'."
+      voice: "Salesman-smooth but sincere, short punchy advice, likes 'firm handshake' and 'be boring'. Never mocks the hall; says 'My kids won't need any of this, and that's fine.'"
+      topics: [insurance, the Chamber breakfast, softball uniforms, résumés, Tyler and Megan]
+      avoid: [his mother's disappointment, Spanish at home]
+    portrait: ch_mx_leader_asm
+    figure: ch_mx_leader_asm_fig_stand
+    seated: false
+    appearances:
+      - { scene: center_mx, slot: by_window, chance: 0.45 }
+      - { scene: work, slot: by_cabinet, chance: 0.25 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: mx_leader_int
+    name: Pilar Ochoa
+    pack: mx
+    community: home
+    role: local_leader
+    stance: integration
+    profile:
+      integrationLean: 7
+      warmth: 8
+      talkative: 7
+      backstory: "Came from Puebla at sixteen and finished high school here. Runs the programs at San José Parish Hall: food pantry, roof fund raffle, and Tuesday citizenship prep with Ruth Hale's library. Last month eleven of her students passed."
+      motivation: "Wants the player to be someone who knows both doors and walks people through them."
+      voice: "Organised and warm, 'two things' lists, gives jobs as welcome. Never runs down Don Aurelio or Ray in front of others."
+      topics: [citizenship class, the library partnership, the roof raffle, Doña Carmen's appointments, coffee urn]
+      avoid: [parish gossip, her own immigration story at length]
+    portrait: ch_mx_leader_int
+    figure: ch_mx_leader_int_fig_stand
+    seated: false
+    appearances:
+      - { scene: center_mx, slot: by_chairs, chance: 0.6 }
+      - { scene: clinic, slot: by_table, chance: 0.35 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: mx_leader_sep
+    name: Don Aurelio Mendoza
+    pack: mx
+    community: home
+    role: local_leader
+    stance: separation
+    profile:
+      integrationLean: 2
+      warmth: 5
+      talkative: 6
+      backstory: "Retired union pipefitter, thirty-four years in the city's boiler rooms. President of the Club Jerez, forty-two families from Jerez, Zacatecas, who raised the money for a new roof on their hometown clinic. Keeps the Club's own legal fund and wants nothing from the city."
+      motivation: "Wants the player to come back, again and again, and sit with the young ones who will run the Club after him."
+      voice: "Slow, plain, a story before the point. 'What's ours, we keep ours.' Never shouts; never says a bad word about anyone by name except the band from Fresno."
+      topics: [the Club Jerez, the hometown clinic roof, the dance, the legal fund, his walk after lunch]
+      avoid: [city programs he calls leashes, his health]
+    portrait: ch_mx_leader_sep
+    figure: ch_mx_leader_sep_fig_stand
+    seated: false
+    appearances:
+      - { scene: center_mx, slot: near, chance: 0.75 }
+      - { scene: park, slot: by_lamp, chance: 0.2 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  # ---- in pack: India Association Hall (center_in) ----
+
+  - id: in_neighbor
+    name: Mrs. Nair
+    pack: in
+    community: home
+    role: neighbor
+    stance: none
+    profile:
+      integrationLean: 5
+      warmth: 7
+      talkative: 6
+      backstory: "Latha Nair, 3C, across the hall. From Thrissur, Kerala; a phlebotomist at St. Luke's for twenty-two years, out the door at five. Husband Suresh is a mechanic at the city bus depot; daughter Anjali, sixteen, is on the debate team and practises on her mother."
+      motivation: "Wants the player to come to Anjali's tournament, eat what she sends over, and bring the box back."
+      voice: "Dry and precise, deadpan jokes, short sentences. Feeds people through tiffins and never mentions it again. Never says she's tired."
+      topics: [Anjali's debate tournaments, the radiator, her early shifts, the Onam lunch at the hall, borrowed boxes]
+      avoid: [her parents in Kerala, money]
+    portrait: ch_in_neighbor
+    figure: ch_in_neighbor_fig_stand
+    seated: false
+    appearances:
+      - { scene: center_in, slot: by_stage, chance: 0.7 }
+      - { scene: park, slot: by_tables, chance: 0.35 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: in_stranger_a
+    name: Harjit Singh
+    pack: in
+    community: home
+    role: stranger
+    stance: none
+    profile:
+      integrationLean: 6
+      warmth: 9
+      talkative: 8
+      backstory: "Harjit Singh Gill, seventy-one, from a village near Ludhiana. Drove a truck coast to coast for thirty-one years, mostly Interstate 80. Cooks in the gurdwara's langar kitchen every Sunday, comes to the hall for chai, walks in Riverside Park with cricket on his phone. Grandson Jaspreet catches for his school's baseball team."
+      motivation: "Wants company, a listener for road stories, and the player at the langar one Sunday."
+      voice: "Cheerful, mile markers and truck stops, laughs at his own jokes first. Never complains about the road, only about Wyoming coffee."
+      topics: [trucking, Interstate 80, the langar, cricket, Jaspreet's baseball]
+      avoid: [the bad days on the road unless trusted, his knees]
+    portrait: ch_in_stranger_a
+    figure: ch_in_stranger_a_fig_stand
+    seated: false
+    appearances:
+      - { scene: center_in, slot: by_door, chance: 0.4 }
+      - { scene: park, slot: path, chance: 0.4 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: in_stranger_b
+    name: Karthik
+    pack: in
+    community: bicultural
+    role: stranger
+    stance: none
+    profile:
+      integrationLean: 7
+      warmth: 6
+      talkative: 6
+      backstory: "Karthik Subramanian, thirty, born in Chennai and raised in New Jersey from eight. Software tester on the logistics company's routing app. Plays in a weekend cricket league of doctors, runs the sound for the hall's Diwali program because his mother volunteered him. His grandmother calls Sundays in Tamil and he answers in English."
+      motivation: "Wants a colleague who gets being 'the Indian guy who knows computers' at work and 'Shanthi's son' at the hall."
+      voice: "Deadpan, bug-report humour ('steps to reproduce', 'won't fix'). Precise. Never explains Tamil things unless asked twice."
+      topics: [the routing app's bugs, cricket league, his grandmother's calls, the Diwali sound desk, friends on visas]
+      avoid: [his mother's matchmaking, temple attendance]
+    portrait: ch_in_stranger_b
+    figure: ch_in_stranger_b_fig_stand
+    seated: false
+    appearances:
+      - { scene: work, slot: near, chance: 0.75 }
+      - { scene: center_in, slot: mid_right, chance: 0.3 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: in_leader_asm
+    name: Anil Bhatt
+    pack: in
+    community: home
+    role: local_leader
+    stance: assimilation
+    profile:
+      integrationLean: 8
+      warmth: 5
+      talkative: 6
+      backstory: "Came from Ahmedabad in 1991 for an MBA with two suitcases; a CPA now, president-elect of the Rotary, coaches Little League. Does free tax help at the hall in February. His children Neil and Priya never learned Gujarati and he calls that a gift."
+      motivation: "Wants the player networked: the pancake breakfast, the American nickname on LinkedIn, the clean paper record."
+      voice: "Measured, accountant's caution, 'be boring on paper'. Generous with time, impatient with nostalgia. Says 'My kids won't need any of this, and that's fine.'"
+      topics: [taxes, Little League, Rotary, résumés and nicknames, the hall's petty cash]
+      avoid: [his mother's opinions, temple politics]
+    portrait: ch_in_leader_asm
+    figure: ch_in_leader_asm_fig_stand
+    seated: false
+    appearances:
+      - { scene: center_in, slot: by_chairs, chance: 0.45 }
+      - { scene: work, slot: by_cabinet, chance: 0.25 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: in_leader_int
+    name: Meena Krishnan
+    pack: in
+    community: home
+    role: local_leader
+    stance: integration
+    profile:
+      integrationLean: 7
+      warmth: 8
+      talkative: 7
+      backstory: "Came from Bengaluru at twenty-two. ESL teacher at Lincoln Middle and runs the youth program at the hall. Organising a Diwali lantern night at the library with Ruth Hale so the hall's kids and the library's homework club share one table."
+      motivation: "Wants the player at the table between both groups, keeping the glue moving."
+      voice: "Quick and practical, teacher's patience, finds the job for you. Never lectures; never speaks against Mr. Deshpande in public."
+      topics: [lantern night, her ESL students, parent nights, the youth program, Ruth Hale]
+      avoid: [hall board politics, her own family]
+    portrait: ch_in_leader_int
+    figure: ch_in_leader_int_fig_stand
+    seated: false
+    appearances:
+      - { scene: center_in, slot: by_board, chance: 0.6 }
+      - { scene: library, slot: by_shelves, chance: 0.35 }
+    initial: { met: false, rapport: 0, lastValence: none }
+
+  - id: in_leader_sep
+    name: Mr. Deshpande
+    pack: in
+    community: home
+    role: local_leader
+    stance: separation
+    profile:
+      integrationLean: 2
+      warmth: 4
+      talkative: 6
+      backstory: "Vasant Deshpande, sixty-seven, a civil engineer for the county for thirty years. President of the India Association, which bought a carpet warehouse in 1998 and made it the hall with no grants. Runs the Sunday language school and the roof fund, nine thousand needed before winter."
+      motivation: "Wants the player on the building committee, keeping the hall for the grandchildren."
+      voice: "Measured, exact numbers, a little formal, corrects the city's unit conversions. Never raises his voice; never says thank you without a number attached."
+      topics: [the roof fund, the language school, the 1998 purchase, grants and their conditions, his park loop]
+      avoid: [Anil's Rotary, his own children's choices]
+    portrait: ch_in_leader_sep
+    figure: ch_in_leader_sep_fig_stand
+    seated: false
+    appearances:
+      - { scene: center_in, slot: near, chance: 0.75 }
+      - { scene: park, slot: by_lamp, chance: 0.2 }
+    initial: { met: false, rapport: 0, lastValence: none }
