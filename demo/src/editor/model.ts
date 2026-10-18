@@ -33,6 +33,24 @@ export interface NpcInfo {
   scenes: string[];
   /** per-appearance figure asset -> scenes it is used in */
   appearanceFigures: Map<string, string[]>;
+  /** read-only roster facts for the Character card (SPEC "Character profiles") */
+  pack: string;
+  community: string;
+  stance: string;
+  appearances: { scene: string; slot: string; chance: number | null; figure?: string }[];
+  /** writer-facing `profile` block as written in npcs.yaml (never shown to participants) */
+  profile: NpcProfile | null;
+}
+export interface NpcProfile {
+  integrationLean?: unknown;
+  warmth?: unknown;
+  talkative?: unknown;
+  backstory?: unknown;
+  motivation?: unknown;
+  voice?: unknown;
+  topics?: unknown;
+  avoid?: unknown;
+  [k: string]: unknown;
 }
 export interface SceneInfo {
   id: string;
@@ -131,6 +149,12 @@ export class Model {
         m.set(f, [...(m.get(f) ?? []), String(a.scene)]);
         return m;
       }, new Map<string, string[]>()),
+      pack: String(n.pack ?? ''), community: String(n.community ?? ''), stance: String(n.stance ?? ''),
+      appearances: (Array.isArray(n.appearances) ? n.appearances : []).filter((a: any) => a?.scene).map((a: any) => ({
+        scene: String(a.scene), slot: String(a.slot ?? ''), chance: typeof a.chance === 'number' ? a.chance : null,
+        figure: a.figure ? String(a.figure) : undefined,
+      })),
+      profile: n.profile && typeof n.profile === 'object' && !Array.isArray(n.profile) ? (n.profile as NpcProfile) : null,
     }));
     this.scenes = listOf(this.scenesText, 'scenes').filter((s) => s?.id).map((s) => ({
       id: String(s.id), name: String(s.name ?? s.id), background: String(s.background ?? 'none'),

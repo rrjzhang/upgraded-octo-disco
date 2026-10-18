@@ -4,6 +4,14 @@ import { h } from './dom';
 import type { Row, Table } from './csv';
 import type { Doc } from './model';
 import { badge, diagList, diagsByRow, markCells, nextId, selectEl, type Ctx } from './shared';
+import { ConvGraph } from './graph';
+import { characterCard } from './character';
+
+type View = 'table' | 'split' | 'graph';
+const VIEW_KEY = 'gv:editor:dlgView';
+const PANEL_KEY = 'gv:editor:sidePanel';
+const lsGet = (k: string) => { try { return localStorage.getItem(k); } catch { return null; } };
+const lsSet = (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* ignore */ } };
 
 const COND = DIMS.map((d) => d.key);
 const COND_LABEL: Record<string, string> = { met: 'met', rapport: 'rapport', lastValence: 'lastVal', nationalLeader: 'leader', playerLean: 'lean', dayPhase: 'phase' };
@@ -43,6 +51,15 @@ export class DialogueTab {
   private head = h('div', { class: 'toolbar' });
   private msg = h('span', { class: 'msg', role: 'status' });
   private lastDiag: Map<number, Diagnostic[]> = new Map();
+  /** SPEC "Conversation graph": Table / Split (graph above the table) / Graph */
+  view: View = (['table', 'split', 'graph'] as const).find((v) => v === lsGet(VIEW_KEY)) ?? 'split';
+  private sideHidden = lsGet(PANEL_KEY) === 'hidden';
+  private graphH = ((v) => (v >= 160 ? v : 0))(Number(lsGet('gv:editor:graphH')));
+  private cardOpen = true;
+  private graph = new ConvGraph({
+    pick: (i) => this.select(i),
+    open: (i) => { if (this.view === 'graph') this.setView('split'); this.sel = -1; this.select(i); },
+  });
 
   constructor(private ctx: Ctx) {
     this.npc = ctx.model.npcs[0]?.id ?? '';
@@ -57,7 +74,7 @@ export class DialogueTab {
   render(): void {
     const m = this.ctx.model;
     const npcSel = h('select', { 'aria-label': 'NPC', id: 'npc-pick', onchange: (e: Event) => {
-      this.npc = (e.target as HTMLSelectElement).value; this.sel = -1;
+      this.npc = (e.target as HTMLSelectElement).value; this.sel = -1; this.graph.reset();
       try { localStorage.setItem('gv:editor:npc', this.npc); } catch { /* ignore */ }
       this.render(); this.ctx.changed();
     } });
@@ -68,10 +85,14 @@ export class DialogueTab {
     }
     npcSel.value = this.npc;
     const doc = this.doc;
+    const viewBtn = (v: View, text: string, title: string) => h('button', { class: `seg${this.view === v ? ' on' : ''}`, 'aria-pressed': String(this.view === v), 'data-view': v, title, text, onclick: () => this.setView(v) });
     this.head.replaceChildren(
       h('label', { class: 'fld' }, 'NPC ', npcSel),
+      h('span', { class: 'segs', role: 'group', 'aria-label': 'View' },
+        viewBtn('table', 'Table', 'Sheet only'), viewBtn('split', 'Graph + table', 'Conversation graph above the sheet'), viewBtn('graph', 'Graph', 'Conversation graph only (double-click a node to open it in the table)')),
+      h('button', { class: 'ghost', id: 'side-toggle', 'aria-pressed': String(!this.sideHidden), onclick: () => this.toggleSide(), text: this.sideHidden ? 'Show panel ◂' : 'Hide panel ▸', title: 'Character card, validation and selected row' }),
       h('button', { onclick: () => this.addRow(), disabled: !this.table, text: '+ Row' }),
-      h('button', { class: 'ghost', onclick: () => this.revert(), disabled: !(doc && m.changed(doc)), text: 'Revert sheet' }),
+      h('button', { class: 'ghost', id: 'revert-sheet', onclick: () => this.revert(), disabled: !(doc && m.changed(doc)), text: 'Revert sheet' }),
       h('span', { class: 'muted', text: doc ? `content/${doc.path}${doc.bundled == null ? ' (not bundled)' : ''}` : '' }),
       this.msg,
     );
@@ -88,8 +109,64 @@ export class DialogueTab {
       wrap.append(h('table', { class: 'sheet' }, thead, this.tbody), this.sceneHints());
       this.renderRows();
     }
-    this.el.replaceChildren(this.head, h('div', { class: 'split' }, wrap, this.side));
+    this.side.hidden = this.sideHidden;
+    let main: HTMLElement = wrap;
+    if (this.table && this.view === 'graph') main = this.graph.el;
+    else if (this.table && this.view === 'split') {
+      const divider = h('div', { class: 'g-divider', role: 'separator', 'aria-orientation': 'horizontal', title: 'Drag to resize the graph' });
+      main = h('div', { class: 'stack' }, this.graph.el, divider, wrap);
+      if (this.graphH) this.graph.el.style.height = `${this.graphH}px`;
+      this.wireDivider(divider, main);
+    }
+    this.graph.el.classList.toggle('full', this.view === 'graph');
+    if (this.view !== 'split') this.graph.el.style.height = '';
+    this.el.replaceChildren(this.head, h('div', { class: 'split' }, main, this.side));
     this.renderSide();
+    this.updateGraph();
+  }
+
+  setView(v: View): void {
+    if (v === this.view) return;
+    this.view = v;
+    lsSet(VIEW_KEY, v);
+    this.graph.reset();
+    const sel = this.sel;
+    this.render();
+    this.sel = sel;
+    this.graph.setSelected(sel);
+    this.scrollToSel();
+  }
+
+  private toggleSide(): void {
+    this.sideHidden = !this.sideHidden;
+    lsSet(PANEL_KEY, this.sideHidden ? 'hidden' : 'shown');
+    this.side.hidden = this.sideHidden;
+    const b = this.head.querySelector<HTMLButtonElement>('#side-toggle');
+    if (b) { b.textContent = this.sideHidden ? 'Show panel ◂' : 'Hide panel ▸'; b.setAttribute('aria-pressed', String(!this.sideHidden)); }
+    requestAnimationFrame(() => this.graph.fit(0.8));
+  }
+
+  private wireDivider(div: HTMLElement, stack: HTMLElement): void {
+    div.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      div.setPointerCapture(e.pointerId);
+      const top = stack.getBoundingClientRect().top;
+      const move = (ev: PointerEvent) => {
+        this.graphH = Math.round(Math.min(stack.clientHeight - 120, Math.max(160, ev.clientY - top)));
+        this.graph.el.style.height = `${this.graphH}px`;
+      };
+      const up = () => { div.removeEventListener('pointermove', move); div.removeEventListener('pointerup', up); lsSet('gv:editor:graphH', String(this.graphH)); this.graph.reveal(this.sel); };
+      div.addEventListener('pointermove', move);
+      div.addEventListener('pointerup', up);
+    });
+  }
+
+  /** relayout from the working copy; runs after each (debounced) validation, so it follows every edit */
+  private updateGraph(): void {
+    const t = this.table;
+    if (!t || this.view === 'table') return;
+    const nr = this.npcResult();
+    this.graph.update({ rows: t.rows, winCount: nr?.winCount, fallback: nr?.fallback ?? null }, this.sel);
   }
 
   private renderRows(): void {
@@ -311,6 +388,7 @@ export class DialogueTab {
   select(i: number, scroll = true): void {
     if (this.sel === i) return;
     this.sel = i;
+    this.graph.setSelected(i);
     this.tbody.querySelectorAll('tr.sel').forEach((e) => e.classList.remove('sel'));
     this.tbody.querySelector(`tr[data-row="${i}"]`)?.classList.add('sel');
     if (scroll) this.scrollToSel();
@@ -327,8 +405,11 @@ export class DialogueTab {
   }
 
   onResult(): void {
+    const d = this.doc;
+    this.head.querySelector('#revert-sheet')?.toggleAttribute('disabled', !(d && this.ctx.model.changed(d)));
     this.applyDiag();
     this.renderSide();
+    this.updateGraph();
   }
 
   private applyDiag(): void {
@@ -351,7 +432,7 @@ export class DialogueTab {
   private renderSide(): void {
     const res = this.ctx.result();
     const t = this.table, d = this.doc;
-    if (!res || !t || !d) { this.side.replaceChildren(h('p', { class: 'muted', text: t ? 'Validating…' : '' })); return; }
+    if (!res || !t || !d) { this.side.replaceChildren(this.card(), h('p', { class: 'muted', text: t ? 'Validating…' : '' })); return; }
     const nr = this.npcResult();
     const mine = res.diagnostics.filter((x) => x.file === d.path && x.severity !== 'info');
     const errs = mine.filter((x) => x.severity === 'error').length;
@@ -375,7 +456,24 @@ export class DialogueTab {
       this.scenePanel(nr),
       diagList(mine, (x) => this.pickDiag(x)),
       others.length ? h('p', { class: 'd-err small', text: `${others.length} error(s) in other files (${[...new Set(others.map((o) => o.file))].join(', ')}).` }) : null);
-    this.side.replaceChildren(summary, this.selectedPanel(nr), this.treePanel(nr));
+    this.side.replaceChildren(this.card(), summary, this.selectedPanel(nr), this.treePanel(nr));
+  }
+
+  private card(): HTMLElement {
+    const info = this.ctx.model.npcs.find((n) => n.id === this.npc);
+    const el = characterCard(info, this.ctx.model.scenes, this.cardOpen);
+    el.addEventListener('toggle', () => { this.cardOpen = (el as HTMLDetailsElement).open; });
+    return el;
+  }
+
+  /** direct predecessors / successors of a row (the graph's "Reached from" / "Leads to", in text) */
+  private links(r: Row): HTMLElement {
+    const t = this.table!;
+    const from = t.rows.flatMap((x) => [1, 2, 3].filter((k) => r.id && x[`choice${k}`] && x[`next${k}`] === r.id).map((k) => `${x.id} c${k}`));
+    const to = [1, 2, 3].filter((k) => r[`choice${k}`] || r[`next${k}`]).map((k) => (r[`next${k}`] ? `c${k} → ${r[`next${k}`]}` : `c${k} ends`));
+    return h('div', { class: 'small links' },
+      h('div', {}, h('span', { class: 'k-up', text: 'Reached from: ' }), from.join(', ') || '–'),
+      h('div', {}, h('span', { class: 'k-down', text: 'Leads to: ' }), to.join(', ') || '–'));
   }
 
   /** SPEC "Dialogue location": completeness per scene this NPC can be met in */
@@ -412,6 +510,7 @@ export class DialogueTab {
     const ds = this.lastDiag.get(this.sel) ?? [];
     return h('section', { class: 'panel' },
       h('h3', {}, `Selected row `, h('code', { text: r.id || '(no id)' })),
+      this.links(r),
       h('p', { class: 'small' }, `${r.scene ? `Only in ${sceneList(r.scene).join(', ')} · ` : ''}Wins ${wins} cells (all scenes) · conversation depth ${dep ?? '–'}${dep != null && dep < 3 ? ' (free to talk: depth < 3)' : ''}`),
       h('div', { class: 'witness' },
         h('div', { class: 'muted small', text: info?.witness ? `Cheapest path: ${info.cost} action(s)` : 'Witness path' }),
