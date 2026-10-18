@@ -1,0 +1,5 @@
+STYLE B: Painterly realism, like a contemporary digital matte painting: realistic proportions, materials and light, with soft visible brushwork and no outlines. Natural colours, slightly desaturated, muted warm palette (ochre, sage, slate blue, brick, cream). Eye-level camera, straight on, 35 mm equivalent, horizon one third from the top. Soft diffuse daylight with no visible light source and no hard shadows. No text, no legible signage, no logos, no watermarks. Not cartoonish, not cel-shaded, not photographic.
+
+Photographic face realism: natural skin texture, no retouching, no studio glamour.
+
+Using the attached reference image: the same person, same face, same hair, same clothes. Head-and-shoulders portrait, facing the viewer, eyes on the camera, soft even light from the front, plain flat light-grey background (or transparent). Expression: relaxed face, mouth closed, no smile, calm eyes. No text. Composition with aspect ratio 1:1.
