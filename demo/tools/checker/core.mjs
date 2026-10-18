@@ -25,6 +25,9 @@ export const NCELLS = RADIX.reduce((a, b) => a * b, 1); // 432
 const NSTATE = 24; // met x rapport x lastValence
 export const NWORLD = 18; // nationalLeader x playerLean x dayPhase
 export const BUDGET = 40;
+/** Engine rule (src/rules.ts FREE_DEPTH / DIALOGUE_COST): opening a conversation whose row has depth < FREE_DEPTH is free. */
+export const FREE_DEPTH = 3;
+export const DIALOGUE_COST = 1;
 
 export const EMOTIONS = ['neutral', 'warm', 'guarded', 'worried'];
 const COMMUNITY_SCENE = ['home', 'us', 'neutral'];
@@ -474,6 +477,31 @@ function analyseCompleteness(sheet, diag) {
 }
 
 // ---------------------------------------------------------------- reachability
+/**
+ * Mirror of the engine's rowDepth (src/rules.ts): depth(row) = 1 + max depth of its choices' `next` rows, a cycle counts
+ * as FREE_DEPTH, results capped at FREE_DEPTH. `rows` are parsed sheet rows ({ id, choices: [{ next }] }).
+ */
+export function rowDepth(rows, row, cache = new Map()) {
+  const byId = new Map(rows.map(r => [r.id, r]));
+  const stack = new Set();
+  const visit = (r) => {
+    const hit = cache.get(r.id);
+    if (hit !== undefined) return hit;
+    if (stack.has(r.id)) return FREE_DEPTH;
+    stack.add(r.id);
+    let deepest = 0;
+    for (const c of r.choices) { const nx = c.next ? byId.get(c.next) : undefined; if (nx) deepest = Math.max(deepest, visit(nx)); }
+    stack.delete(r.id);
+    const d = Math.min(FREE_DEPTH, 1 + deepest);
+    cache.set(r.id, d);
+    return d;
+  };
+  return visit(row);
+}
+
+/** What opening a conversation on `row` costs (engine talkCost): 0 for a short conversation, else DIALOGUE_COST. */
+export const talkCost = (rows, row, cache) => (rowDepth(rows, row, cache) < FREE_DEPTH ? 0 : DIALOGUE_COST);
+
 function analyseReachability(npc, sheet, comp, events, invitedExternally, diag) {
   const rel = sheet.rel;
   const rowById = new Map(sheet.rows.map(r => [r.id, r]));
@@ -483,6 +511,7 @@ function analyseReachability(npc, sheet, comp, events, invitedExternally, diag) 
   let startMask = 0;
   for (const [id, bit] of inviteBit) if (invitedExternally.has(id)) startMask |= bit;
   const canTalk = npc.appearances.length > 0;
+  const depthCache = new Map();
 
   // node key: s|mask|showRowId('' = idle)
   const dist = new Map(), prev = new Map();
@@ -498,7 +527,8 @@ function analyseReachability(npc, sheet, comp, events, invitedExternally, diag) 
     for (const ch of row.choices) {
       const r = applyEffects(s, m, ch.ops, inviteBit);
       const nxt = ch.next && rowById.has(ch.next) ? ch.next : '';
-      out.push({ k: key(r.s, r.mask, nxt), cost: base + r.extra, label: `${labelPrefix}${row.id}/choice${ch.k}` });
+      const cost = base + r.extra;
+      out.push({ k: key(r.s, r.mask, nxt), cost, label: `${labelPrefix}${row.id}/choice${ch.k} (+${cost})` });
     }
   };
   for (let d = 0; d < buckets.length; d++) {
@@ -517,7 +547,8 @@ function analyseReachability(npc, sheet, comp, events, invitedExternally, diag) 
             const win = comp.winners[s * NWORLD + w];
             if (!win || seenRows.has(win.row.id)) continue;
             seenRows.add(win.row.id);
-            choiceEdges(s, m, win.row, 1, '', out);
+            // the engine charges at talk start: free when the opening row is a short conversation (depth < 3)
+            choiceEdges(s, m, win.row, talkCost(sheet.rows, win.row, depthCache), '', out);
           }
         }
         const rap = stateVec(s)[1];
@@ -526,7 +557,8 @@ function analyseReachability(npc, sheet, comp, events, invitedExternally, diag) 
           if (rap < e.minRapport) continue;
           for (const ch of e.choices) {
             const r = applyEffects(s, m, ch.ops, inviteBit);
-            out.push({ k: key(r.s, r.mask, ''), cost: e.cost + r.extra, label: `event:${e.id}/choice${ch.k}` });
+            const cost = e.cost + r.extra;
+            out.push({ k: key(r.s, r.mask, ''), cost, label: `event:${e.id}/choice${ch.k} (+${cost})` });
           }
         }
       }
@@ -560,7 +592,7 @@ function analyseReachability(npc, sheet, comp, events, invitedExternally, diag) 
       witness = [...labels, r.id].join(' → ');
       if (bestCell >= 0) witness += `  [at ${cellLabel(bestCell)}]`; else witness += '  [via next]';
     }
-    rowsOut[r.id] = { cost: best === Infinity ? null : best, witness };
+    rowsOut[r.id] = { cost: best === Infinity ? null : best, witness, depth: rowDepth(sheet.rows, r, depthCache) };
     if (!canTalk || comp.neverWins.includes(r.id)) continue; // never-win rows are reported once, as NEVER_WINS
     if (best === Infinity) {
       unreachable.push(r.id);

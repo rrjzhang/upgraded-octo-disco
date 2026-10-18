@@ -27,7 +27,7 @@ export interface NpcResult {
   overBudget?: string[];
   reachableStates?: number;
   canTalk?: boolean;
-  rows?: Record<string, { cost: number | null; witness: string | null }>;
+  rows?: Record<string, { cost: number | null; witness: string | null; depth?: number }>;
   winCount?: Record<string, number>;
   cells?: { row: string | null; spec?: number; prio?: number; line?: string; tie?: string[] | null; cost: number | null }[];
   errors?: number;

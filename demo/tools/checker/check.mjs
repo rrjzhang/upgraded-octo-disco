@@ -69,7 +69,7 @@ function renderHtml(result) {
     const mine = result.diagnostics.filter(d => d.file === n.sheet);
     h += `<h3>Errors</h3>${diagList(mine.filter(d => d.severity === 'error'))}`;
     h += `<h3>Warnings</h3>${diagList(mine.filter(d => d.severity !== 'error'))}`;
-    h += `<h3>Witness paths</h3><ul class="diag wit">${Object.entries(n.rows).map(([id, r]) => `<li>${esc(id)}: ${r.witness ? `${esc(r.cost)} action(s) — ${esc(r.witness)}` : '<span class="bad">unreachable</span>'}</li>`).join('')}</ul>`;
+    h += `<h3>Witness paths</h3><ul class="diag wit">${Object.entries(n.rows).map(([id, r]) => `<li>${esc(id)}${r.depth != null ? ` <span class="muted">(depth ${esc(r.depth)}${r.depth < 3 ? ', free to open' : ''})</span>` : ''}: ${r.witness ? `${esc(r.cost)} action(s) — ${esc(r.witness)}` : '<span class="bad">unreachable</span>'}</li>`).join('')}</ul>`;
   }
   return h;
 }

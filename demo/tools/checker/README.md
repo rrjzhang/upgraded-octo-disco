@@ -35,12 +35,14 @@ Writes `<report>/index.html` (dependency-free) and `<report>/results.json`.
    targets are exempt from the never-win warning. Coverage = cells won by a non-fallback row.
 3. **Reachability.** Per NPC, Dijkstra over (met, rapport, lastValence, invited-flags, row being
    shown). World variables (nationalLeader, playerLean, dayPhase) are free, so "unreachable" is
-   sound. Edges: talking to the NPC (shows the row that wins the cell; a choice costs 1 plus any
-   `actions -N`), `next` follow-ups (free apart from `actions -N`), and choices of events whose
+   sound. Edges: talking to the NPC (shows the row that wins the cell; its choice costs 1, or 0 when
+   that row is a short conversation, see below, plus any `actions -N`), `next` follow-ups (free apart from `actions -N`), and choices of events whose
    `npc` is this NPC (cost = event `cost` + `actions -N`; `minRapport` respected; `invite`
    events only after an `invite` effect, or freely if another NPC's content invites them).
    Error: row unreachable. Warning: cheapest path > 40 actions. A witness path is reported for
-   each reachable row, e.g. `A01/choice2 → A04/choice1 → A07  [at met=yes, ...]`.
+   each reachable row with the cost of every step, e.g.
+   `B1/choice1 (+0) → B2/choice1 (+1) → B3/choice1 (+1) → B4  [via next]` (2 actions), and each row
+   carries its `depth` (shown in the HTML report, "free to open" when < 3).
 
 ## Codes
 
@@ -54,14 +56,20 @@ Warnings: `NEVER_WINS`, `OVER_BUDGET`, `FALLBACK_PRIORITY`, `NEVER_INVITED`, `IN
 ## Fixtures
 
 - `fixtures/good/`: 1 scene, 2 NPCs, an invite event and an overheard event. Passes clean.
+  `alice` A1 → A2 is a free short conversation (depth 2, A2 costs 0); `bob` B3 → B4 → B5 has depth 3,
+  so opening B3 costs 1 (B3 costs 1: B2's `actions -1`; B4 and B5 cost 2).
 - `fixtures/bad/`: `carol.csv` has a tie (C2/C3), a shadowed row (C4 under C5), an unreachable
   row (C6, rapport 3), a dangling `next` (C1 → C99) and an unknown effect (`trust +1` on C3);
   `dave.csv` has no fallback.
 
 ## Modelling choices
 
-- Talking costs 1 action at the start of a conversation; follow-ups via `next` add nothing;
-  `actions -N` adds N on top.
+- Short conversations are free, as in the engine (`rowDepth` in `src/rules.ts`, mirrored as `rowDepth` /
+  `talkCost` in `core.mjs`): depth(row) = 1 + max depth of its choices' `next` rows (a cycle counts as 3,
+  capped at 3). Opening a conversation on a row with depth < 3 costs 0 actions, otherwise 1. Follow-ups
+  via `next` add nothing; `actions -N` adds N on top; event choices cost the event's `cost`. (Before
+  2026-10-18 every opening cost 1, e.g. `us_neighbor` DN09 was 2 actions, now 1.) The engine also
+  refuses to start any talk with 0 actions left; the checker's costs are totals and ignore that.
 - Tied cells use the first tied row in sheet order (what the runtime does) for reachability.
 - An NPC with no `appearances` (TV-only) needs no sheet; if it has one, rows are not flagged
   unreachable.

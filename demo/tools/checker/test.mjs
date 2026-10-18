@@ -29,8 +29,17 @@ t('good: every row has a witness within budget', () => {
 });
 t('good: follow-up row A2 reached via next, invite row A4 reached', () => {
   const a = good.result.npcs.find(n => n.id === 'alice');
-  assert.match(a.rows.A2.witness, /A1\/choice1 → A2/);
+  assert.match(a.rows.A2.witness, /A1\/choice1 \(\+0\) → A2/);
   assert.match(a.rows.A4.witness, /→ A4/);
+});
+t('good: short conversations are free, a depth-3 opening costs 1 (engine rowDepth rule)', () => {
+  const a = good.result.npcs.find(n => n.id === 'alice'), b = good.result.npcs.find(n => n.id === 'bob');
+  assert.equal(a.rows.A1.depth, 2); assert.equal(a.rows.A2.cost, 0, a.rows.A2.witness); // A1 -> A2 is depth 2: free
+  assert.equal(b.rows.B3.depth, 3); // B3 -> B4 -> B5
+  assert.equal(b.rows.B3.cost, 1, b.rows.B3.witness); // B1 free, B2 free + actions -1
+  assert.match(b.rows.B3.witness, /B1\/choice1 \(\+0\) → B2\/choice1 \(\+1\) → B3/);
+  assert.equal(b.rows.B4.cost, 2, b.rows.B4.witness); // opening B3 costs 1
+  assert.match(b.rows.B5.witness, /B3\/choice1 \(\+1\) → B4\/choice1 \(\+0\) → B5/);
 });
 
 const bad = run('bad');

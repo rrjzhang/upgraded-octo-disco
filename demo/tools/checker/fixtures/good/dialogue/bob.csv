@@ -2,3 +2,6 @@ id,met,rapport,lastValence,nationalLeader,playerLean,dayPhase,priority,emotion,l
 F,,,,,,,0,neutral,Bob studies the board.,Leave,,,,,,,,
 B1,no,,,,,,0,neutral,Do you play?,A little,met yes,,,,,,,
 B2,yes,,,,,late,0,warm,One more game?,Play a long game,rapport +1; actions -1,,,,,,,
+B3,yes,1+,,,,,1,warm,You came back. Sit.,Sure,,B4,,,,,,
+B4,yes,,,,,,-1,neutral,My son plays too.,Where is he?,,B5,,,,,,
+B5,yes,,,,,,-1,worried,Far away. Your move.,Move,,,,,,,,
