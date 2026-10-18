@@ -49,6 +49,9 @@ const FIGURES = [
   // Round 3 (files 51-82): the six roster characters that had silhouettes
   ['ch_us_stranger_b_fig_stand_A', false], ['ch_us_leader_int_fig_stand_A', false], ['ch_us_leader_seg_fig_stand_A', false],
   ['ch_cn_neighbor_fig_stand_A', false], ['ch_cn_stranger_b_fig_stand_A', false], ['ch_cn_leader_int_fig_stand_A', false],
+
+  // Round 5 (files 112-113): standing versions of the two chess players for non-park slots
+  ['ch_us_stranger_a_fig_stand_A', false], ['ch_cn_stranger_a_fig_stand_A', false],
 ];
 const PLACEHOLDER_FIGURES = {
   ch_cn_neighbor_fig_stand: 'stand', ch_us_stranger_b_fig_stand: 'stand', ch_us_leader_int_fig_stand: 'stand',

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-18T06:14:48.578Z",
+  "generated": "2026-10-18T07:51:39.657Z",
   "source": "image_generation/out (_A set)",
   "backgrounds": {
     "bg_home_day": {
@@ -369,6 +369,20 @@
     "ch_cn_leader_int_fig_stand": {
       "file": "figure/ch_cn_leader_int_fig_stand.png",
       "w": 200,
+      "h": 700,
+      "seated": false,
+      "placeholder": false
+    },
+    "ch_us_stranger_a_fig_stand": {
+      "file": "figure/ch_us_stranger_a_fig_stand.png",
+      "w": 249,
+      "h": 700,
+      "seated": false,
+      "placeholder": false
+    },
+    "ch_cn_stranger_a_fig_stand": {
+      "file": "figure/ch_cn_stranger_a_fig_stand.png",
+      "w": 202,
       "h": 700,
       "seated": false,
       "placeholder": false
