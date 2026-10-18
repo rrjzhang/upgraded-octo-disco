@@ -11,7 +11,7 @@ depends_on: ["cast_judge_ramos_ref_A"]
 attach: "out/cast_judge_ramos_ref_A.png"
 save_image_as: "out/cast_judge_ramos_tv_A.png"
 save_prompt_used_as: "out/cast_judge_ramos_tv_A.prompt.txt"
-status: "pending"
+status: "done"
 ---
 
 # cast_judge_ramos_tv_A

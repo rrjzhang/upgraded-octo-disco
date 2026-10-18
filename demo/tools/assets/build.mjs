@@ -36,7 +36,7 @@ const BG_SOURCES = {
 const CHARACTERS = {
   us_neighbor: 'ch_us_neighbor', us_stranger_a: 'ch_us_stranger_a', us_stranger_b: 'ch_us_stranger_b',
   us_leader_int: 'ch_us_leader_int', us_leader_seg: 'ch_us_leader_seg',
-  nat_enforcement: 'ch_nat_anti', nat_inclusive: 'ch_nat_multi',
+  nat_enforcement: 'ch_nat_anti', nat_inclusive: 'cast_president_inclusive', // Lena Ortiz: Round 4 cast images replace the Round 3 male 'ch_nat_multi' set
   cn_neighbor: 'ch_cn_neighbor', cn_stranger_a: 'ch_cn_stranger_a', cn_stranger_b: 'ch_cn_stranger_b',
   cn_leader_int: 'ch_cn_leader_int', cn_leader_sep: 'ch_cn_leader_sep',
   mx_neighbor: 'ch_mx_neighbor', in_neighbor: 'ch_in_neighbor',
@@ -184,6 +184,20 @@ const SIL_SIT = union(circle(150, 66, 48), capsule(150, 100, 150, 140, 20), caps
 // ---------------------------------------------------------------- helpers
 const exists = id => fs.existsSync(path.join(SRC, id + '.png'));
 const src = id => path.join(SRC, id + '.png');
+// status of the image_generation request file that produced an image id ("done" | "failed" | "pending" | null)
+const REQ_DIR = path.resolve(SRC, '..');
+let reqStatus = null;
+function requestFailed(id) {
+  if (!reqStatus) {
+    reqStatus = new Map();
+    for (const f of fs.existsSync(REQ_DIR) ? fs.readdirSync(REQ_DIR) : []) {
+      const m = /^\d+_(.+)\.md$/.exec(f); if (!m) continue;
+      const st = /^status:\s*"?(\w+)"?/m.exec(fs.readFileSync(path.join(REQ_DIR, f), 'utf8'));
+      reqStatus.set(m[1], st ? st[1] : null);
+    }
+  }
+  return reqStatus.get(id) === 'failed';
+}
 const rel = f => path.relative(OUT, f).split(path.sep).join('/');
 function sips(...args) { execFileSync('sips', args, { stdio: ['ignore', 'ignore', 'pipe'] }); }
 function dims(file) {
@@ -242,8 +256,9 @@ for (const [cid, base] of Object.entries(CHARACTERS)) {
   const entry = { neutral: null, warm: null, guarded: null, worried: null, placeholder: false, fromReference: false, sources: [] };
   if (base) {
     for (const ex of EXPRESSIONS) {
-      const sid = `${base}_${ex}_A`;
-      if (!exists(sid)) continue;
+      // cast-style sources have a single `_bust_A` instead of per-expression busts; use it as neutral
+      const sid = exists(`${base}_${ex}_A`) ? `${base}_${ex}_A` : (ex === 'neutral' && exists(`${base}_bust_A`) ? `${base}_bust_A` : null);
+      if (!sid) continue;
       const dest = out('portrait', `${cid}_${ex}.png`);
       const d0 = dims(src(sid));
       if (d0.w !== d0.h) {
@@ -307,9 +322,10 @@ if (exists('ch_nat_anti_tv_1_A')) {
     nat_inclusive: { placeholder: true, note: 'no inclusive-leader still yet; reuses nat_enforcement_1.jpg' },
   };
 } else warn.push('missing ch_nat_anti_tv_1_A');
-if (exists('ch_nat_multi_tv_1_A')) {
+const incTv = ['cast_president_inclusive_tv_A', 'ch_nat_multi_tv_1_A'].find(exists);
+if (incTv) {
   const dest = out('tv', 'nat_inclusive_1.jpg');
-  sips('-s', 'format', 'jpeg', '-s', 'formatOptions', '85', '--resampleWidth', String(TV_W), src('ch_nat_multi_tv_1_A'), '--out', dest);
+  sips('-s', 'format', 'jpeg', '-s', 'formatOptions', '85', '--resampleWidth', String(TV_W), src(incTv), '--out', dest);
   manifest.tv.nat_inclusive = [rel(dest)];
   manifest.tvMeta = { ...(manifest.tvMeta || {}), nat_inclusive: { placeholder: false, ...dims(dest) } };
 }
@@ -336,12 +352,15 @@ if (exists('ch_nat_multi_tv_1_A')) {
     // cast_governor_bust_A.png serves id cast_governor (and cast_cast_governor_bust_A.png would too)
     const srcFor = (kind) => [`cast_${id}_${kind}_A`, `${id}_${kind}_A`].find(exists) ?? `cast_${id}_${kind}_A`;
     const refId = srcFor('ref'), bustId = srcFor('bust'), tvId = srcFor('tv');
+    // A request file marked failed (e.g. the generator saw a colour halo on the cut-out) means the saved
+    // image is not to be used; the bust is cropped from the reference sheet instead.
+    const bustOk = exists(bustId) && !requestFailed(bustId);
     if (exists(refId)) {
       const dest = out('cast', `${id}_ref.jpg`);
       sips('-s', 'format', 'jpeg', '-s', 'formatOptions', '85', '--resampleWidth', '1024', src(refId), '--out', dest);
       entry.ref = rel(dest); entry.sources.push(refId);
     }
-    if (exists(bustId)) {
+    if (bustOk) {
       const dest = out('cast', `${id}_bust.png`), d0 = dims(src(bustId));
       if (d0.w !== d0.h) {
         // same square crop as the Round 3 busts: image-width square anchored just above the subject's alpha box

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-18T05:19:51.299Z",
+  "generated": "2026-10-18T06:14:48.578Z",
   "source": "image_generation/out (_A set)",
   "backgrounds": {
     "bg_home_day": {
@@ -171,16 +171,10 @@
       "guarded": null,
       "worried": null,
       "placeholder": false,
-      "fromReference": true,
+      "fromReference": false,
       "sources": [
-        "ch_nat_multi_ref_A"
-      ],
-      "referenceCrop": {
-        "x": 234,
-        "y": 43,
-        "w": 560,
-        "h": 560
-      }
+        "cast_president_inclusive_bust_A"
+      ]
     },
     "cn_neighbor": {
       "neutral": "portrait/cn_neighbor_neutral.png",
@@ -299,7 +293,7 @@
     "ch_nat_enforcement": "nat_enforcement",
     "ch_nat_anti": "nat_enforcement",
     "ch_nat_inclusive": "nat_inclusive",
-    "ch_nat_multi": "nat_inclusive",
+    "cast_president_inclusive": "nat_inclusive",
     "ch_cn_neighbor": "cn_neighbor",
     "ch_cn_stranger_a": "cn_stranger_a",
     "ch_cn_stranger_b": "cn_stranger_b",
@@ -430,109 +424,144 @@
     "nat_inclusive": {
       "placeholder": false,
       "w": 1280,
-      "h": 853
+      "h": 720
     }
   },
   "cast": {
     "cast_president_inclusive": {
       "name": "President Lena Ortiz",
       "role": "President of the United States (inclusive condition)",
-      "bust": null,
-      "tv": null,
-      "ref": null,
-      "placeholder": true,
+      "bust": "cast/cast_president_inclusive_bust.png",
+      "tv": "cast/cast_president_inclusive_tv.jpg",
+      "ref": "cast/cast_president_inclusive_ref.jpg",
+      "placeholder": false,
       "fromReference": false,
-      "sources": []
+      "sources": [
+        "cast_president_inclusive_ref_A",
+        "cast_president_inclusive_bust_A",
+        "cast_president_inclusive_tv_A"
+      ]
     },
     "cast_governor": {
       "name": "Governor Dale Whitaker",
       "role": "State governor",
-      "bust": null,
-      "tv": null,
-      "ref": null,
-      "placeholder": true,
-      "fromReference": false,
-      "sources": []
+      "bust": "cast/cast_governor_bust.png",
+      "tv": "cast/cast_governor_tv.jpg",
+      "ref": "cast/cast_governor_ref.jpg",
+      "placeholder": false,
+      "fromReference": true,
+      "sources": [
+        "cast_governor_ref_A",
+        "cast_governor_tv_A"
+      ]
     },
     "cast_judge_ramos": {
       "name": "Judge Daniel Ramos",
       "role": "Federal district judge",
-      "bust": null,
-      "tv": null,
-      "ref": null,
-      "placeholder": true,
-      "fromReference": false,
-      "sources": []
+      "bust": "cast/cast_judge_ramos_bust.png",
+      "tv": "cast/cast_judge_ramos_tv.jpg",
+      "ref": "cast/cast_judge_ramos_ref.jpg",
+      "placeholder": false,
+      "fromReference": true,
+      "sources": [
+        "cast_judge_ramos_ref_A",
+        "cast_judge_ramos_tv_A"
+      ]
     },
     "cast_mayor": {
       "name": "Mayor Denise Caldwell",
       "role": "Mayor",
-      "bust": null,
-      "tv": null,
-      "ref": null,
-      "placeholder": true,
-      "fromReference": false,
-      "sources": []
+      "bust": "cast/cast_mayor_bust.png",
+      "tv": "cast/cast_mayor_tv.jpg",
+      "ref": "cast/cast_mayor_ref.jpg",
+      "placeholder": false,
+      "fromReference": true,
+      "sources": [
+        "cast_mayor_ref_A",
+        "cast_mayor_tv_A"
+      ]
     },
     "cast_police_chief": {
       "name": "Chief Ray Kowalski",
       "role": "Police chief",
-      "bust": null,
-      "tv": null,
-      "ref": null,
-      "placeholder": true,
-      "fromReference": false,
-      "sources": []
+      "bust": "cast/cast_police_chief_bust.png",
+      "tv": "cast/cast_police_chief_tv.jpg",
+      "ref": "cast/cast_police_chief_ref.jpg",
+      "placeholder": false,
+      "fromReference": true,
+      "sources": [
+        "cast_police_chief_ref_A",
+        "cast_police_chief_tv_A"
+      ]
     },
     "cast_principal": {
       "name": "Principal Karen Novak",
       "role": "Principal, PS 21",
-      "bust": null,
+      "bust": "cast/cast_principal_bust.png",
       "tv": null,
-      "ref": null,
-      "placeholder": true,
+      "ref": "cast/cast_principal_ref.jpg",
+      "placeholder": false,
       "fromReference": false,
-      "sources": []
+      "sources": [
+        "cast_principal_ref_A",
+        "cast_principal_bust_A"
+      ]
     },
     "cast_clinic_director": {
       "name": "Dr. Nadia Haddad",
       "role": "Director, Fifth Street Clinic",
-      "bust": null,
-      "tv": null,
-      "ref": null,
-      "placeholder": true,
+      "bust": "cast/cast_clinic_director_bust.png",
+      "tv": "cast/cast_clinic_director_tv.jpg",
+      "ref": "cast/cast_clinic_director_ref.jpg",
+      "placeholder": false,
       "fromReference": false,
-      "sources": []
+      "sources": [
+        "cast_clinic_director_ref_A",
+        "cast_clinic_director_bust_A",
+        "cast_clinic_director_tv_A"
+      ]
     },
     "cast_agency_spokesperson": {
       "name": "Craig Mullins",
       "role": "Spokesperson, federal immigration agency",
-      "bust": null,
-      "tv": null,
-      "ref": null,
-      "placeholder": true,
+      "bust": "cast/cast_agency_spokesperson_bust.png",
+      "tv": "cast/cast_agency_spokesperson_tv.jpg",
+      "ref": "cast/cast_agency_spokesperson_ref.jpg",
+      "placeholder": false,
       "fromReference": false,
-      "sources": []
+      "sources": [
+        "cast_agency_spokesperson_ref_A",
+        "cast_agency_spokesperson_bust_A",
+        "cast_agency_spokesperson_tv_A"
+      ]
     },
     "cast_council_member": {
       "name": "Councilmember Kevin Tran",
       "role": "City council member, Fifth Street district",
-      "bust": null,
-      "tv": null,
-      "ref": null,
-      "placeholder": true,
+      "bust": "cast/cast_council_member_bust.png",
+      "tv": "cast/cast_council_member_tv.jpg",
+      "ref": "cast/cast_council_member_ref.jpg",
+      "placeholder": false,
       "fromReference": false,
-      "sources": []
+      "sources": [
+        "cast_council_member_ref_A",
+        "cast_council_member_bust_A",
+        "cast_council_member_tv_A"
+      ]
     },
     "cast_anchor": {
       "name": "Jasmine Porter",
       "role": "Local TV news anchor",
-      "bust": null,
-      "tv": null,
-      "ref": null,
-      "placeholder": true,
+      "bust": "cast/cast_anchor_bust.png",
+      "tv": "cast/cast_anchor_tv.jpg",
+      "ref": "cast/cast_anchor_ref.jpg",
+      "placeholder": false,
       "fromReference": false,
-      "sources": []
+      "sources": [
+        "cast_anchor_ref_A",
+        "cast_anchor_bust_A",
+        "cast_anchor_tv_A"
+      ]
     }
   }
 }

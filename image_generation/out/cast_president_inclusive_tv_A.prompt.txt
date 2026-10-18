@@ -1,0 +1,7 @@
+STYLE A: Photorealistic, like a still from a quiet contemporary film. Natural colours, slightly desaturated, muted warm palette (ochre, sage, slate blue, brick, cream). Eye-level camera, straight on, 35 mm equivalent, horizon one third from the top. Soft diffuse overcast daylight with no visible light source, no hard shadows, no lens flare, no shallow depth of field (everything in focus). No text, no legible signage, no logos, no watermarks.
+
+Photographic face realism: natural skin texture, no retouching, no studio glamour.
+
+Using the attached reference image: the same woman, same face, same hair, same clothes. Television news framing from the chest up, at a plain podium with no seal, mid-sentence, one hand slightly raised, looking just past the camera, plain dark-blue backdrop. No seal, flag, insignia, text or logo anywhere in the frame. Composed, neutral.
+
+Output aspect ratio: 16:9.

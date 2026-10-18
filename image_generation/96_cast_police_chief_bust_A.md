@@ -11,7 +11,8 @@ depends_on: ["cast_police_chief_ref_A"]
 attach: "out/cast_police_chief_ref_A.png"
 save_image_as: "out/cast_police_chief_bust_A.png"
 save_prompt_used_as: "out/cast_police_chief_bust_A.prompt.txt"
-status: "pending"
+status: "failed"
+error: "Transparent cutout retained a conspicuous colored edge halo after one retry."
 ---
 
 # cast_police_chief_bust_A

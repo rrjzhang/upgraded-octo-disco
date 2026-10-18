@@ -11,7 +11,7 @@ depends_on: ["cast_agency_spokesperson_ref_A"]
 attach: "out/cast_agency_spokesperson_ref_A.png"
 save_image_as: "out/cast_agency_spokesperson_tv_A.png"
 save_prompt_used_as: "out/cast_agency_spokesperson_tv_A.prompt.txt"
-status: "pending"
+status: "done"
 ---
 
 # cast_agency_spokesperson_tv_A
