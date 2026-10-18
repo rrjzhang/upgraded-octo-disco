@@ -10,6 +10,7 @@ export default defineConfig({
       input: {
         index: resolve(__dirname, 'index.html'),
         researcher: resolve(__dirname, 'researcher.html'),
+        editor: resolve(__dirname, 'editor.html'),
       },
     },
   },

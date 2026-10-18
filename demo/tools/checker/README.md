@@ -9,6 +9,13 @@ node tools/checker/check.mjs [--content public/content] [--report tools/checker/
 node tools/checker/test.mjs        # runs both fixtures and asserts the findings
 ```
 
+`core.mjs` holds every check as pure functions over file texts (no Node built-ins), so the browser editor
+(`src/editor`) imports it directly: `checkContent({ files: { 'scenes.yaml': text, 'npcs.yaml': text, 'events.csv': text,
+'news.csv': text, 'cast.yaml'?: text, 'dialogue/<npc>.csv': text, ... }, manifest, analyse? })` returns the same result
+object the CLI writes to `results.json`. `check.mjs` reads the files, calls it, and renders the text summary and HTML report.
+Optional cast columns (`events.csv` `portrait`, `news.csv` `figure`) are accepted; with a manifest present, an id that is in
+neither `cast.yaml` nor `manifest.cast` is an `UNKNOWN_ASSET` warning.
+
 Exit code 0 = no errors (warnings allowed), 1 = errors, 2 = bad CLI usage.
 Writes `<report>/index.html` (dependency-free) and `<report>/results.json`.
 `--json` prints the results (without the per-cell grid) on stdout instead of the text summary.

@@ -30,6 +30,16 @@ In dev mode `window.gv` exposes helpers: `gv.goto('library')`, `gv.talk('us_neig
 - Cast (authority figures): `news.csv` `figure` and `events.csv` `portrait` name a cast id (`content/cast.yaml`). TV shows that person's still, print news shows the bust beside the headline, an event shows the bust in the portrait panel; without art each shows PLACEHOLDER.
 - Debugging aids (Show interactables and H, the rule/lean/phase line, rapport and valence in Contacts, figure guides) are off unless the researcher page's "Show debugging aids" switch is on (`localStorage['gv:settings'].debug`) or the URL has `?dev=1`.
 
+## Editor
+
+`/editor.html` lets a researcher edit content in the browser without a rebuild (SPEC "Researcher editing, overrides and casting").
+
+- **Dialogue**: pick an NPC; its sheet is an editable table (id, the six conditions, priority, emotion, line, three choices with effect and next). Row actions: add, duplicate, move up/down, delete (refused while another row's `next` points at it), and `+↳` on a choice to add a follow-up row (priority -1, met yes) linked from that choice. The side panel runs the checker core (`tools/checker/core.mjs`) live: schema errors, missing fallback, dangling next, ties, coverage, unreachable and never-winning rows, the witness path for the selected row, and a conversation tree (entry rows and their follow-up chains, with turn and depth). Rows and cells with problems get badges.
+- **Events / News**: the same table treatment for `events.csv` and `news.csv`, including the optional cast columns (`portrait`, `figure`).
+- **Images**: every slot the game draws (busts per expression, figures, backgrounds incl. evening and painted variants, TV stills, cast bust/TV). Upload a PNG/JPEG, see its pixel size and shape warnings, preview at game size, revert.
+- **Save** writes only files that differ from the bundled ones to `localStorage['gv:override:v1']` and images to IndexedDB `gv`/`images` (keys like `portraits/us_neighbor/warm`). The game applies them on load and shows an "edited content" chip; `?dev=1&nooverride=1` ignores them. Overrides live in this browser only.
+- **Export** downloads each changed file (`us_neighbor.csv`, `events.csv`, PNGs named after their manifest file) to commit into `public/content` and `image_generation/out`. **Revert** per file or image (in the table toolbar or under Changes); **Revert all** clears the override key and every image key. **Copy override JSON** gives the `{ text, imageKeys }` snapshot for a room config. Leaving with unsaved changes asks first; Ctrl/Cmd+S saves.
+
 ## Check the content
 
 ```bash
@@ -56,7 +66,8 @@ Regenerates `public/assets/**` and `manifest.json` from `../image_generation/out
 | `public/modules/` | `tv.html`, `work.html`, `survey.html`, loaded in an iframe and driven by `postMessage` |
 | `public/content/` | `scenes.yaml`, `npcs.yaml`, `dialogue/<npc>.csv`, `events.csv`, `news.csv`, `questionnaire/eod.json` |
 | `public/assets/` | Processed backgrounds, portraits, figures, props, TV stills and `manifest.json` |
-| `tools/checker/` | Completeness and reachability checker, fixtures, HTML report |
+| `tools/checker/` | Completeness and reachability checker (`core.mjs` pure checks shared with the editor, `check.mjs` CLI), fixtures, HTML report |
+| `editor.html`, `src/editor/` | Researcher content editor |
 | `tools/assets/` | Asset build script |
 
 ## Art conventions
