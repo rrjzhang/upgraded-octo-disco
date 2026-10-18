@@ -10,7 +10,7 @@ npm install          # once
 npm run dev          # http://localhost:5173
 ```
 
-- `/?dev=1` drops straight into day 1 at home (room `DEV1`, enforcement condition). Add `&reset=1` to wipe the save, `&leader=inclusive`, `&culture=mx|in`, `&name=Alex`.
+- `/?dev=1` drops straight into day 1 at home (room `DEV1`, enforcement condition). Add `&reset=1` to wipe the save (the flag is then dropped from the address so a reload resumes), `&leader=inclusive`, `&culture=mx|in`, `&name=Alex`, `&eod=<url>` to load the end-of-day questionnaire from a URL (logged as `source: "room"`).
 - `/` is the participant entry: room code and password, then character setup.
 - `/researcher.html` creates rooms (randomised parameters, every field editable), lists rooms on this computer with their day reached, and exports a room's action log as JSON lines.
 - `/?fixtures=1` loads a tiny built-in test world instead of the real content.

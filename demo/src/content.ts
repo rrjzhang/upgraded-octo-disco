@@ -292,6 +292,19 @@ function parseNews(r: Reporter, file: string, text: string): NewsRow[] {
   });
 }
 
+/** Schema checks for questionnaire JSON (bundled eod.json, a researcher paste, a server or URL response). Returns problems; empty = valid. */
+export function questionnaireProblems(q: unknown): string[] {
+  if (!q || typeof q !== 'object' || Array.isArray(q)) return ['must be a JSON object'];
+  const pages = (q as any).pages;
+  if (!Array.isArray(pages)) return ['missing pages[]'];
+  const out: string[] = [];
+  pages.forEach((p: any, i: number) =>
+    (p?.items ?? []).forEach((it: any, j: number) => {
+      if (!it?.id || !['likert', 'choice', 'text'].includes(it?.type)) out.push(`page ${i + 1} item ${j + 1}: needs id and type likert|choice|text`);
+    }));
+  return out;
+}
+
 const FALLBACK_EOD: Questionnaire = {
   id: 'eod-missing',
   title: 'Evening check-in',
@@ -361,11 +374,8 @@ export async function loadContent(src: Source): Promise<Content> {
   if (eodText) {
     try {
       const q = JSON.parse(eodText);
-      if (!Array.isArray(q.pages)) throw new Error('missing pages[]');
-      q.pages.forEach((p: any, i: number) =>
-        (p.items ?? []).forEach((it: any, j: number) => {
-          if (!it.id || !['likert', 'choice', 'text'].includes(it.type)) r.error('content/questionnaire/eod.json', `page ${i + 1} item ${j + 1}: needs id and type likert|choice|text`);
-        }));
+      if (!Array.isArray(q?.pages)) throw new Error('missing pages[]');
+      for (const p of questionnaireProblems(q)) r.error('content/questionnaire/eod.json', p);
       eod = q;
     } catch (e) {
       r.error('content/questionnaire/eod.json', `JSON error: ${(e as Error).message}`);

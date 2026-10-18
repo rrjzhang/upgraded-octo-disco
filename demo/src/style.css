@@ -147,6 +147,24 @@ button { font-family: inherit; }
   background: var(--panel); color: var(--ink); border: 0; border-radius: 10px; font-weight: 500; cursor: pointer;
 }
 .phone-icon { width: 22px; height: 36px; border: 3px solid var(--ink); border-radius: 5px; }
+/* the end-of-day call: the phone button rings (shakes) with a badge until it is answered */
+.phone-btn { position: relative; }
+.phone-btn.ringing { box-shadow: 0 0 0 3px var(--amber); animation: ring 1.6s ease-in-out infinite; }
+.phone-badge {
+  position: absolute; right: -6px; top: -6px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px;
+  background: #a3271f; color: #fff; font: 700 13px/22px var(--ui); text-align: center; box-shadow: 0 0 0 2px #2f2b26;
+}
+@keyframes ring {
+  0%, 40%, 100% { transform: rotate(0); }
+  5%, 15%, 25% { transform: rotate(-7deg); }
+  10%, 20%, 30% { transform: rotate(7deg); }
+}
+@media (prefers-reduced-motion: reduce) { .phone-btn.ringing { animation: none; } }
+.ringing-note { color: var(--ink); font-weight: 600; }
+.call-loading {
+  display: flex; align-items: center; gap: 14px; background: var(--panel); border-radius: 12px; padding: 22px 30px;
+  font-size: 18px; box-shadow: 0 16px 60px rgba(0,0,0,.5);
+}
 .exits { flex: 1; display: flex; flex-wrap: wrap; gap: 10px; }
 .exit {
   display: flex; align-items: center; gap: 10px; padding: 12px 18px; background: var(--panel); color: var(--ink);
@@ -230,6 +248,7 @@ button { font-family: inherit; }
 .card h1 { margin: 0 0 4px; font: 600 26px var(--serif); }
 .card h2 { margin: 16px 0 4px; font-size: 16px; }
 .card label { font-weight: 500; font-size: 14px; margin-top: 6px; }
+.card textarea.q-json { font-size: 13px; padding: 9px 11px; border: 1.5px solid #cfc7b6; border-radius: 6px; background: #fff; color: var(--ink); resize: vertical; }
 .card input[type=text], .card input[type=number], .card select {
   font: 16px var(--ui); padding: 9px 11px; border: 1.5px solid #cfc7b6; border-radius: 6px; background: #fff; color: var(--ink);
 }
@@ -240,6 +259,12 @@ button { font-family: inherit; }
 .check { display: flex; gap: 8px; align-items: flex-start; font-weight: 400 !important; }
 .err { color: #8a2a1f; min-height: 1.2em; margin: 4px 0 0; }
 .errlist { font: 12px ui-monospace, Menlo, monospace; color: #8a2a1f; }
+body.page { height: auto; min-height: 100%; }
+.r-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 32px; background: var(--ink); color: var(--panel); }
+.r-head .r-title { font-weight: 600; }
+.r-head a { color: var(--panel); }
+.r-actions { white-space: nowrap; }
+.r-view { margin-left: 12px; color: var(--accent); font-size: 14px; }
 .researcher { display: flex; flex-direction: column; align-items: center; gap: 24px; padding: 32px; }
 .grid2, .picks { display: grid; grid-template-columns: 220px 1fr; gap: 8px 16px; align-items: center; }
 .grid2 label, .picks label { margin: 0; }

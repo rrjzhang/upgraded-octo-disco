@@ -4,6 +4,8 @@ import { COND_FIELDS } from './types';
 import { clamp } from './util';
 
 export const DAY_ACTIONS = 8;
+/** Wallet balance a new game starts with. */
+export const START_WALLET = 1000;
 export const DEMO_DAYS = 5;
 export const DIALOGUE_COST = 1;
 

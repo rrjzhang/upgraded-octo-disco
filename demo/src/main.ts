@@ -27,6 +27,7 @@ function startGame(content: Content, room: RoomRecord, player?: PlayerInfo): voi
   document.body.classList.add('in-game');
   const game = new Game(app, content, state);
   if (isDev || isFixtures) (window as any).gv = game.devApi();
+  if (isDev && params.get('eod')) game.devEod = params.get('eod');
   game.start();
 }
 

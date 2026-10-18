@@ -159,6 +159,10 @@ export interface RoomConfig {
   rosterPicks: Record<string, string>;
   created: string;
   note?: string;
+  /** End-of-day questionnaire pasted by the researcher (same schema as questionnaire/eod.json); overrides the bundled one. */
+  questionnaire?: Questionnaire;
+  /** Or a URL to fetch that questionnaire from (used when `questionnaire` is absent). */
+  questionnaireUrl?: string;
 }
 
 export interface PlayerInfo {
@@ -189,6 +193,8 @@ export interface GameState {
   entries: Record<string, number>; // `${day}:${scene}` -> entry count, seeds event rolls
   journal: string;
   dayStartDone: number; // day whose day_start processing has run
+  /** The conversation in progress; persisted so a reload closes it (exit "left") instead of losing it. */
+  convo?: { npc: string; scene: string; started: number; last: number; turns: number; rules: string[] };
   surveyDay?: number; // day whose end-of-day survey is open; a reload reopens it instead of dropping it
   finished: boolean;
   started: string;

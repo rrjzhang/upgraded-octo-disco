@@ -1,13 +1,13 @@
 /** The game runtime: state transitions + plain-DOM rendering of the 1440x900 stage. */
 import type {
-  Content, DialogueRow, Emotion, EventRow, GameState, Hotspot, ModuleId, NewsRow, Npc, Scene, Slot,
+  Content, DialogueRow, Questionnaire, Emotion, EventRow, GameState, Hotspot, ModuleId, NewsRow, Npc, Scene, Slot,
 } from './types';
 import {
   DAY_ACTIONS, DEMO_DAYS, DIALOGUE_COST, applyEffects, dayPhaseOf, eventMatches, leanOf, phaseOf, selectRow,
   type Delta,
 } from './rules';
-import { appendLog, readLog, saveState } from './store';
-import { assetEntry } from './content';
+import { appendLog, getRoom, readLog, saveState } from './store';
+import { assetEntry, questionnaireProblems } from './content';
 import { SILHOUETTE_BUST, downloadText, h, seeded, silhouetteFigure, subst } from './util';
 
 const CULTURE_NAMES: Record<string, string> = { cn: 'Chinese', mx: 'Mexican', in: 'Indian' };
@@ -45,6 +45,7 @@ export class Game {
   private right!: HTMLElement;
   private phoneEl!: HTMLElement;
   private journalDraft: string | null = null;
+  private surveyLoading = false;
 
   constructor(host: HTMLElement, private c: Content, private s: GameState) {
     this.stage = h('div', { class: 'stage', id: 'stage' });
@@ -53,6 +54,8 @@ export class Game {
     window.addEventListener('resize', () => this.fit());
     window.addEventListener('message', (e) => this.onMessage(e));
     document.addEventListener('keydown', (e) => this.onKey(e));
+    // stamp the open conversation when the page goes away, so a reload closes it with its real duration
+    window.addEventListener('pagehide', () => { if (this.s.convo) { this.s.convo.last = Date.now(); this.save(); } });
     this.fit();
   }
 
@@ -63,6 +66,8 @@ export class Game {
       this.renderEnd();
       return;
     }
+    // a conversation open when the page went away (reload, closed tab) is closed as "left", timed to its last turn
+    if (this.s.convo) this.endConvo('left', this.s.convo.last);
     if (this.s.dayStartDone < this.s.day) this.beginDay();
     else this.render();
     // The survey window lives only in the DOM; a page reload (dev-server HMR, F5, crash) used to drop it silently
@@ -264,6 +269,7 @@ export class Game {
       this.render();
       return;
     }
+    this.endConvo('left');
     const from = this.s.scene;
     this.s.scene = sceneId;
     this.panel = { kind: 'idle' };
@@ -303,9 +309,51 @@ export class Game {
     return true;
   }
 
+  // ------------------------------------------------------------------ conversations
+  private startConvo(npc: string, rule: string): void {
+    const now = Date.now();
+    this.s.convo = { npc, scene: this.s.scene, started: now, last: now, turns: 1, rules: [rule] };
+  }
+
+  private convoTurn(rule: string): void {
+    const cv = this.s.convo;
+    if (!cv) return;
+    cv.turns += 1;
+    cv.rules.push(rule);
+    cv.last = Date.now();
+  }
+
+  /** Logs the open conversation (one `conversation` line) and clears it. */
+  private endConvo(exit: 'ended' | 'left' | 'day_end', at = Date.now()): void {
+    const cv = this.s.convo;
+    if (!cv) return;
+    this.s.convo = undefined;
+    appendLog(this.s, {
+      type: 'conversation', target: cv.npc, scene: cv.scene, turns: cv.turns, ms: Math.max(0, at - cv.started), rules: cv.rules, exit,
+    });
+    this.save();
+  }
+
+  /** Per-NPC totals from this room's conversation lines (the log is the source of truth). */
+  private convoTotals(): Map<string, { n: number; turns: number; ms: number }> {
+    const out = new Map<string, { n: number; turns: number; ms: number }>();
+    for (const ln of readLog(this.s.room).split('\n')) {
+      if (!ln.includes('"conversation"')) continue;
+      try {
+        const l = JSON.parse(ln);
+        if (l.type !== 'conversation' || typeof l.target !== 'string') continue;
+        const t = out.get(l.target) ?? { n: 0, turns: 0, ms: 0 };
+        t.n += 1; t.turns += Number(l.turns) || 0; t.ms += Number(l.ms) || 0;
+        out.set(l.target, t);
+      } catch { /* skip a damaged line */ }
+    }
+    return out;
+  }
+
   talkTo(npcId: string): void {
     const n = this.c.npcById.get(npcId);
     if (!n) return;
+    this.endConvo('left'); // talking to someone else (or the same person afresh) leaves the current conversation
     if (this.s.actions < DIALOGUE_COST) {
       this.panel = { kind: 'idle', note: this.str('ui.notEnough') };
       return this.render();
@@ -318,6 +366,7 @@ export class Game {
     } else {
       this.panel = { kind: 'dialogue', npc: n.id, row: row.row, tie: row.tie };
       appendLog(this.s, { type: 'dialogue', target: n.id, rule: row.row.id, delta: { actions: [before, this.s.actions] } });
+      this.startConvo(n.id, row.row.id);
     }
     this.save();
     this.render();
@@ -351,12 +400,15 @@ export class Game {
       if (nx) {
         this.panel = { kind: 'dialogue', npc: row.npc, row: nx, tie: [] };
         appendLog(this.s, { type: 'dialogue', target: row.npc, rule: nx.id, followup: true });
+        this.convoTurn(nx.id);
       } else {
         console.error(`[dialogue] ${row.npc}/${row.id}: next "${ch.next}" not found`);
         this.panel = { kind: 'idle' };
+        this.endConvo('ended');
       }
     } else {
       this.panel = { kind: 'idle', note: `${this.c.npcById.get(row.npc)?.name ?? row.npc}: conversation ended.` };
+      this.endConvo('ended');
     }
     this.save();
     this.render();
@@ -376,6 +428,7 @@ export class Game {
 
   private hotspot(hs: Hotspot): void {
     const a = hs.action;
+    if (a.type !== 'talk' && a.type !== 'end_day' && !(a.type === 'window' && a.module === 'survey')) this.endConvo('left');
     const cost = a.cost ?? (a.type === 'window' || a.type === 'news' ? 1 : 0);
     if (cost > this.s.actions) {
       this.panel = { kind: 'idle', note: this.str('ui.notEnough') };
@@ -463,13 +516,58 @@ export class Game {
   }
 
   endDay(): void {
-    if (this.win?.module === 'survey') return; // already open: re-opening would reload the frame and wipe answers
+    if (this.win?.module === 'survey' || this.surveyLoading) return; // already open: re-opening would reload the frame and wipe answers
+    this.endConvo('day_end');
     this.phoneOpen = false;
     this.s.surveyDay = this.s.day;
     this.save();
-    this.openWindow('survey', { ...this.c.eod, day: this.s.day }, {
+    this.render();
+    this.surveyLoading = true;
+    const day = this.s.day;
+    // a slow lookup shows "Loading your call…" instead of a dead click
+    let loading: HTMLElement | null = null;
+    const slow = setTimeout(() => {
+      loading = h('div', { class: 'win-overlay', role: 'status', 'aria-live': 'polite' },
+        h('div', { class: 'call-loading' }, h('span', { class: 'phone-icon ringing-icon', 'aria-hidden': 'true' }), this.str('ui.loadingCall')));
+      this.stage.append(loading);
+    }, 250);
+    this.resolveQuestionnaire(day)
+      .catch(() => ({ q: this.c.eod, source: 'bundled' as const }))
+      .then(({ q, source }) => {
+        clearTimeout(slow);
+        (loading as HTMLElement | null)?.remove();
+        this.surveyLoading = false;
+        if (this.s.day !== day || this.s.surveyDay !== day) return; // the day moved on meanwhile
+        this.openSurvey(q, source);
+      });
+  }
+
+  /** End-of-day questionnaire, first match wins: server for this room/day, the room's own (pasted JSON or URL, or dev &eod=), bundled eod.json. */
+  private async resolveQuestionnaire(day: number): Promise<{ q: Questionnaire; source: 'server' | 'room' | 'bundled' }> {
+    const fromServer = await fetchQuestionnaire(`/api/questionnaire?room=${encodeURIComponent(this.s.room)}&day=${day}`);
+    if (fromServer) return { q: fromServer, source: 'server' };
+    const cfg = getRoom(this.s.room)?.config ?? this.s.config;
+    const devUrl = this.devEod;
+    if (devUrl) {
+      const q = await fetchQuestionnaire(devUrl);
+      if (q) return { q, source: 'room' };
+      console.warn(`[survey] &eod=${devUrl} did not give a valid questionnaire; falling through`);
+    }
+    if (cfg.questionnaire && !questionnaireProblems(cfg.questionnaire).length) return { q: cfg.questionnaire, source: 'room' };
+    if (cfg.questionnaireUrl) {
+      const q = await fetchQuestionnaire(cfg.questionnaireUrl);
+      if (q) return { q, source: 'room' };
+    }
+    return { q: this.c.eod, source: 'bundled' };
+  }
+
+  /** Dev mode only: `&eod=<url>` stands in for the room's questionnaire URL. */
+  devEod: string | null = null;
+
+  private openSurvey(q: Questionnaire, source: 'server' | 'room' | 'bundled'): void {
+    this.openWindow('survey', { ...q, day: this.s.day }, {
       onSubmit: (answers) => {
-        appendLog(this.s, { type: 'survey', target: this.c.eod.id, answers });
+        appendLog(this.s, { type: 'survey', target: q.id, source, answers });
         this.s.surveyDay = undefined;
         this.closeWindow(false);
         this.finishDay();
@@ -513,6 +611,7 @@ export class Game {
     });
     this.stage.append(overlay);
     this.win = { module, overlay, frame, ...hooks };
+    this.renderStrip(); // a ringing phone stops ringing while the call (survey) is on screen
   }
 
   private closeWindow(notify = true): void {
@@ -604,6 +703,8 @@ export class Game {
   }
 
   render(): void {
+    // whatever replaced the dialogue panel (a hotspot's text, a note, an event) means the player left the conversation
+    if (this.s.convo && !(this.panel.kind === 'dialogue' && this.panel.npc === this.s.convo.npc)) this.endConvo('left');
     const focusKey = (document.activeElement as HTMLElement | null)?.dataset?.fk;
     this.renderTop();
     this.renderScene();
@@ -779,8 +880,17 @@ export class Game {
         h('span', { class: 'arrow', 'aria-hidden': 'true', text: '→' }), this.str('ui.goHome')));
     }
     this.strip.replaceChildren(
-      h('button', { class: 'phone-btn', 'data-fk': 'phone', 'aria-expanded': String(this.phoneOpen), onclick: () => { this.phoneOpen = !this.phoneOpen; this.renderPhone(); this.renderStrip(); } },
-        h('span', { class: 'phone-icon', 'aria-hidden': 'true' }), this.str('ui.phone')),
+      h('button', {
+        class: `phone-btn${this.ringing() ? ' ringing' : ''}`, 'data-fk': 'phone', 'aria-expanded': String(this.phoneOpen),
+        'aria-label': this.ringing() ? `${this.str('ui.phone')}: ${this.str('ui.ringing')}` : null,
+        onclick: () => {
+          this.phoneOpen = !this.phoneOpen;
+          if (this.phoneOpen && this.ringing()) this.phoneTab = 'call'; // picking up a ringing phone goes straight to the call
+          this.renderPhone(); this.renderStrip();
+        },
+      },
+        h('span', { class: 'phone-icon', 'aria-hidden': 'true' }), this.str('ui.phone'),
+        this.ringing() ? h('span', { class: 'phone-badge', 'aria-hidden': 'true', text: '1' }) : null),
       exits,
       sc.background !== 'none'
         ? h('button', { class: 'reveal-btn', 'data-fk': 'reveal', onclick: () => this.reveal(), text: this.str('ui.showInteractables') })
@@ -815,7 +925,7 @@ export class Game {
       body.append(h('p', { class: 'line', text: this.t(p.row.line) }));
       p.row.choices.forEach((ch, i) => choices.append(this.choiceBtn(i, this.t(ch.text), this.choiceCost(ch.effect), () => this.chooseDialogue(p.row, i))));
       if (!p.row.choices.length) {
-        choices.append(h('button', { class: 'choice', 'data-fk': 'ch:cont', onclick: () => { this.panel = { kind: 'idle' }; this.render(); }, text: this.str('ui.continue') }));
+        choices.append(h('button', { class: 'choice', 'data-fk': 'ch:cont', onclick: () => { this.endConvo('ended'); this.panel = { kind: 'idle' }; this.render(); }, text: this.str('ui.continue') }));
       }
       status = `rule ${p.row.id} · ${p.npc} · p${p.row.priority} s${p.row.specificity}${p.tie.length ? ` · TIE with ${p.tie.join(',')}` : ''}`;
     } else if (p.kind === 'event') {
@@ -836,6 +946,7 @@ export class Game {
     } else {
       if (p.note) body.append(h('p', { class: 'note', text: p.note }));
       else if (this.s.actions <= 0) body.append(h('p', { class: 'note', text: this.str('ui.noActions') }));
+      if (this.ringing()) body.append(h('p', { class: 'note ringing-note', text: this.str('ui.ringing') }));
       status = `lean ${leanOf(this.s.spent)} · ${dayPhaseOf(this.s.day)}`;
     }
 
@@ -847,6 +958,18 @@ export class Game {
       class: 'choice', 'data-fk': `ch:${i}`, onclick,
       'aria-label': cost ? `${text} (${this.costWords(cost)})` : null, title: cost ? this.costWords(cost) : null,
     }, text, this.costDots(cost));
+  }
+
+  private talkSummary(t?: { n: number; turns: number; ms: number }): string {
+    if (!t) return '0 conversations';
+    const min = t.ms / 60000;
+    const minTxt = min < 0.1 ? '<0.1' : min < 10 ? min.toFixed(1) : String(Math.round(min));
+    return `${t.n} conversation${t.n === 1 ? '' : 's'} · ${t.turns} turn${t.turns === 1 ? '' : 's'} · ${minTxt} min`;
+  }
+
+  /** Out of actions and the day not over: the end-of-day call is waiting to be answered. */
+  private ringing(): boolean {
+    return this.s.actions <= 0 && !this.s.finished && !this.win;
   }
 
   private renderPhone(): void {
@@ -888,6 +1011,7 @@ export class Game {
       const met = this.c.npcs.filter((n) => this.s.npcs[n.id]?.met === 'yes');
       if (!met.length) pane.append(h('p', { class: 'ph-hint', text: this.str('ui.phone.noContacts') }));
       const ul = h('ul', { class: 'ph-contacts' });
+      const totals = this.convoTotals();
       for (const n of met) {
         const ns = this.s.npcs[n.id];
         const pi = this.portraitFor(n, 'neutral');
@@ -895,7 +1019,8 @@ export class Game {
           h('img', { src: pi.url, alt: '' }),
           h('div', {},
             h('div', { class: 'ct-name', text: n.name }),
-            h('div', { class: 'ct-meta', text: `${'●'.repeat(ns.rapport)}${'○'.repeat(3 - ns.rapport)} · last talk: ${ns.lastValence}` }))));
+            h('div', { class: 'ct-meta', text: `${'●'.repeat(ns.rapport)}${'○'.repeat(3 - ns.rapport)} · last talk: ${ns.lastValence}` }),
+            h('div', { class: 'ct-meta ct-talk', text: this.talkSummary(totals.get(n.id)) }))));
       }
       pane.append(ul);
     } else if (this.phoneTab === 'wallet') {
@@ -904,7 +1029,7 @@ export class Game {
       for (const e of [...this.s.walletLog].reverse()) ul.append(h('li', { text: `Day ${e.day} · ${e.amount >= 0 ? '+' : ''}$${e.amount} · ${e.why}` }));
       pane.append(ul);
     } else {
-      pane.append(h('p', { class: 'ph-hint', text: this.str('ui.phone.callHome') }),
+      pane.append(h('p', { class: 'ph-hint', text: this.str('ui.phone.callIncoming') }),
         h('button', { class: 'btn', 'data-fk': 'ph:callhome', onclick: () => this.endDay(), text: this.str('ui.phone.callHome') }));
     }
     el.replaceChildren(
@@ -948,5 +1073,21 @@ export class Game {
       panel: () => this.panel,
       endDay: () => this.endDay(),
     };
+  }
+}
+
+/** GET a questionnaire with a 2 s timeout; null on any failure (network, status, non-JSON, schema). */
+async function fetchQuestionnaire(url: string): Promise<Questionnaire | null> {
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 2000);
+  try {
+    const res = await fetch(url, { signal: ac.signal, cache: 'no-cache', headers: { accept: 'application/json' } });
+    if (!res.ok || !(res.headers.get('content-type') ?? '').includes('json')) return null;
+    const q = await res.json();
+    return questionnaireProblems(q).length ? null : (q as Questionnaire);
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
   }
 }

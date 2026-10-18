@@ -1,6 +1,6 @@
 /** localStorage-backed rooms, game state and the append-only action log. */
 import type { Content, GameState, PlayerInfo, RoomConfig } from './types';
-import { DAY_ACTIONS, leanOf } from './rules';
+import { DAY_ACTIONS, START_WALLET, leanOf } from './rules';
 import { isoNow, lsGet, lsSet } from './util';
 
 export const roomKey = (code: string) => `gv:room:${code}`;
@@ -50,7 +50,7 @@ export function newState(content: Content, room: RoomRecord, player: PlayerInfo)
     player,
     day: 1,
     actions: DAY_ACTIONS,
-    wallet: 0,
+    wallet: START_WALLET,
     walletLog: [],
     scene: 'home',
     npcs,
@@ -71,7 +71,7 @@ export interface LogLine {
   room: string;
   day: number;
   actions: number;
-  type: 'dialogue' | 'choice' | 'event' | 'hotspot' | 'move' | 'window' | 'survey' | 'journal' | 'day_end' | 'start';
+  type: 'dialogue' | 'choice' | 'event' | 'hotspot' | 'move' | 'window' | 'survey' | 'journal' | 'day_end' | 'start' | 'conversation';
   scene: string;
   target?: string;
   rule?: string;

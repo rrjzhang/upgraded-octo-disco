@@ -1,8 +1,8 @@
 /** researcher.html: create rooms, list them, export logs. */
 import './style.css';
-import { getSource } from './content';
+import { getSource, questionnaireProblems } from './content';
 import { listRooms, loadState, readLog, saveRoom, getRoom, type RoomRecord } from './store';
-import type { Leader, RoomConfig } from './types';
+import type { Leader, Questionnaire, RoomConfig } from './types';
 import { downloadText, h, isFixtures, isoNow } from './util';
 
 const app = document.getElementById('app')!;
@@ -38,6 +38,38 @@ async function main(): Promise<void> {
   const leader = h('select', { id: 'leader' }, h('option', { value: 'enforcement', text: 'enforcement' }), h('option', { value: 'inclusive', text: 'inclusive' }));
   const seed = h('input', { id: 'seed', type: 'number', min: 0, step: 1 });
   const note = h('input', { id: 'note', type: 'text', placeholder: 'optional, e.g. session or participant group' });
+  const qJson = h('textarea', {
+    id: 'qjson', class: 'q-json mono', rows: 6, spellcheck: 'false',
+    placeholder: 'Optional. Paste questionnaire JSON (same schema as content/questionnaire/eod.json) to replace the bundled end-of-day survey for this room.',
+  });
+  const qUrl = h('input', { id: 'qurl', type: 'text', placeholder: 'optional, e.g. https://example.org/eod.json or /content/questionnaire/eod.json' });
+  const qErr = h('div', { class: 'err', role: 'alert' });
+  /** Parses and checks the questionnaire fields; returns the config additions, or null after showing the problems. */
+  const readQuestionnaire = (): Pick<RoomConfig, 'questionnaire' | 'questionnaireUrl'> | null => {
+    qErr.replaceChildren();
+    const out: Pick<RoomConfig, 'questionnaire' | 'questionnaireUrl'> = {};
+    const problems: string[] = [];
+    const raw = qJson.value.trim();
+    if (raw) {
+      let q: unknown;
+      try { q = JSON.parse(raw); } catch (e) { problems.push(`Questionnaire JSON: ${(e as Error).message}`); }
+      if (q !== undefined) {
+        const p = questionnaireProblems(q);
+        if (p.length) problems.push(...p.map((x) => `Questionnaire JSON: ${x}`));
+        else out.questionnaire = q as Questionnaire;
+      }
+    }
+    const url = qUrl.value.trim();
+    if (url) {
+      try { new URL(url, location.origin); out.questionnaireUrl = url; } catch { problems.push(`Questionnaire URL: not a valid URL`); }
+    }
+    if (problems.length) {
+      qErr.append(h('ul', { class: 'errlist' }, ...problems.slice(0, 20).map((p) => h('li', { text: p }))));
+      (raw && problems.some((p) => p.startsWith('Questionnaire JSON')) ? qJson : qUrl).focus();
+      return null;
+    }
+    return out;
+  };
   const picks: Record<string, HTMLSelectElement> = {};
   const pickRows = h('div', { class: 'picks' });
   for (const [npc, list] of Object.entries(candidates)) {
@@ -71,10 +103,10 @@ async function main(): Promise<void> {
         h('td', { text: (r.config.created ?? '').slice(0, 16).replace('T', ' ') }),
         h('td', { text: status }),
         h('td', { text: String(lines) }),
-        h('td', {}, h('button', {
+        h('td', { class: 'r-actions' }, h('button', {
           class: 'btn small', disabled: lines === 0, 'aria-label': `Export log for room ${r.code}`,
           onclick: () => downloadText(`greatvote_${r.code}.jsonl`, readLog(r.code)), text: 'Export log',
-        }))));
+        }), h('a', { class: 'r-view', href: `/logview.html?room=${encodeURIComponent(r.code)}`, 'aria-label': `View log for room ${r.code}`, text: 'View log' }))));
     }
   };
 
@@ -87,6 +119,11 @@ async function main(): Promise<void> {
       h('label', { for: 'note', text: 'Note' }), note),
     Object.keys(picks).length ? h('h2', { text: 'Roster candidates' }) : null,
     pickRows,
+    h('h2', { text: 'End-of-day questionnaire' }),
+    h('p', { class: 'muted', text: 'Leave both empty to use the bundled BIIS-2 check-in. A questionnaire from the study server, when there is one, still takes precedence.' }),
+    h('label', { for: 'qjson', text: 'Questionnaire JSON' }), qJson,
+    h('label', { for: 'qurl', text: 'Questionnaire URL (used when no JSON is pasted)' }), qUrl,
+    qErr,
     h('div', { class: 'row' },
       h('button', { class: 'btn ghost', type: 'button', onclick: randomize, text: 'Re-randomize' }),
       h('button', { class: 'btn', type: 'submit', text: 'Create room' })),
@@ -94,6 +131,8 @@ async function main(): Promise<void> {
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
+    const q = readQuestionnaire();
+    if (!q) return;
     const code = mintCode();
     const password = `${pick(WORDS)}-${pick(WORDS)}`;
     const config: RoomConfig = {
@@ -103,6 +142,7 @@ async function main(): Promise<void> {
       rosterPicks: Object.fromEntries(Object.entries(picks).map(([k, s]) => [k, s.value])),
       created: isoNow(),
       note: note.value.trim() || undefined,
+      ...q,
     };
     const rec: RoomRecord = { code, password, config };
     saveRoom(rec);
@@ -111,6 +151,7 @@ async function main(): Promise<void> {
       h('p', {}, 'Room ', h('strong', { class: 'mono', text: code }), ' password ', h('strong', { class: 'mono', text: password })),
       h('p', { class: 'muted' }, 'Participant link: ', h('a', { href: link, text: link })));
     randomize();
+    qJson.value = ''; qUrl.value = '';
     renderRooms();
   });
 
