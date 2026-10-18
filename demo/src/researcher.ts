@@ -3,7 +3,7 @@ import './style.css';
 import { getSource, questionnaireProblems } from './content';
 import { getSettings, listRooms, loadState, readLog, saveRoom, saveSettings, getRoom, type RoomRecord } from './store';
 import type { Leader, Questionnaire, RoomConfig } from './types';
-import { downloadText, h, isFixtures, isoNow } from './util';
+import { appUrl, downloadText, h, isFixtures, isoNow } from './util';
 
 const app = document.getElementById('app')!;
 const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -106,7 +106,7 @@ async function main(): Promise<void> {
         h('td', { class: 'r-actions' }, h('button', {
           class: 'btn small', disabled: lines === 0, 'aria-label': `Export log for room ${r.code}`,
           onclick: () => downloadText(`greatvote_${r.code}.jsonl`, readLog(r.code)), text: 'Export log',
-        }), h('a', { class: 'r-view', href: `/logview.html?room=${encodeURIComponent(r.code)}`, 'aria-label': `View log for room ${r.code}`, text: 'View log' }))));
+        }), h('a', { class: 'r-view', href: appUrl(`logview.html?room=${encodeURIComponent(r.code)}`), 'aria-label': `View log for room ${r.code}`, text: 'View log' }))));
     }
   };
 

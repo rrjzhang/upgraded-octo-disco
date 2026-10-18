@@ -1,5 +1,16 @@
 /** Small helpers shared by the game and researcher pages. */
 
+/** Vite's public base ('/' in dev, '/upgraded-octo-disco/' on GitHub Pages); always ends with '/'. */
+export const BASE: string = import.meta.env.BASE_URL;
+
+/** Resolve an app path ('content/x.csv' or '/content/x.csv') against the base. Absolute URLs (https:, data:, blob:, //host)
+ *  and paths that already carry the base pass through unchanged. */
+export function appUrl(p: string): string {
+  if (/^([a-z][a-z0-9+.-]*:|\/\/)/i.test(p)) return p;
+  if (p.startsWith('/') && BASE !== '/' && p.startsWith(BASE)) return p;
+  return BASE + p.replace(/^\/+/, '');
+}
+
 export function hashStr(s: string): number {
   // FNV-1a 32-bit
   let h = 0x811c9dc5;

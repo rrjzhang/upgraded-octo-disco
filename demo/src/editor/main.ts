@@ -9,6 +9,7 @@ import { TableTab } from './tables';
 import { ImagesTab, enumerateSlots, toPng } from './images';
 import { OVERRIDE_KEY } from './store';
 import type { Ctx } from './shared';
+import { appUrl } from '../util';
 
 type TabId = 'dialogue' | 'events' | 'news' | 'images';
 interface Tab { el: HTMLElement; render(): void; onResult(): void; analyse(): string[] }
@@ -180,8 +181,8 @@ async function boot(): Promise<void> {
     h('button', { onclick: () => void exportChanged(), text: 'Export', title: 'Download each changed file (CSV, PNG)' }),
     h('button', { class: 'ghost', onclick: () => copyOverride(), text: 'Copy override JSON' }),
     revertAllBtn,
-    h('a', { href: '/?dev=1', target: '_blank', rel: 'noopener', text: 'Game ↗' }),
-    h('a', { href: '/researcher.html', text: 'Researcher' }));
+    h('a', { href: appUrl('?dev=1'), target: '_blank', rel: 'noopener', text: 'Game ↗' }),
+    h('a', { href: appUrl('researcher.html'), text: 'Researcher' }));
   app.replaceChildren(header, body, rapportDatalist());
   const fromHash = location.hash.slice(1) as TabId;
   showTab(fromHash in labels ? fromHash : 'dialogue');

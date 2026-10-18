@@ -1,7 +1,7 @@
 /** localStorage-backed rooms, game state and the append-only action log. */
 import type { Content, GameState, PlayerInfo, RoomConfig } from './types';
 import { DAY_ACTIONS, START_WALLET, leanOf } from './rules';
-import { isDev, isoNow, lsGet, lsSet } from './util';
+import { appUrl, isDev, isoNow, lsGet, lsSet } from './util';
 
 /** Per-browser settings, written by the researcher page (SPEC "Debug toggle"). */
 export const SETTINGS_KEY = 'gv:settings';
@@ -126,7 +126,7 @@ export function appendLog(s: GameState, line: Omit<LogLine, 't' | 'room' | 'day'
     console.warn('[log] localStorage append failed', e);
   }
   try {
-    fetch('/api/log', { method: 'POST', body: json, keepalive: true, headers: { 'content-type': 'application/json' } }).catch(() => {});
+    fetch(appUrl('api/log'), { method: 'POST', body: json, keepalive: true, headers: { 'content-type': 'application/json' } }).catch(() => {});
   } catch { /* ignore */ }
   return full;
 }

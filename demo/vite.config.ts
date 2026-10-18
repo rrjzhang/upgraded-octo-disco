@@ -2,6 +2,8 @@ import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
 
 export default defineConfig({
+  // public base path: '/' locally, '/upgraded-octo-disco/' for GitHub Pages (BASE=/upgraded-octo-disco/ npm run build)
+  base: process.env.BASE || '/',
   build: {
     outDir: 'dist',
     // keep Vite's hashed bundles out of /assets/, which belongs to the asset pipeline

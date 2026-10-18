@@ -96,13 +96,13 @@
     } catch (e) { C.missing.push(path); return null; }
   }
   async function loadContent() {
-    const [npcs, scenes, events, news] = await Promise.all(['npcs.yaml', 'scenes.yaml', 'events.csv', 'news.csv'].map((f) => fetchText('/content/' + f)));
+    const [npcs, scenes, events, news] = await Promise.all(['npcs.yaml', 'scenes.yaml', 'events.csv', 'news.csv'].map((f) => fetchText('content/' + f)));
     if (npcs) for (const n of parseItems(npcs)) C.npcs.set(n.id, n);
     if (scenes) for (const s of parseItems(scenes)) C.scenes.set(s.id, s);
     if (events) for (const r of parseCSV(events)) C.events.set(r.id, r);
     if (news) for (const r of parseCSV(news)) C.news.set(r.id, r);
     await Promise.all([...C.npcs.keys()].map(async (id) => {
-      const t = await fetchText(`/content/dialogue/${id}.csv`);
+      const t = await fetchText(`content/dialogue/${id}.csv`);
       if (t) C.dialogue.set(id, new Map(parseCSV(t).map((r) => [r.id, r])));
     }));
     // TV-only national leaders have no sheet; that is expected

@@ -2,6 +2,7 @@
 import { load as loadYaml } from 'js-yaml';
 import { DIALOGUE_COLUMNS, EVENT_COLUMNS, NEWS_COLUMNS, EVENT_OPTIONAL, NEWS_OPTIONAL } from '../../tools/checker/core.mjs';
 import { parseTable, serialize, cloneTable, type Table } from './csv';
+import { appUrl } from '../util';
 import { readOverride, writeOverride, listImages, putImage, deleteImage, clearImages, type Override, type ImageRecord } from './store';
 
 export type DocKind = 'dialogue' | 'events' | 'news';
@@ -49,7 +50,7 @@ export interface Manifest {
 
 export async function fetchText(path: string): Promise<string | null> {
   try {
-    const res = await fetch('/' + path, { cache: 'no-cache' });
+    const res = await fetch(appUrl(path), { cache: 'no-cache' });
     if (!res.ok) return null;
     const ct = res.headers.get('content-type') ?? '';
     const body = await res.text();

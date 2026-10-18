@@ -8,6 +8,7 @@ import type {
 import { COND_FIELDS } from './types';
 import { DEFAULT_STRINGS } from './strings';
 import { validateEffects, validateCond } from './rules';
+import { appUrl } from './util';
 
 export interface Source {
   kind: 'live' | 'fixtures';
@@ -39,7 +40,7 @@ export function liveSource(): Source {
     kind: 'live',
     async text(path) {
       try {
-        const res = await fetch('/' + path, { cache: 'no-cache' });
+        const res = await fetch(appUrl(path), { cache: 'no-cache' });
         if (!res.ok) return null;
         const ct = res.headers.get('content-type') ?? '';
         const body = await res.text();
@@ -51,8 +52,8 @@ export function liveSource(): Source {
       }
     },
     assetUrl(file) {
-      if (/^(data:|https?:|\/)/.test(file)) return file;
-      return '/assets/' + file;
+      if (/^(data:|https?:|blob:)/.test(file)) return file;
+      return file.startsWith('/') ? appUrl(file) : appUrl('assets/' + file);
     },
   };
 }

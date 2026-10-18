@@ -8,7 +8,7 @@ import {
 } from './rules';
 import { appendLog, debugEnabled, getRoom, readLog, saveState } from './store';
 import { assetEntry, figureHeight, overrideIds, questionnaireProblems } from './content';
-import { SILHOUETTE_BUST, downloadText, h, seeded, silhouetteFigure, subst } from './util';
+import { SILHOUETTE_BUST, appUrl, downloadText, h, seeded, silhouetteFigure, subst } from './util';
 
 const CULTURE_NAMES: Record<string, string> = { cn: 'Chinese', mx: 'Mexican', in: 'Indian' };
 const CULTURE_PACK_NAMES: Record<string, string> = { cn: 'China', mx: 'Mexico', in: 'India' };
@@ -692,7 +692,7 @@ export class Game {
 
   /** End-of-day questionnaire, first match wins: server for this room/day, the room's own (pasted JSON or URL, or dev &eod=), bundled eod.json. */
   private async resolveQuestionnaire(day: number): Promise<{ q: Questionnaire; source: 'server' | 'room' | 'bundled' }> {
-    const fromServer = await fetchQuestionnaire(`/api/questionnaire?room=${encodeURIComponent(this.s.room)}&day=${day}`);
+    const fromServer = await fetchQuestionnaire(appUrl(`api/questionnaire?room=${encodeURIComponent(this.s.room)}&day=${day}`));
     if (fromServer) return { q: fromServer, source: 'server' };
     const cfg = getRoom(this.s.room)?.config ?? this.s.config;
     const devUrl = this.devEod;
@@ -747,7 +747,7 @@ export class Game {
   // ------------------------------------------------------------------ windows
   private openWindow(module: ModuleId, content: unknown, hooks: Pick<OpenWindow, 'onSubmit' | 'onClose'> = {}): void {
     this.closeWindow(false);
-    const frame = h('iframe', { src: `/modules/${module}.html`, title: `${module} window`, class: 'win-frame' });
+    const frame = h('iframe', { src: appUrl(`modules/${module}.html`), title: `${module} window`, class: 'win-frame' });
     const overlay = h('div', { class: 'win-overlay', role: 'dialog', 'aria-modal': 'true', 'aria-label': `${module} window` },
       h('div', { class: 'win-box' }, frame));
     frame.addEventListener('load', () => {
@@ -1323,7 +1323,7 @@ async function fetchQuestionnaire(url: string): Promise<Questionnaire | null> {
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), 2000);
   try {
-    const res = await fetch(url, { signal: ac.signal, cache: 'no-cache', headers: { accept: 'application/json' } });
+    const res = await fetch(appUrl(url), { signal: ac.signal, cache: 'no-cache', headers: { accept: 'application/json' } });
     if (!res.ok || !(res.headers.get('content-type') ?? '').includes('json')) return null;
     const q = await res.json();
     return questionnaireProblems(q).length ? null : (q as Questionnaire);

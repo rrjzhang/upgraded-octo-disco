@@ -3,6 +3,7 @@ import { h, modal, toast } from './dom';
 import type { Manifest, Model } from './model';
 import type { ImageRecord } from './store';
 import type { Ctx } from './shared';
+import { appUrl } from '../util';
 
 export type SlotKind = 'bust' | 'figure' | 'bg' | 'tv' | 'castBust' | 'castTv';
 export interface Slot {
@@ -102,7 +103,7 @@ export function blobUrl(b: Blob): string {
 export function slotUrl(model: Model, s: Slot): { url: string | null; source: 'override' | 'bundled' | 'placeholder'; rec: ImageRecord | null } {
   const rec = model.image(s.key);
   if (rec) return { url: blobUrl(rec.blob), source: 'override', rec };
-  if (s.file) return { url: '/assets/' + s.file, source: 'bundled', rec: null };
+  if (s.file) return { url: appUrl('assets/' + s.file), source: 'bundled', rec: null };
   return { url: null, source: 'placeholder', rec: null };
 }
 

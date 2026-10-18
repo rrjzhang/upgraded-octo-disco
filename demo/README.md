@@ -30,6 +30,12 @@ In dev mode `window.gv` exposes helpers: `gv.goto('library')`, `gv.talk('us_neig
 - Cast (authority figures): `news.csv` `figure` and `events.csv` `portrait` name a cast id (`content/cast.yaml`). TV shows that person's still, print news shows the bust beside the headline, an event shows the bust in the portrait panel; without art each shows PLACEHOLDER.
 - Debugging aids (Show interactables and H, the rule/lean/phase line, rapport and valence in Contacts, figure guides) are off unless the researcher page's "Show debugging aids" switch is on (`localStorage['gv:settings'].debug`) or the URL has `?dev=1`.
 
+## Published demo (GitHub Pages)
+
+Every push to `master` runs `.github/workflows/pages.yml`, which builds with `BASE=/upgraded-octo-disco/` and deploys `demo/dist` to **https://rrjzhang.github.io/upgraded-octo-disco/** (`?dev=1` works there too; also `researcher.html`, `editor.html`, `logview.html` under the same path). To build or preview locally under that sub-path: `BASE=/upgraded-octo-disco/ npm run build && BASE=/upgraded-octo-disco/ npm run preview` (then open `http://localhost:4173/upgraded-octo-disco/`). The base defaults to `/`; in code, build URLs with `appUrl('content/…')` from `src/util.ts` (it prefixes `import.meta.env.BASE_URL`), and in static files under `public/` use relative paths, never a leading `/`.
+
+**The Pages build is a static demo.** There is no server: `/api/log` and `/api/questionnaire` answer 404 (the game falls back silently), and rooms, saves, action logs, settings and researcher overrides live only in the browser's `localStorage` / IndexedDB. A participant and a researcher using the same browser on the same computer share that state; nobody else sees it, and logs must be exported from the researcher page on the machine where the game was played.
+
 ## Editor
 
 `/editor.html` lets a researcher edit content in the browser without a rebuild (SPEC "Researcher editing, overrides and casting").
