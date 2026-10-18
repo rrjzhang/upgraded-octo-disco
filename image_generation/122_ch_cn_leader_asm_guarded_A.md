@@ -11,7 +11,7 @@ depends_on: ["ch_cn_leader_asm_ref_A"]
 attach: "out/ch_cn_leader_asm_ref_A.png"
 save_image_as: "out/ch_cn_leader_asm_guarded_A.png"
 save_prompt_used_as: "out/ch_cn_leader_asm_guarded_A.prompt.txt"
-status: "pending"
+status: "done"
 ---
 
 # ch_cn_leader_asm_guarded_A
