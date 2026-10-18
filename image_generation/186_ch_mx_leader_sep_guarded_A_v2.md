@@ -11,7 +11,7 @@ depends_on: ["ch_mx_leader_sep_ref_A_v2"]
 attach: "out/ch_mx_leader_sep_ref_A_v2.png"
 save_image_as: "out/ch_mx_leader_sep_guarded_A_v2.png"
 save_prompt_used_as: "out/ch_mx_leader_sep_guarded_A_v2.prompt.txt"
-status: "pending"
+status: "done"
 ---
 
 # ch_mx_leader_sep_guarded_A_v2

@@ -11,7 +11,7 @@ depends_on: []
 attach: "none"
 save_image_as: "out/prop_radio_A.png"
 save_prompt_used_as: "out/prop_radio_A.prompt.txt"
-status: "pending"
+status: "done"
 ---
 
 # prop_radio_A
