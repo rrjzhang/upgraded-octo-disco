@@ -48,7 +48,6 @@ export const DEFAULT_STRINGS: Record<string, string> = {
   'ui.newsTitle': 'Newspaper',
   'ui.noNews': 'Nothing new in the paper today.',
   'ui.edited': 'edited content',
-  'ui.free': 'free',
   'ui.noActionsShort': 'no actions left',
   'ui.via.invite': 'Invitation from {name}',
   'ui.via.call': 'Call from {name}',

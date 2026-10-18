@@ -3,7 +3,7 @@
 // prints the summary and writes the HTML report. See README.md and demo/SPEC.md.
 import fs from 'node:fs';
 import path from 'node:path';
-import { checkContent, formatDiag, DIMS, NCELLS, BUDGET, cellIndex, cellLabel } from './core.mjs';
+import { checkContent, formatDiag, DIMS, NCELLS, BUDGET, cellIndex, cellLabel, FREE_TURNS } from './core.mjs';
 
 export { DIALOGUE_COLUMNS, EVENT_COLUMNS, NEWS_COLUMNS, formatDiag, checkContent } from './core.mjs';
 
@@ -74,7 +74,7 @@ function renderHtml(result) {
     const mine = result.diagnostics.filter(d => d.file === n.sheet);
     h += `<h3>Errors</h3>${diagList(mine.filter(d => d.severity === 'error'))}`;
     h += `<h3>Warnings</h3>${diagList(mine.filter(d => d.severity !== 'error'))}`;
-    h += `<h3>Witness paths</h3><ul class="diag wit">${Object.entries(n.rows).map(([id, r]) => `<li>${esc(id)}${r.depth != null ? ` <span class="muted">(depth ${esc(r.depth)}${r.depth < 3 ? ', free to open' : ''})</span>` : ''}: ${r.witness ? `${esc(r.cost)} action(s) — ${esc(r.witness)}` : r.witnessNoLimit ? `<span class="bad">unreachable under the conversation limit</span> (without it: ${esc(r.costNoLimit)} — ${esc(r.witnessNoLimit)})` : '<span class="bad">unreachable</span>'}</li>`).join('')}</ul>`;
+    h += `<h3>Witness paths</h3><ul class="diag wit">${Object.entries(n.rows).map(([id, r]) => `<li>${esc(id)}${r.depth != null ? ` <span class="muted">(runs up to ${esc(r.depth)}${r.depth > FREE_TURNS ? '+ turns, can reach the paid turn' : ' turns'})</span>` : ''}: ${r.witness ? `${esc(r.cost)} action(s) — ${esc(r.witness)}` : r.witnessNoLimit ? `<span class="bad">unreachable under the conversation limit</span> (without it: ${esc(r.costNoLimit)} — ${esc(r.witnessNoLimit)})` : '<span class="bad">unreachable</span>'}</li>`).join('')}</ul>`;
   }
   return h;
 }

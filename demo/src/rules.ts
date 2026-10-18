@@ -7,9 +7,10 @@ export const DAY_ACTIONS = 8;
 /** Wallet balance a new game starts with. */
 export const START_WALLET = 1000;
 export const DEMO_DAYS = 5;
+/** What staying in a conversation past its free turns costs, once per conversation (SPEC "Pay when you stay"). */
 export const DIALOGUE_COST = 1;
-/** A conversation whose opening row has depth below this is free (SPEC "Short conversations are free"). */
-export const FREE_DEPTH = 3;
+/** Turns (NPC lines shown) of every conversation that are free; the choice that leads to turn FREE_TURNS + 1 costs DIALOGUE_COST. */
+export const FREE_TURNS = 3;
 
 export function phaseOf(actions: number): Phase {
   if (actions >= 6) return 'morning';
@@ -150,7 +151,9 @@ export type EffectToken =
   | { k: 'lastValence'; v: 'positive' | 'negative' | 'none' }
   | { k: 'money'; v: number }
   | { k: 'invite'; v: string }
-  | { k: 'actions'; v: number };
+  | { k: 'actions'; v: number }
+  /** dialogue options only: taking this option costs N actions (a substantive ask, "help me with ..."); charged by the engine, not here */
+  | { k: 'cost'; v: number };
 
 export function parseEffects(s: string): { tokens: EffectToken[]; errors: string[] } {
   const tokens: EffectToken[] = [];
@@ -165,6 +168,7 @@ export function parseEffects(s: string): { tokens: EffectToken[]; errors: string
     else if ((m = /^money ([+-]?\d+)$/.exec(t))) tokens.push({ k: 'money', v: +m[1] });
     else if ((m = /^invite (\S+)$/.exec(t))) tokens.push({ k: 'invite', v: m[1] });
     else if ((m = /^actions ([+-]?\d+)$/.exec(t))) tokens.push({ k: 'actions', v: +m[1] });
+    else if ((m = /^cost (\d+)$/.exec(t))) tokens.push({ k: 'cost', v: +m[1] });
     else errors.push(`unknown effect token "${t}"`);
   }
   return { tokens, errors };
@@ -213,8 +217,27 @@ export function applyEffects(state: GameState, npcId: string | null, effect: str
       note('actions', state.actions, nv);
       state.actions = nv;
     }
+    // `cost N` is charged by the engine before the effects run (see optionCharge); nothing to apply here
   }
   return delta;
+}
+
+/** The explicit `cost N` of a dialogue option's effect string (several tokens add up; 0 when there is none). */
+export function explicitCost(effect: string): number {
+  return parseEffects(effect).tokens.reduce((n, t) => (t.k === 'cost' ? n + t.v : n), 0);
+}
+
+/**
+ * What taking a dialogue option costs (SPEC "Pay when you stay"). Starting a conversation is free and so are its first
+ * FREE_TURNS turns; the first option that leads to turn FREE_TURNS + 1 (its `next` row would be that turn) costs
+ * DIALOGUE_COST, once per conversation. An option's explicit `cost N` is charged instead when both apply: the click costs
+ * max(explicit, stay charge) and the stay charge counts as paid. `turnsShown`: NPC lines shown so far in this
+ * conversation (1 on the opening row); `stayPaid`: the stay charge was already taken; `leadsOn`: the option has a
+ * `next` row that exists. Mirrored in tools/checker/core.mjs.
+ */
+export function optionCharge(effect: string, leadsOn: boolean, turnsShown: number, stayPaid: boolean): { charge: number; stay: boolean } {
+  const stay = leadsOn && !stayPaid && turnsShown + 1 > FREE_TURNS;
+  return { charge: Math.max(explicitCost(effect), stay ? DIALOGUE_COST : 0), stay };
 }
 
 export interface EventCtx {
@@ -241,30 +264,4 @@ export function eventMatches(ev: EventRow, c: EventCtx): boolean {
   if (ev.playerLean && !ev.playerLean.split('|').map((x) => x.trim()).includes(c.lean)) return false;
   if (ev.nationalLeader && !ev.nationalLeader.split('|').map((x) => x.trim()).includes(c.leader)) return false;
   return true;
-}
-
-/**
- * depth(row) = 1 + max depth of the rows its choices' `next` point to (1 when no choice has a next).
- * A cycle counts as depth FREE_DEPTH (3), so a looping conversation is never free. Results are capped at 3,
- * which is all the cost rule needs. `cache` (keyed by row id) may be shared across calls on the same sheet.
- */
-export function rowDepth(rows: DialogueRow[], row: DialogueRow, cache: Map<string, number> = new Map()): number {
-  const byId = new Map(rows.map((r) => [r.id, r]));
-  const stack = new Set<string>();
-  const visit = (r: DialogueRow): number => {
-    const hit = cache.get(r.id);
-    if (hit !== undefined) return hit;
-    if (stack.has(r.id)) return FREE_DEPTH; // back edge: a cycle
-    stack.add(r.id);
-    let deepest = 0;
-    for (const c of r.choices) {
-      const nx = c.next ? byId.get(c.next) : undefined;
-      if (nx) deepest = Math.max(deepest, visit(nx));
-    }
-    stack.delete(r.id);
-    const d = Math.min(FREE_DEPTH, 1 + deepest);
-    cache.set(r.id, d);
-    return d;
-  };
-  return visit(row);
 }

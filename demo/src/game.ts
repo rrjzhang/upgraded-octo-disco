@@ -3,7 +3,7 @@ import type {
   Content, DialogueRow, Questionnaire, Emotion, EventRow, GameState, Hotspot, ModuleId, NewsRow, Npc, Prop, Scene, Screen, Slot,
 } from './types';
 import {
-  DAY_ACTIONS, DEFAULT_TALKS_PER_DAY, DEMO_DAYS, DIALOGUE_COST, FEATURES, FREE_DEPTH, applyEffects, dayPhaseOf, eventMatches, leanOf, phaseOf, rowDepth, selectRow,
+  DAY_ACTIONS, DEFAULT_TALKS_PER_DAY, DEMO_DAYS, FEATURES, applyEffects, dayPhaseOf, eventMatches, leanOf, optionCharge, phaseOf, selectRow,
   DEFAULT_MAX_PRESENT, figureRect, figuresClash, type FigRect,
   type Delta,
 } from './rules';
@@ -65,8 +65,6 @@ export class Game {
   private devPlaced = new Map<string, { npc: string; slot: string }[]>();
   /** Debugging aids (SPEC "Debug toggle"): reveal button and H, status line, rapport/valence, dev guides. */
   private debug = debugEnabled();
-  /** rowDepth caches per NPC sheet */
-  private depthCache = new Map<string, Map<string, number>>();
   /** image URLs already loaded and decoded (a revisit swaps at once) */
   private loaded = new Set<string>();
   /** a scene swap is waiting for its images (the scene key it waits for): input is held, the old scene stays on screen */
@@ -519,7 +517,7 @@ export class Game {
     this.s.convo = undefined;
     if (exit !== 'day_end') this.countTalk(cv.npc); // the day's counts reset at day start anyway
     appendLog(this.s, {
-      type: 'conversation', target: cv.npc, scene: cv.scene, turns: cv.turns, ms: Math.max(0, at - cv.started), rules: cv.rules, exit,
+      type: 'conversation', target: cv.npc, scene: cv.scene, turns: cv.turns, ms: Math.max(0, at - cv.started), rules: cv.rules, exit, cost: cv.cost ?? 0,
     });
     this.save();
   }
@@ -540,25 +538,24 @@ export class Game {
     return out;
   }
 
-  /** depth of a row over its sheet's `next` DAG (cycle = 3), cached per sheet. */
-  private depthOf(row: DialogueRow): number {
-    let cache = this.depthCache.get(row.npc);
-    if (!cache) this.depthCache.set(row.npc, (cache = new Map()));
-    return rowDepth(this.c.dialogue.get(row.npc) ?? [], row, cache);
+  /**
+   * What option `idx` of the row on screen costs (SPEC "Pay when you stay"): starting a conversation and its first
+   * FREE_TURNS turns are free, the option into turn FREE_TURNS + 1 costs DIALOGUE_COST once, an explicit `cost N` is
+   * charged instead when larger. Leaving (no `next`, no `cost N`) is always free.
+   */
+  private optionCharge(row: DialogueRow, idx: number): { charge: number; stay: boolean } {
+    const ch = row.choices[idx];
+    const cv = this.s.convo;
+    const leadsOn = !!ch.next && (this.c.dialogue.get(row.npc) ?? []).some((r) => r.id === ch.next);
+    return optionCharge(ch.effect, leadsOn, cv?.turns ?? 1, !!cv?.stayPaid);
   }
 
   /**
-   * What talking to `n` costs right now. The row that would open the conversation is a pure function of state, so
-   * it is selected here at label time: a short conversation (depth < 3) is free, anything longer costs DIALOGUE_COST.
+   * Starting a conversation is free, so it only needs the scene to be usable: tired() (0 actions away from home) still
+   * forbids it, as it forbids every interaction there. A conversation already open can be finished at 0 actions.
    */
-  talkCost(n: Npc): number {
-    const sel = this.pickRow(n, true);
-    return sel && this.depthOf(sel.row) < FREE_DEPTH ? 0 : DIALOGUE_COST;
-  }
-
-  /** A talk needs at least one action left even when free (no conversations after the day's actions run out). */
-  private canTalk(cost: number): boolean {
-    return !this.tired() && this.s.actions > 0 && this.s.actions >= cost;
+  private canTalk(): boolean {
+    return !this.tired();
   }
 
   /**
@@ -602,11 +599,11 @@ export class Game {
     this.s.talks.counts[npcId] = (this.s.talks.counts[npcId] ?? 0) + 1;
   }
 
-  /** "Talk to Dana (1 action)" / "(free)" / "(no actions left)": the same words for aria-label and hover title. */
-  private talkLabel(n: Npc, cost: number): string {
+  /** "Talk to Dana" / "Talk to Dana (no actions left)": the same words for aria-label and hover title (starting is free). */
+  private talkLabel(n: Npc): string {
     if (this.talkedOut(n.id)) return this.talkedAria(n);
-    const why = this.s.actions <= 0 ? this.str('ui.noActionsShort') : cost ? this.costWords(cost) : this.str('ui.free');
-    return `${this.str('ui.talkTo', { name: n.name })} (${why})`;
+    const base = this.str('ui.talkTo', { name: n.name });
+    return this.canTalk() ? base : `${base} (${this.str('ui.noActionsShort')})`;
   }
 
   /** At the limit the figure has no visible label at all; this name is for assistive tech only. */
@@ -632,20 +629,18 @@ export class Game {
       this.save();
       return this.render();
     }
-    const cost = this.talkCost(n);
-    if (!this.canTalk(cost)) {
-      this.panel = { kind: 'idle', note: this.str(this.tired() ? 'ui.tired' : 'ui.notEnough') };
+    if (!this.canTalk()) {
+      this.panel = { kind: 'idle', note: this.str('ui.tired') };
       return this.render();
     }
-    const before = this.s.actions;
-    this.spend(cost);
     const row = this.pickRow(n);
     if (!row) {
       this.panel = { kind: 'idle', note: `(No dialogue for ${n.name} yet.)` };
     } else {
       this.panel = { kind: 'dialogue', npc: n.id, row: row.row, tie: row.tie };
       // `talk` = which of today's conversations with this NPC this is (counted when it ends)
-      appendLog(this.s, { type: 'dialogue', target: n.id, rule: row.row.id, cost, talk: this.talksToday(n.id) + 1, delta: { actions: [before, this.s.actions] }, ...(opts.force ? { forced: true } : {}) });
+      // starting is free (SPEC "Pay when you stay"): `cost` stays 0 here; charges go on the choice lines
+      appendLog(this.s, { type: 'dialogue', target: n.id, rule: row.row.id, cost: 0, talk: this.talksToday(n.id) + 1, ...(opts.force ? { forced: true } : {}) });
       this.startConvo(n.id, row.row.id);
     }
     this.save();
@@ -689,8 +684,23 @@ export class Game {
   /** idx = authored index (0-based); shown = displayed position (1-based). The log keeps both. */
   private chooseDialogue(row: DialogueRow, idx: number, shown: number): void {
     const ch = row.choices[idx];
+    const { charge, stay } = this.optionCharge(row, idx);
+    if (charge > this.s.actions) {
+      // the button is disabled; this covers anything that calls in directly
+      console.info(`[dialogue] ${row.npc}/${row.id} option ${idx + 1}: costs ${charge}, ${this.s.actions} action(s) left`);
+      return;
+    }
+    const before = this.s.actions;
+    this.spend(charge);
+    const cv = this.s.convo;
+    if (cv && stay) cv.stayPaid = true;
     const delta = this.effects(row.npc, ch.effect, `${row.npc}/${row.id}`);
-    appendLog(this.s, { type: 'choice', target: row.npc, rule: row.id, choice: idx + 1, shown, delta, next: ch.next || undefined });
+    if (this.s.actions !== before) delta.actions = [before, this.s.actions];
+    if (cv) cv.cost = (cv.cost ?? 0) + Math.max(0, before - this.s.actions);
+    appendLog(this.s, {
+      type: 'choice', target: row.npc, rule: row.id, choice: idx + 1, shown, delta, next: ch.next || undefined,
+      ...(charge ? { charged: charge } : {}), ...(stay ? { stay: true } : {}),
+    });
     if (ch.next) {
       const nx = (this.c.dialogue.get(row.npc) ?? []).find((r) => r.id === ch.next);
       if (nx) {
@@ -1269,16 +1279,16 @@ export class Game {
       const talkNpc = a.type === 'talk' ? present.find((p) => p.npc.id === a.npc && p.slot === null)?.npc : undefined;
       if (a.type === 'talk' && !talkNpc) continue;
       if (a.type === 'move' && !this.openToPlayer(String(a.to))) continue; // another pack's scene
-      const cost = talkNpc ? this.talkCost(talkNpc) : a.cost ?? (a.type === 'window' || a.type === 'news' ? 1 : 0);
+      const cost = talkNpc ? 0 : a.cost ?? (a.type === 'window' || a.type === 'news' ? 1 : 0); // starting a conversation is free
       const blockedMove = a.type === 'move' && this.moveBlocked(String(a.to));
       const speaking = !!talkNpc && ((this.panel.kind === 'dialogue' && this.panel.npc === talkNpc.id) || (this.panel.kind === 'event' && this.panel.ev.npc === talkNpc.id));
       // SPEC "Conversation limit semantics" / "TV once a day": simply non-interactive, no visible label or notice
       const talked = !!talkNpc && this.talkedOut(talkNpc.id) && !speaking;
       const watched = a.type === 'window' && a.module === 'tv' && this.tvWatchedToday();
       const spent = talked || watched;
-      const disabled = spent || (talkNpc ? !this.canTalk(cost) : tired || cost > this.s.actions || blockedMove);
+      const disabled = spent || (talkNpc ? !this.canTalk() : tired || cost > this.s.actions || blockedMove);
       const label = talkNpc ? this.str('ui.talkTo', { name: talkNpc.name }) : hs.label;
-      const costTxt = talkNpc ? this.talkLabel(talkNpc, cost).slice(label.length) : cost ? ` (${this.costWords(cost)})` : blockedMove ? ` (${this.str('ui.tired')})` : '';
+      const costTxt = talkNpc ? this.talkLabel(talkNpc).slice(label.length) : cost ? ` (${this.costWords(cost)})` : blockedMove ? ` (${this.str('ui.tired')})` : '';
       const aria = talked ? this.talkedAria(talkNpc!) : watched ? `${hs.label} (watched today)` : `${label}${costTxt}`;
       const b = h('button', {
         class: `hotspot${hs.placeholder ? ' ph' : ''}${talkNpc ? ' talk' : ''}${speaking ? ' speaking' : ''}${spent ? ' spent' : ''}`,
@@ -1299,19 +1309,19 @@ export class Game {
       const left = slot.x * IMG_W - wid / 2;
       const top = slot.y * IMG_H - hgt;
       const speaking = (this.panel.kind === 'dialogue' && this.panel.npc === npc.id) || (this.panel.kind === 'event' && this.panel.ev.npc === npc.id);
-      const cost = this.talkCost(npc);
       // SPEC "Conversation limit semantics": still standing there, simply non-interactive (no outline, no label)
       const talked = this.talkedOut(npc.id) && !speaking;
-      const talkLabel = talked ? this.talkedAria(npc) : this.talkLabel(npc, cost);
+      const talkLabel = talked ? this.talkedAria(npc) : this.talkLabel(npc);
+      // starting a conversation is free (SPEC "Pay when you stay"): no cost dot; the paid turn shows its dot on the choice
       const btn = h('button', {
-        class: `figure${speaking ? ' speaking' : ''}${fig.seated ? ' seated' : ''}${cost ? '' : ' free'}${talked ? ' talked' : ''}`, 'data-fk': `npc:${npc.id}`,
-        'aria-label': talkLabel, title: talked ? null : talkLabel, 'data-cost': cost,
-        disabled: talked || !this.canTalk(cost), onclick: () => this.talkTo(npc.id),
+        class: `figure${speaking ? ' speaking' : ''}${fig.seated ? ' seated' : ''}${talked ? ' talked' : ''}`, 'data-fk': `npc:${npc.id}`,
+        'aria-label': talkLabel, title: talked ? null : talkLabel,
+        disabled: talked || !this.canTalk(), onclick: () => this.talkTo(npc.id),
         style: `left:${left}px;top:${top}px;width:${wid}px;height:${hgt}px;z-index:${10 + Math.round(slot.y * 100)};`,
       },
       h('span', { class: 'shadow', style: `width:${wid * (fig.seated ? 0.9 : 0.7)}px;height:${Math.max(8, hgt * 0.05)}px;` }),
       h('img', { src: fig.url, alt: '', draggable: 'false' }),
-      talked ? null : h('span', { class: 'fig-label', 'aria-hidden': 'true' }, npc.name, this.costDots(cost)),
+      talked ? null : h('span', { class: 'fig-label', 'aria-hidden': 'true' }, npc.name),
       fig.placeholder ? this.pendingTag() : null);
       const img = btn.querySelector('img')!;
       img.addEventListener('error', () => { img.src = silhouetteFigure(fig.seated); });
@@ -1465,12 +1475,15 @@ export class Game {
       body.append(h('p', { class: 'line', text: this.t(p.row.line) }));
       this.choiceOrder(p.row.id, p.row.choices.length).forEach((i, pos) => {
         const ch = p.row.choices[i];
-        choices.append(this.choiceBtn(i, this.t(ch.text), this.choiceCost(ch.effect), () => this.chooseDialogue(p.row, i, pos + 1)));
+        const { charge } = this.optionCharge(p.row, i);
+        // the leave option (no `next`, no `cost N`) has charge 0, so it is never disabled by cost
+        choices.append(this.choiceBtn(i, this.t(ch.text), charge + this.choiceCost(ch.effect), () => this.chooseDialogue(p.row, i, pos + 1), charge > this.s.actions));
       });
       if (!p.row.choices.length) {
         choices.append(h('button', { class: 'choice', 'data-fk': 'ch:cont', onclick: () => { this.endConvo('ended'); this.panel = { kind: 'idle' }; this.render(); }, text: this.str('ui.continue') }));
       }
-      status = `rule ${p.row.id} · ${p.npc} · p${p.row.priority} s${p.row.specificity} · depth ${this.depthOf(p.row)}${p.tie.length ? ` · TIE with ${p.tie.join(',')}` : ''}`;
+      const cv = this.s.convo;
+      status = `rule ${p.row.id} · ${p.npc} · p${p.row.priority} s${p.row.specificity} · turn ${cv?.turns ?? 1}${cv?.stayPaid ? ' (stay paid)' : ''}${p.tie.length ? ` · TIE with ${p.tie.join(',')}` : ''}`;
     } else if (p.kind === 'event') {
       if (via) body.append(h('h3', { class: 'text-title via', text: via }));
       body.append(h('p', { class: 'line', text: this.t(p.ev.text) }));
@@ -1522,10 +1535,12 @@ export class Game {
     this.right.replaceChildren(portrait, desc, body, choices, this.debug ? h('div', { class: 'status', text: status }) : '');
   }
 
-  private choiceBtn(i: number, text: string, cost: number, onclick: () => void): HTMLElement {
+  /** `unaffordable`: the option costs more than the actions left; disabled, with the no-actions wording. */
+  private choiceBtn(i: number, text: string, cost: number, onclick: () => void, unaffordable = false): HTMLElement {
+    const words = cost ? `${this.costWords(cost)}${unaffordable ? `, ${this.str('ui.noActionsShort')}` : ''}` : '';
     return h('button', {
-      class: 'choice', 'data-fk': `ch:${i}`, onclick,
-      'aria-label': cost ? `${text} (${this.costWords(cost)})` : null, title: cost ? this.costWords(cost) : null,
+      class: 'choice', 'data-fk': `ch:${i}`, onclick, disabled: unaffordable,
+      'aria-label': cost ? `${text} (${words})` : null, title: cost ? words : null,
     }, text, this.costDots(cost));
   }
 
@@ -1686,8 +1701,15 @@ export class Game {
       },
       /** Choice display order for a row/event id today (authored indices, 0-based). */
       order: (id: string, n = 3) => this.choiceOrder(id, n),
-      /** Cost of talking to an NPC now (0 = a short, free conversation). */
-      cost: (npc: string) => { const n = this.c.npcById.get(npc); return n ? this.talkCost(n) : `no npc ${npc}`; },
+      /**
+       * Starting a conversation is always free (0). With a conversation on screen, also the charge of each option
+       * (authored order) under SPEC "Pay when you stay".
+       */
+      cost: () => {
+        const p = this.panel;
+        if (p.kind !== 'dialogue') return 0;
+        return { start: 0, turn: this.s.convo?.turns ?? 1, stayPaid: !!this.s.convo?.stayPaid, options: p.row.choices.map((_, i) => this.optionCharge(p.row, i).charge) };
+      },
       endDay: () => this.endDay(),
     };
   }

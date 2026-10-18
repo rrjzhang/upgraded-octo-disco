@@ -37,15 +37,17 @@ Writes `<report>/index.html` (dependency-free) and `<report>/results.json`.
    cells no row matches. Warning: rows that never win (shadowed). Rows that are only `next`
    targets are exempt from the never-win warning. Coverage = cells won by a non-fallback row.
 3. **Reachability.** Per NPC, Dijkstra over (met, rapport, lastValence, invited-flags, row being
-   shown). World variables (nationalLeader, playerLean, dayPhase) are free, so "unreachable" is
-   sound. Edges: talking to the NPC (shows the row that wins the cell; its choice costs 1, or 0 when
-   that row is a short conversation, see below, plus any `actions -N`), `next` follow-ups (free apart from `actions -N`), and choices of events whose
+   shown, its turn in the conversation). World variables (nationalLeader, playerLean, dayPhase) are free, so "unreachable" is
+   sound. Edges: talking to the NPC (free: shows the row that wins the cell as turn 1), dialogue choices
+   (pay when you stay, see below: the choice into turn 4 costs 1, a `cost N` option costs N, plus any
+   `actions -N`), and choices of events whose
    `npc` is this NPC (cost = event `cost` + `actions -N`; `minRapport` respected; `invite`
    events only after an `invite` effect, or freely if another NPC's content invites them).
    Error: row unreachable. Warning: cheapest path > 40 actions. A witness path is reported for
    each reachable row with the cost of every step, e.g.
-   `B1/choice1 (+0) → B2/choice1 (+1) → B3/choice1 (+1) → B4  [via next]` (2 actions), and each row
-   carries its `depth` (shown in the HTML report, "free to open" when < 3).
+   `B3/choice1 (+0) → B4/choice1 (+0) → B5/choice2 (+1) → B6  [via next]`, and each row carries its
+   `depth` (the most turns a conversation can run from it, capped at 4 = "can reach the paid turn";
+   shown in the HTML report, report only).
 
 4. **Place (2026-10-18).** The optional dialogue `scene` column (after `dayPhase`; blank or ids joined by `|`):
    unknown ids are `UNKNOWN_SCENE`, a scene the NPC is never met in is `SCENE_NOT_APPEARED`. The NPC's scenes are
@@ -79,24 +81,30 @@ Warnings: `NEVER_WINS`, `OVER_BUDGET`, `FALLBACK_PRIORITY`, `NEVER_INVITED`, `IN
 ## Fixtures
 
 - `fixtures/good/`: 1 scene, 2 NPCs, an invite event and an overheard event. Passes clean.
-  `alice` A1 → A2 is a free short conversation (depth 2, A2 costs 0); `bob` B3 → B4 → B5 has depth 3,
-  so opening B3 costs 1 (B3 costs 1: B2's `actions -1`; B4 and B5 cost 2).
+  `alice` A1 → A2 is two free turns (A2 costs 0). `bob`: B3 costs 1 (B2's `actions -1`), B3 → B4 → B5
+  are turns 1-3 (free, B4 and B5 cost 1), B5 → B6 is the edge into turn 4 (+1: B6 costs 2), B6 → B7 is
+  free (paid already, B7 costs 2); B4 → B11 is an explicit `cost 1` (B11 costs 2); B5 → B9 is a
+  `cost 2` ask into turn 4, charged max(2, 1) = 2 (B9 costs 3) and B9 → B10 is then free (B10 costs 3).
 - `fixtures/place/`: the scene column and the limit: `erin` E2 (park) wins only in the park, E4 names an unknown
   scene, E5 a scene Erin never appears in, E8/E9 tie only in the park, E6 (rapport 3 while early) is
   `LIMIT_UNREACHABLE` at 1 talk/day and reachable with `--talks 2`; `frank` has a seated default figure on a standing
   slot (`SEATED_SLOT`) and a standing per-appearance figure that passes, and is met at home through an event.
 - `fixtures/bad/`: `carol.csv` has a tie (C2/C3), a shadowed row (C4 under C5), an unreachable
-  row (C6, rapport 3), a dangling `next` (C1 → C99) and an unknown effect (`trust +1` on C3);
+  row (C6, rapport 3), a dangling `next` (C1 → C99), an unknown effect (`trust +1` on C3) and a malformed
+  `cost -1` (C2, `BAD_VALUE`);
   `dave.csv` has no fallback.
 
 ## Modelling choices
 
-- Short conversations are free, as in the engine (`rowDepth` in `src/rules.ts`, mirrored as `rowDepth` /
-  `talkCost` in `core.mjs`): depth(row) = 1 + max depth of its choices' `next` rows (a cycle counts as 3,
-  capped at 3). Opening a conversation on a row with depth < 3 costs 0 actions, otherwise 1. Follow-ups
-  via `next` add nothing; `actions -N` adds N on top; event choices cost the event's `cost`. (Before
-  2026-10-18 every opening cost 1, e.g. `us_neighbor` DN09 was 2 actions, now 1.) The engine also
-  refuses to start any talk with 0 actions left; the checker's costs are totals and ignore that.
+- Pay when you stay, as in the engine (`FREE_TURNS` / `optionCharge` in `src/rules.ts`, mirrored as
+  `FREE_TURNS` / `optionCharge` in `core.mjs`): starting a conversation is free and so are turns 1-3; the
+  choice whose `next` row is turn 4 costs `DIALOGUE_COST` (1), once per conversation. An option's
+  `cost N` token costs N; when both apply the choice costs max(N, 1) and the stay counts as paid. The
+  search keeps the turn (1..4, 4 = "turn 4 or later, paid") in its key, so this is exact. `actions -N`
+  adds N on top; event choices cost the event's `cost` (`cost N` in an event effect is an error).
+  `cost N` with N not a non-negative integer is `BAD_VALUE`. (Until 2026-10-18 evening a conversation
+  was charged 1 at its start when its opening row had depth >= 3.) The engine refuses to start a talk in
+  a scene where tired() holds (0 actions away from home); the checker's costs are totals and ignore that.
 - Tied cells use the first tied row in sheet order (what the runtime does) for reachability.
 - An NPC with no `appearances` (TV-only) needs no sheet; if it has one, rows are not flagged
   unreachable.

@@ -271,8 +271,11 @@ export interface GameState {
   entries: Record<string, number>; // `${day}:${scene}` -> entry count, seeds event rolls
   journal: string;
   dayStartDone: number; // day whose day_start processing has run
-  /** The conversation in progress; persisted so a reload resumes it (the last entry of `rules` is the row on screen). */
-  convo?: { npc: string; scene: string; started: number; last: number; turns: number; rules: string[] };
+  /**
+   * The conversation in progress; persisted so a reload resumes it (the last entry of `rules` is the row on screen).
+   * `stayPaid`: the one-off charge for staying past the free turns was taken; `cost`: actions its choices spent so far.
+   */
+  convo?: { npc: string; scene: string; started: number; last: number; turns: number; rules: string[]; stayPaid?: boolean; cost?: number };
   /** The event on screen (already fired and paid for) and the ones queued behind it, so a reload shows them again. */
   openEvent?: string;
   queuedEvents?: string[];

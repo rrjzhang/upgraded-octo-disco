@@ -215,6 +215,8 @@
       turns: s && Number.isFinite(s.turns) ? s.turns : Math.max(dl.length, ch.length),
       choices: ch.length,
       ms: s && Number.isFinite(s.ms) ? s.ms : (t1 - t0 || 0),
+      // conversations since "pay when you stay" log `cost`; older logs: the actions their lines spent (start charge included)
+      cost: s && Number.isFinite(s.cost) ? s.cost : actionsSpent(real),
       valence, r0, r1, exit: s ? s.exit : (ch.length && !ch[ch.length - 1].next ? 'ended' : dl.length > ch.length ? 'left without choosing' : ''),
       fromSummary: !!s,
     };
@@ -278,7 +280,7 @@
         return [T(`${String(l.target || 'Day').replace(/^day/, 'Day ')} ended. Wallet $${l.wallet ?? 0}.${sp}`), ppl ? el('span', { class: 'small', text: `Met so far: ${ppl}` }) : null];
       }
       case 'conversation':
-        return [T(`Conversation summary: ${l.turns} turns, ${fmtMs(l.ms)}, exit ${l.exit || '?'}`), l.rules ? el('span', { class: 'small', text: `rules ${l.rules.join(' → ')}` }) : null];
+        return [T(`Conversation summary: ${l.turns} turns, ${fmtMs(l.ms)}, exit ${l.exit || '?'}${Number.isFinite(l.cost) ? `, cost ${l.cost} action${l.cost === 1 ? '' : 's'}` : ''}`), l.rules ? el('span', { class: 'small', text: `rules ${l.rules.join(' → ')}` }) : null];
       case 'dialogue': {
         const r = dRow(l.target, l.rule);
         return [el('span', { class: 'who', text: `${npcName(l.target)} said: ` }), r ? q(r.line) : T(`(line ${l.rule} not found)`),
@@ -290,7 +292,8 @@
         else text = dRow(l.target, l.rule)?.[`choice${l.choice}`];
         const d = fmtDelta(l.delta);
         return [el('span', { class: 'chose' }, T('Chose: '), text ? q(text) : T(`option ${l.choice}`)),
-          el('span', { class: 'small' }, el('span', { class: 'id', text: `${l.rule} #${l.choice}` }), l.next ? T(` → ${l.next}`) : null, T(d ? ` · ${d}` : ' · no effect'))];
+          el('span', { class: 'small' }, el('span', { class: 'id', text: `${l.rule} #${l.choice}` }), l.next ? T(` → ${l.next}`) : null,
+            l.charged ? el('b', { text: ` · charged ${l.charged} action${l.charged === 1 ? '' : 's'}${l.stay ? ' (stayed past turn 3)' : ''}` }) : null, T(d ? ` · ${d}` : ' · no effect'))];
       }
       case 'event': {
         const e = C.events.get(l.rule);
@@ -322,7 +325,7 @@
     const rap = st.r0 !== undefined ? el('span', { class: rch > 0 ? 'up' : rch < 0 ? 'down' : '', text: `rapport ${st.r0}→${st.r1} (${rch >= 0 ? '+' : ''}${rch})` }) : 'rapport unchanged';
     const d = el('details', { class: 'conv' },
       el('summary', {}, el('span', { class: 's-title', text: `Talked with ${npcName(c.target)}` }),
-        bits(`${st.turns} turn${st.turns === 1 ? '' : 's'}`, val, rap, fmtMs(st.ms), st.exit ? `exit: ${st.exit}` : '', st.fromSummary ? 'from summary line' : '')),
+        bits(`${st.turns} turn${st.turns === 1 ? '' : 's'}`, `${st.cost} action${st.cost === 1 ? '' : 's'}`, val, rap, fmtMs(st.ms), st.exit ? `exit: ${st.exit}` : '', st.fromSummary ? 'from summary line' : '')),
       el('div', { class: 'conv-body' }, c.lines.map(rowFor)));
     return d;
   }

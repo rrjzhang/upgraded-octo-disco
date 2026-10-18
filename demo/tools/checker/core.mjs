@@ -34,8 +34,13 @@ const NSTATE = 24; // met x rapport x lastValence
 export const sceneList = (cell) => String(cell ?? '').split('|').map(x => x.trim()).filter(Boolean);
 export const NWORLD = 18; // nationalLeader x playerLean x dayPhase
 export const BUDGET = 40;
-/** Engine rule (src/rules.ts FREE_DEPTH / DIALOGUE_COST): opening a conversation whose row has depth < FREE_DEPTH is free. */
-export const FREE_DEPTH = 3;
+/**
+ * Engine rule (src/rules.ts FREE_TURNS / DIALOGUE_COST / optionCharge, SPEC "Pay when you stay"): starting a conversation
+ * is free and so are its first FREE_TURNS turns (NPC lines shown); the option whose `next` row is turn FREE_TURNS + 1
+ * costs DIALOGUE_COST, once per conversation. An option's `cost N` token costs N; when both apply the option costs
+ * max(N, DIALOGUE_COST) and the stay charge counts as paid. `actions -N` effects add on top, as before.
+ */
+export const FREE_TURNS = 3;
 export const DIALOGUE_COST = 1;
 
 export const EMOTIONS = ['neutral', 'warm', 'guarded', 'worried'];
@@ -165,6 +170,8 @@ export function parseCondition(dimIdx, raw) {
 }
 
 // effect ops: {op:'met',v} {op:'rapport',mode:'add'|'set',v} {op:'lastValence',v} {op:'money',v} {op:'invite',id} {op:'actions',v}
+// {op:'cost',v} (dialogue options only: `cost N`, what taking the option costs; see FREE_TURNS)
+// errors: strings; one that starts with "BAD_VALUE" is reported under that code (a malformed `cost N`)
 export function parseEffects(raw, eventIds) {
   const ops = [], errors = [];
   if (!raw) return { ops, errors };
@@ -185,12 +192,27 @@ export function parseEffects(raw, eventIds) {
       if (eventIds && !eventIds.has(arg)) errors.push(`"${tok}": event "${arg}" does not exist in events.csv`);
       ops.push({ op: 'invite', id: arg });
     } else if (name === 'actions' && (m = /^-(\d+)$/.exec(arg)) && +m[1] > 0) ops.push({ op: 'actions', v: +m[1] });
-    else errors.push(`unknown effect token "${tok}"; expected met yes | rapport +N/-N/N | lastValence positive|negative|none | money +N | invite <eventId> | actions -N`);
+    else if (name === 'cost') {
+      if (/^\d+$/.test(arg)) ops.push({ op: 'cost', v: +arg });
+      else errors.push(`BAD_VALUE "${tok}": cost must be a non-negative integer (cost 1 or cost 2 for a substantive ask)`);
+    } else errors.push(`unknown effect token "${tok}"; expected met yes | rapport +N/-N/N | lastValence positive|negative|none | money +N | invite <eventId> | actions -N | cost N`);
   }
   return { ops, errors };
 }
 
 const NPC_STATE_OPS = new Set(['met', 'rapport', 'lastValence']);
+const effectCode = (msg) => (msg.startsWith('unknown') ? 'UNKNOWN_EFFECT' : msg.startsWith('BAD_VALUE') ? 'BAD_VALUE' : 'BAD_EFFECT');
+
+/**
+ * Mirror of the engine's optionCharge (src/rules.ts): what an option costs when it is taken on turn `turn` (1 = the
+ * opening row) of a conversation, before any `actions -N`. `ops`: its parsed effects; `leadsOn`: it has a `next` row.
+ * The stay charge applies on the edge into turn FREE_TURNS + 1; along any path turns go up by one per edge, so that
+ * edge is the first one past the free turns and the charge is taken exactly once.
+ */
+export function optionCharge(ops, leadsOn, turn) {
+  const explicit = ops.reduce((n, o) => (o.op === 'cost' ? n + o.v : n), 0);
+  return Math.max(explicit, leadsOn && turn + 1 === FREE_TURNS + 1 ? DIALOGUE_COST : 0);
+}
 
 // apply effects to an NPC state; returns {s, mask, extra}
 function applyEffects(s, mask, ops, inviteBit) {
@@ -515,7 +537,8 @@ function validateEvents(files, diag, scenes, npcs, assets, castIds) {
       const c = r[`choice${k}`], e = r[`effect${k}`];
       if (!c && e) diag.error('SCHEMA', rel, loc(`effect${k}`), `effect${k} given but choice${k} is blank`);
       const pe = parseEffects(e, ids);
-      for (const msg of pe.errors) diag.error(msg.startsWith('unknown') ? 'UNKNOWN_EFFECT' : 'BAD_EFFECT', rel, loc(`effect${k}`), msg);
+      for (const msg of pe.errors) diag.error(effectCode(msg), rel, loc(`effect${k}`), msg.replace(/^BAD_VALUE /, ""));
+      if (pe.ops.some(o => o.op === 'cost')) diag.error('BAD_EFFECT', rel, loc(`effect${k}`), '`cost N` is for dialogue options; an event costs its `cost` column');
       if (pe.ops.some(o => NPC_STATE_OPS.has(o.op)) && !r.npc) diag.error('BAD_EFFECT', rel, loc(`effect${k}`), 'effect changes NPC state but the event has no npc');
       if (c) choices.push({ k, ops: pe.ops });
     }
@@ -586,7 +609,7 @@ function validateDialogue(files, npcId, diag, eventIds, scenes, npcScenes) {
       const c = r[`choice${k}`], e = r[`effect${k}`], n = r[`next${k}`];
       if (!c && (e || n)) diag.error('SCHEMA', rel, loc(e ? `effect${k}` : `next${k}`), `${e ? 'effect' : 'next'}${k} given but choice${k} is blank`);
       const pe = parseEffects(e, eventIds);
-      for (const msg of pe.errors) diag.error(msg.startsWith('unknown') ? 'UNKNOWN_EFFECT' : 'BAD_EFFECT', rel, loc(`effect${k}`), msg);
+      for (const msg of pe.errors) diag.error(effectCode(msg), rel, loc(`effect${k}`), msg.replace(/^BAD_VALUE /, ""));
       if (c) choices.push({ k, ops: pe.ops, next: n || null, nextLine: r.__line });
     }
     for (const k of [2, 3]) if (r[`choice${k}`] && !r[`choice${k - 1}`]) diag.warn('SCHEMA', rel, loc(`choice${k}`), `choice${k} given but choice${k - 1} is blank`);
@@ -701,32 +724,34 @@ function analyseCompleteness(sheet, diag, scenes) {
 
 // ---------------------------------------------------------------- reachability
 /**
- * Mirror of the engine's rowDepth (src/rules.ts): depth(row) = 1 + max depth of its choices' `next` rows, a cycle counts
- * as FREE_DEPTH, results capped at FREE_DEPTH. `rows` are parsed sheet rows ({ id, choices: [{ next }] }).
+ * Report only (no longer part of the cost rule): depth(row) = the most turns a conversation can run from this row,
+ * 1 + max depth of its choices' `next` rows, capped at FREE_TURNS + 1 (4 = "can run into the paid turn"); a cycle
+ * counts as FREE_TURNS + 1. `rows` are parsed sheet rows ({ id, choices: [{ next }] }).
  */
+const DEPTH_CAP = FREE_TURNS + 1;
 export function rowDepth(rows, row, cache = new Map()) {
   const byId = new Map(rows.map(r => [r.id, r]));
   const stack = new Set();
   const visit = (r) => {
     const hit = cache.get(r.id);
     if (hit !== undefined) return hit;
-    if (stack.has(r.id)) return FREE_DEPTH;
+    if (stack.has(r.id)) return DEPTH_CAP;
     stack.add(r.id);
     let deepest = 0;
     for (const c of r.choices) { const nx = c.next ? byId.get(c.next) : undefined; if (nx) deepest = Math.max(deepest, visit(nx)); }
     stack.delete(r.id);
-    const d = Math.min(FREE_DEPTH, 1 + deepest);
+    const d = Math.min(DEPTH_CAP, 1 + deepest);
     cache.set(r.id, d);
     return d;
   };
   return visit(row);
 }
 
-/** What opening a conversation on `row` costs (engine talkCost): 0 for a short conversation, else DIALOGUE_COST. */
-export const talkCost = (rows, row, cache) => (rowDepth(rows, row, cache) < FREE_DEPTH ? 0 : DIALOGUE_COST);
 
 /**
- * Dijkstra over (NPC state, invite flags, row on screen[, day, conversations today]).
+ * Dijkstra over (NPC state, invite flags, row on screen, day, conversations today, turn of the row on screen).
+ * The turn (1..FREE_TURNS + 1, 0 while idle; FREE_TURNS + 1 stands for "that turn or later, stay charge paid") is what
+ * the engine's pay-when-you-stay charge depends on; edges carry optionCharge + `actions -N`.
  *  - limit null: the old over-approximation (world variables, dayPhase included, free; any number of conversations).
  *    Used to tell "unreachable at all" from "unreachable under the conversation limit".
  *  - limit T: SPEC "Conversation limit": at most T conversations with this NPC per day over the 5-day demo. The day is
@@ -736,10 +761,9 @@ export const talkCost = (rows, row, cache) => (rowDepth(rows, row, cache) < FREE
  */
 function searchNpc(npc, sheet, comp, myEvents, inviteBit, startMask, talkScenes, limit) {
   const rowById = new Map(sheet.rows.map(r => [r.id, r]));
-  const depthCache = new Map();
   const limited = limit != null;
   const dist = new Map(), prev = new Map();
-  const key = (s, m, r, day, used) => `${s}|${m}|${r || ''}|${day}|${used}`;
+  const key = (s, m, r, day, used, turn = 0) => `${s}|${m}|${r || ''}|${day}|${used}|${r ? turn : 0}`;
   const buckets = [];
   const push = (k, d, from, label) => {
     if (dist.has(k) && dist.get(k) <= d) return;
@@ -747,12 +771,12 @@ function searchNpc(npc, sheet, comp, myEvents, inviteBit, startMask, talkScenes,
     (buckets[d] ||= []).push(k);
   };
   push(key(npc.start, startMask, '', 0, 0), 0, null, null);
-  const choiceEdges = (s, m, row, base, day, used, out) => {
+  const choiceEdges = (s, m, row, turn, day, used, out) => {
     for (const ch of row.choices) {
       const r = applyEffects(s, m, ch.ops, inviteBit);
       const nxt = ch.next && rowById.has(ch.next) ? ch.next : '';
-      const cost = base + r.extra;
-      out.push({ k: key(r.s, r.mask, nxt, day, used), cost, label: `${row.id}/choice${ch.k} (+${cost})` });
+      const cost = optionCharge(ch.ops, !!nxt, turn) + r.extra;
+      out.push({ k: key(r.s, r.mask, nxt, day, used, Math.min(turn + 1, FREE_TURNS + 1)), cost, label: `${row.id}/choice${ch.k} (+${cost})` });
     }
   };
   for (let d = 0; d < buckets.length; d++) {
@@ -760,11 +784,11 @@ function searchNpc(npc, sheet, comp, myEvents, inviteBit, startMask, talkScenes,
     for (let bi = 0; bi < bucket.length; bi++) { // zero-cost edges append to this bucket while it is walked
       const k = bucket[bi];
       if (dist.get(k) !== d) continue;
-      const [ss, mm, rid, dd, uu] = k.split('|');
+      const [ss, mm, rid, dd, uu, tt] = k.split('|');
       const s = +ss, m = +mm, day = +dd, used = +uu;
       const out = [];
       if (rid) {
-        choiceEdges(s, m, rowById.get(rid), 0, day, used, out);
+        choiceEdges(s, m, rowById.get(rid), +tt, day, used, out);
         if (!rowById.get(rid).choices.length) out.push({ k: key(s, m, '', day, used), cost: 0, label: null });
       } else {
         if (talkScenes.length && (!limited || used < limit)) {
@@ -776,8 +800,8 @@ function searchNpc(npc, sheet, comp, myEvents, inviteBit, startMask, talkScenes,
               const win = winners[s * NWORLD + w];
               if (!win || seenRows.has(win.row.id)) continue;
               seenRows.add(win.row.id);
-              // the engine charges at talk start: free when the opening row is a short conversation (depth < 3)
-              choiceEdges(s, m, win.row, talkCost(sheet.rows, win.row, depthCache), day, limited ? used + 1 : 0, out);
+              // starting is free; the opening row is turn 1 (its options' charges follow optionCharge)
+              choiceEdges(s, m, win.row, 1, day, limited ? used + 1 : 0, out);
             }
           }
         }

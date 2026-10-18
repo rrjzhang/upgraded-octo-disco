@@ -83,6 +83,11 @@ export function checkContent(input: CheckInput): CheckResult;
 export function formatDiag(d: Diagnostic): string;
 export function parseCondition(dimIdx: number, raw: string): { set?: Set<number> | null; error?: string };
 export function parseEffects(raw: string, eventIds?: Set<string>): { ops: any[]; errors: string[] };
+/** SPEC "Pay when you stay": turns 1..FREE_TURNS of a conversation are free; the option into the next turn costs DIALOGUE_COST once. */
+export const FREE_TURNS: number;
+export const DIALOGUE_COST: number;
+/** What an option (parsed `ops`) costs when taken on turn `turn` (1 = opening row); `leadsOn`: it has a `next` row. */
+export function optionCharge(ops: any[], leadsOn: boolean, turn: number): number;
 export const DIALOGUE_COLUMNS: string[];
 export const EVENT_COLUMNS: string[];
 export const NEWS_COLUMNS: string[];

@@ -1,5 +1,5 @@
 /** Dialogue tab: one NPC's sheet as an editable table, with a follow-up tree and live checker validation. */
-import { DIMS, EMOTIONS, NCELLS, parseCondition, sceneList, type CheckResult, type Diagnostic, type NpcResult } from '../../tools/checker/core.mjs';
+import { DIALOGUE_COST, DIMS, EMOTIONS, FREE_TURNS, NCELLS, parseCondition, parseEffects, sceneList, type CheckResult, type Diagnostic, type NpcResult } from '../../tools/checker/core.mjs';
 import { h } from './dom';
 import type { Row, Table } from './csv';
 import type { Doc } from './model';
@@ -17,7 +17,7 @@ const COND = DIMS.map((d) => d.key);
 const COND_LABEL: Record<string, string> = { met: 'met', rapport: 'rapport', lastValence: 'lastVal', nationalLeader: 'leader', playerLean: 'lean', dayPhase: 'phase' };
 const RAPPORT_HINTS = ['0', '1', '2', '3', '1+', '2+', '3+', '0-1', '0-2', '1-2', '1-3', '2-3'];
 
-/** SPEC depth: 1 + max depth of the choices' next rows; a cycle counts as depth 3 */
+/** Longest run of turns from a row: 1 + max depth of the choices' next rows; a cycle counts as FREE_TURNS + 1 (it can run into the paid turn) */
 export function depths(rows: Row[]): Map<string, number> {
   const byId = new Map(rows.filter((r) => r.id).map((r) => [r.id, r]));
   const memo = new Map<string, number>();
@@ -32,7 +32,7 @@ export function depths(rows: Row[]): Map<string, number> {
       const n = r[`next${k}`];
       if (!r[`choice${k}`] || !n || !byId.has(n)) continue;
       const c = visit(n, stack);
-      d = c === Infinity ? Math.max(d, 3) : Math.max(d, 1 + c);
+      d = c === Infinity ? Math.max(d, FREE_TURNS + 1) : Math.max(d, 1 + c);
     }
     stack.delete(id);
     memo.set(id, d);
@@ -511,7 +511,7 @@ export class DialogueTab {
     return h('section', { class: 'panel' },
       h('h3', {}, `Selected row `, h('code', { text: r.id || '(no id)' })),
       this.links(r),
-      h('p', { class: 'small' }, `${r.scene ? `Only in ${sceneList(r.scene).join(', ')} · ` : ''}Wins ${wins} cells (all scenes) · conversation depth ${dep ?? '–'}${dep != null && dep < 3 ? ' (free to talk: depth < 3)' : ''}`),
+      h('p', { class: 'small' }, `${r.scene ? `Only in ${sceneList(r.scene).join(', ')} · ` : ''}Wins ${wins} cells (all scenes) · runs up to ${dep ?? '–'} turn(s) from here${dep != null ? (dep > FREE_TURNS ? ` (turns 1-${FREE_TURNS} free; staying for turn ${FREE_TURNS + 1} costs ${DIALOGUE_COST})` : ` (within the ${FREE_TURNS} free turns)`) : ''}`),
       h('div', { class: 'witness' },
         h('div', { class: 'muted small', text: info?.witness ? `Cheapest path: ${info.cost} action(s)` : 'Witness path' }),
         h('code', { text: info?.witness ?? (nr?.skipped ? '(not analysed)' : info?.witnessNoLimit ? `unreachable with ${nr?.maxTalks ?? 1} conversation(s) per day; without the limit (${info.costNoLimit} action(s)): ${info.witnessNoLimit}` : 'unreachable: no sequence of choices or events reaches this row') })),
@@ -540,14 +540,17 @@ export class DialogueTab {
         r.scene ? h('span', { class: 'scene-tag', text: `@${sceneList(r.scene).join('|')}` }) : null,
         h('span', { class: 'turn', text: `turn ${turn}` }),
         h('span', { class: 'excerpt', text: (r.line || '').slice(0, 60) }),
-        h('span', { class: 'meta', text: `${turn === 1 ? `${win[id] ?? 0} cells · depth ${dep.get(id)}${(dep.get(id) ?? 3) < 3 ? ' · free' : ''}` : ''}${cost != null ? ` · ${cost} act` : ''}` }));
+        turn === FREE_TURNS + 1 ? h('span', { class: 'turn', title: `the choice into turn ${FREE_TURNS + 1} costs ${DIALOGUE_COST} action (once per conversation)`, text: `pay to stay +${DIALOGUE_COST}` }) : null,
+        h('span', { class: 'meta', text: `${turn === 1 ? `${win[id] ?? 0} cells · up to ${dep.get(id)} turns` : ''}${cost != null ? ` · ${cost} act` : ''}` }));
       li.append(line);
       const kids: HTMLElement[] = [];
       if (turn < 12) {
         const p2 = new Set(path).add(id);
         for (const k of [1, 2, 3]) {
           const n = r[`next${k}`];
-          if (r[`choice${k}`] && n) kids.push(node(n, turn + 1, `c${k} `, p2));
+          // an explicit `cost N` (a substantive ask) shows on the edge
+          const ask = parseEffects(r[`effect${k}`] ?? '').ops.reduce((a: number, o: { op: string; v: number }) => (o.op === 'cost' ? a + o.v : a), 0);
+          if (r[`choice${k}`] && n) kids.push(node(n, turn + 1, `c${k}${ask ? ` (cost ${ask})` : ''} `, p2));
         }
       }
       if (kids.length) li.append(h('ul', {}, ...kids));

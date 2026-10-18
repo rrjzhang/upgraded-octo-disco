@@ -1,7 +1,7 @@
 /** Conversation graph for the dialogue tab (SPEC "Conversation graph"): rows as nodes, choices as edges to their `next`,
  *  layered left-to-right by depth with entry rows (rows that win at least one cell) in the first column. Hand-rolled SVG,
  *  read-only: it never edits the sheet. */
-import { sceneList } from '../../tools/checker/core.mjs';
+import { parseEffects, sceneList } from '../../tools/checker/core.mjs';
 import { h } from './dom';
 import type { Row } from './csv';
 
@@ -219,7 +219,9 @@ export class ConvGraph {
     for (const e of d.edges) {
       const a = d.nodes[e.from];
       const x1 = a.x + W, y1 = a.y + PORT(e.k);
-      const tipText = `c${e.k} · ${e.text || '(no choice text)'}${e.effect ? `\neffect: ${e.effect}` : ''}${e.kind === 'exit' ? '\nends the conversation' : e.kind === 'dangling' ? `\nnext ${e.next} does not exist` : `\n→ ${e.next}`}`;
+      // an explicit `cost N` (a substantive ask, SPEC "Pay when you stay") is marked on the edge label
+      const ask = parseEffects(e.effect).ops.reduce((n: number, o: { op: string; v: number }) => (o.op === 'cost' ? n + o.v : n), 0);
+      const tipText = `c${e.k} · ${e.text || '(no choice text)'}${ask ? `\ncosts ${ask} action${ask === 1 ? '' : 's'}` : ''}${e.effect ? `\neffect: ${e.effect}` : ''}${e.kind === 'exit' ? '\nends the conversation' : e.kind === 'dangling' ? `\nnext ${e.next} does not exist` : `\n→ ${e.next}`}`;
       let path: SVGElement;
       if (e.kind === 'exit' || e.kind === 'dangling') {
         const bad = e.kind === 'dangling';
@@ -243,7 +245,7 @@ export class ConvGraph {
       }
       path.append(s('title', {}, tipText));
       gEdges.append(path);
-      const lbl = s('text', { x: x1 + 6, y: y1 - 3, class: `g-elbl${e.kind === 'exit' ? ' exit' : ''}` }, `c${e.k} · ${trunc(e.text || '(no text)', e.kind === 'exit' ? 14 : 17)}`);
+      const lbl = s('text', { x: x1 + 6, y: y1 - 3, class: `g-elbl${e.kind === 'exit' ? ' exit' : ''}` }, `c${e.k}${ask ? ` ●${ask}` : ''} · ${trunc(e.text || '(no text)', e.kind === 'exit' ? 14 : 17 - (ask ? 3 : 0))}`);
       lbl.append(s('title', {}, tipText));
       gLabels.append(lbl);
       this.edgeEls.push({ e, el: path }, { e, el: lbl });

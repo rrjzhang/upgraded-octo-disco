@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+import { optionCharge, parseEffects } from './core.mjs';
 
 const here = path.dirname(new URL(import.meta.url).pathname);
 const run = (fixture, extra = []) => {
@@ -32,15 +33,35 @@ t('good: follow-up row A2 reached via next, invite row A4 reached', () => {
   assert.match(a.rows.A2.witness, /A1\/choice1 \(\+0\) → A2/);
   assert.match(a.rows.A4.witness, /→ A4/);
 });
-t('good: short conversations are free, a depth-3 opening costs 1 (engine rowDepth rule)', () => {
+t('good: pay when you stay: starting and turns 1-3 free, the edge into turn 4 costs 1 once (engine optionCharge rule)', () => {
   const a = good.result.npcs.find(n => n.id === 'alice'), b = good.result.npcs.find(n => n.id === 'bob');
-  assert.equal(a.rows.A1.depth, 2); assert.equal(a.rows.A2.cost, 0, a.rows.A2.witness); // A1 -> A2 is depth 2: free
-  assert.equal(b.rows.B3.depth, 3); // B3 -> B4 -> B5
-  assert.equal(b.rows.B3.cost, 1, b.rows.B3.witness); // B1 free, B2 free + actions -1
+  assert.equal(a.rows.A2.cost, 0, a.rows.A2.witness); // A1 -> A2: turn 2, free
+  assert.equal(b.rows.B3.depth, 4); // B3 -> B4 -> B5 -> B6 -> B7 (capped at 4: can reach the paid turn)
+  assert.equal(b.rows.B3.cost, 1, b.rows.B3.witness); // B1 free, B2 free + actions -1; opening B3 is free
   // one conversation per day (default limit): B2 is a late-phase row, so the path waits for day 4
   assert.match(b.rows.B3.witness, /B1\/choice1 \(\+0\) → day 4 → B2\/choice1 \(\+1\) → day 5 → B3/);
-  assert.equal(b.rows.B4.cost, 2, b.rows.B4.witness); // opening B3 costs 1
-  assert.match(b.rows.B5.witness, /B3\/choice1 \(\+1\) → B4\/choice1 \(\+0\) → B5/);
+  assert.equal(b.rows.B4.cost, 1, b.rows.B4.witness); // turn 2: free
+  assert.equal(b.rows.B5.cost, 1, b.rows.B5.witness); // turn 3: free
+  assert.match(b.rows.B5.witness, /B3\/choice1 \(\+0\) → B4\/choice1 \(\+0\) → B5/);
+  assert.equal(b.rows.B6.cost, 2, b.rows.B6.witness); // turn 4: the stay charge
+  assert.match(b.rows.B6.witness, /B5\/choice2 \(\+1\) → B6/);
+  assert.equal(b.rows.B7.cost, 2, b.rows.B7.witness); // turn 5: already paid, free
+  assert.match(b.rows.B7.witness, /B6\/choice1 \(\+0\) → B7/);
+});
+t('good: explicit `cost N` on an option; max(explicit, stay) when both apply, and the stay then counts as paid', () => {
+  const b = good.result.npcs.find(n => n.id === 'bob');
+  assert.equal(b.rows.B11.cost, 2, b.rows.B11.witness); // B4/choice2 `cost 1` on turn 2 -> 3
+  assert.match(b.rows.B11.witness, /B4\/choice2 \(\+1\) → B11/);
+  assert.equal(b.rows.B9.cost, 3, b.rows.B9.witness); // B5/choice3 `cost 2` into turn 4: max(2, 1) = 2, not 3
+  assert.match(b.rows.B9.witness, /B5\/choice3 \(\+2\) → B9/);
+  assert.equal(b.rows.B10.cost, 3, b.rows.B10.witness); // turn 5 after the explicit charge: no stay charge on top
+  // the mirror itself: (ops, leadsOn, turn of the row the option is on)
+  const c = (e, leads, turn) => optionCharge(parseEffects(e).ops, leads, turn);
+  assert.deepEqual([1, 2, 3, 4, 5].map(t => c('', true, t)), [0, 0, 1, 0, 0]);
+  assert.equal(c('', false, 3), 0); // leaving on turn 3 is free
+  assert.equal(c('cost 2', true, 1), 2); assert.equal(c('cost 2; rapport +1', true, 3), 2); assert.equal(c('cost 1', true, 3), 1);
+  assert.equal(c('cost 2', false, 2), 2); // an explicit ask is charged even when it ends the conversation
+  assert.deepEqual(parseEffects('cost x').errors.map(e => e.slice(0, 9)), ['BAD_VALUE']);
 });
 
 const bad = run('bad');
@@ -51,10 +72,11 @@ t('bad: C4 shadowed (never wins, warning)', () => { const d = find('NEVER_WINS',
 t('bad: C6 unreachable', () => { const d = find('UNREACHABLE', 'dialogue/carol.csv', 'C6'); assert.equal(d.length, 1); assert.equal(d[0].severity, 'error'); });
 t('bad: dangling next on C1 next2', () => { const d = find('DANGLING_NEXT', 'dialogue/carol.csv', 'C1'); assert.equal(d.length, 1); assert.equal(d[0].column, 'next2'); assert.equal(d[0].line, 3); assert.match(d[0].message, /C99/); });
 t('bad: unknown effect token on C3 effect1', () => { const d = find('UNKNOWN_EFFECT', 'dialogue/carol.csv', 'C3'); assert.equal(d.length, 1); assert.equal(d[0].column, 'effect1'); assert.match(d[0].message, /trust \+1/); });
+t('bad: malformed `cost -1` on C2 effect1 is BAD_VALUE', () => { const d = find('BAD_VALUE', 'dialogue/carol.csv', 'C2'); assert.equal(d.length, 1); assert.equal(d[0].column, 'effect1'); assert.match(d[0].message, /cost -1/); });
 t('bad: dave has no fallback', () => assert.equal(find('MISSING_FALLBACK', 'dialogue/dave.csv').length, 1));
 t('bad: nothing else is reported', () => {
   const codes = bad.result.diagnostics.filter(d => d.severity !== 'info').map(d => d.code).sort();
-  assert.deepEqual(codes, ['DANGLING_NEXT', 'MISSING_FALLBACK', 'NEVER_WINS', 'TIE', 'UNKNOWN_EFFECT', 'UNREACHABLE']);
+  assert.deepEqual(codes, ['BAD_VALUE', 'DANGLING_NEXT', 'MISSING_FALLBACK', 'NEVER_WINS', 'TIE', 'UNKNOWN_EFFECT', 'UNREACHABLE']);
 });
 t('bad: C3 (tie partner) is still reachable via C5/choice1', () => {
   const c = bad.result.npcs.find(n => n.id === 'carol');
