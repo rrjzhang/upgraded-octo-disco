@@ -11,7 +11,7 @@ depends_on: ["ch_cn_neighbor_warm_A"]
 attach: "out/ch_cn_neighbor_ref_A.png"
 save_image_as: "out/ch_cn_neighbor_warm_A_v2.png"
 save_prompt_used_as: "out/ch_cn_neighbor_warm_A_v2.prompt.txt"
-status: "pending"
+status: "done"
 ---
 
 # ch_cn_neighbor_warm_A_v2

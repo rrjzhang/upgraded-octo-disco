@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-18T23:03:03.229Z",
+  "generated": "2026-10-18T23:48:30.960Z",
   "source": "image_generation/out (_A set)",
   "backgrounds": {
     "bg_home_day": {
@@ -63,7 +63,7 @@
       "w": 1536,
       "h": 1024,
       "lighting": "outdoor",
-      "source": "bg_park_day_A"
+      "source": "bg_park_empty_day_A"
     },
     "bg_park_chess_day": {
       "file": "bg/bg_park_chess_day.jpg",
@@ -77,7 +77,7 @@
       "w": 1536,
       "h": 1024,
       "lighting": "outdoor",
-      "source": "bg_park_board_day_A"
+      "source": "bg_park_board_day_A_v2"
     },
     "bg_home_cn_day": {
       "file": "bg/bg_home_cn_day.jpg",
@@ -129,23 +129,18 @@
       "guarded": "portrait/us_neighbor_guarded.png",
       "worried": "portrait/us_neighbor_worried.png",
       "placeholder": false,
-      "fromReference": true,
+      "fromReference": false,
       "sources": [
+        "ch_us_neighbor_neutral_A",
         "ch_us_neighbor_warm_A",
         "ch_us_neighbor_guarded_A",
-        "ch_us_neighbor_worried_A",
-        "ch_us_neighbor_ref_A"
+        "ch_us_neighbor_worried_A"
       ],
       "dehazed": {
+        "neutral": 638967,
         "warm": 627736,
         "guarded": 659270,
         "worried": 630882
-      },
-      "referenceCrop": {
-        "x": 225,
-        "y": 6,
-        "w": 560,
-        "h": 560
       }
     },
     "us_stranger_a": {
@@ -154,23 +149,18 @@
       "guarded": "portrait/us_stranger_a_guarded.png",
       "worried": "portrait/us_stranger_a_worried.png",
       "placeholder": false,
-      "fromReference": true,
+      "fromReference": false,
       "sources": [
+        "ch_us_stranger_a_neutral_A",
         "ch_us_stranger_a_warm_A",
         "ch_us_stranger_a_guarded_A",
-        "ch_us_stranger_a_worried_A",
-        "ch_us_stranger_a_ref_A"
+        "ch_us_stranger_a_worried_A"
       ],
       "dehazed": {
+        "neutral": 740877,
         "warm": 726658,
         "guarded": 691810,
         "worried": 692349
-      },
-      "referenceCrop": {
-        "x": 231,
-        "y": 0,
-        "w": 560,
-        "h": 560
       }
     },
     "us_stranger_b": {
@@ -239,23 +229,18 @@
       "guarded": "portrait/nat_enforcement_guarded.png",
       "worried": "portrait/nat_enforcement_worried.png",
       "placeholder": false,
-      "fromReference": true,
+      "fromReference": false,
       "sources": [
+        "ch_nat_anti_neutral_A",
         "ch_nat_anti_warm_A",
         "ch_nat_anti_guarded_A",
-        "ch_nat_anti_worried_A",
-        "ch_nat_anti_ref_A"
+        "ch_nat_anti_worried_A"
       ],
       "dehazed": {
+        "neutral": 787815,
         "warm": 703018,
         "guarded": 690755,
         "worried": 680102
-      },
-      "referenceCrop": {
-        "x": 225,
-        "y": 7,
-        "w": 560,
-        "h": 560
       }
     },
     "nat_inclusive": {
@@ -287,13 +272,13 @@
       "fromReference": false,
       "sources": [
         "ch_cn_neighbor_neutral_A",
-        "ch_cn_neighbor_warm_A",
+        "ch_cn_neighbor_warm_A_v2",
         "ch_cn_neighbor_guarded_A",
         "ch_cn_neighbor_worried_A"
       ],
       "dehazed": {
         "neutral": 598058,
-        "warm": 482580,
+        "warm": 655439,
         "guarded": 503403,
         "worried": 674518
       }
@@ -304,23 +289,18 @@
       "guarded": "portrait/cn_stranger_a_guarded.png",
       "worried": "portrait/cn_stranger_a_worried.png",
       "placeholder": false,
-      "fromReference": true,
+      "fromReference": false,
       "sources": [
+        "ch_cn_stranger_a_neutral_A",
         "ch_cn_stranger_a_warm_A",
         "ch_cn_stranger_a_guarded_A",
-        "ch_cn_stranger_a_worried_A",
-        "ch_cn_stranger_a_ref_A"
+        "ch_cn_stranger_a_worried_A"
       ],
       "dehazed": {
+        "neutral": 850842,
         "warm": 761854,
         "guarded": 724393,
         "worried": 733281
-      },
-      "referenceCrop": {
-        "x": 229,
-        "y": 12,
-        "w": 560,
-        "h": 560
       }
     },
     "cn_stranger_b": {
@@ -352,14 +332,14 @@
       "fromReference": false,
       "sources": [
         "ch_cn_leader_int_neutral_A",
-        "ch_cn_leader_int_warm_A",
-        "ch_cn_leader_int_guarded_A",
+        "ch_cn_leader_int_warm_A_v2",
+        "ch_cn_leader_int_guarded_A_v2",
         "ch_cn_leader_int_worried_A"
       ],
       "dehazed": {
         "neutral": 600988,
-        "warm": 189703,
-        "guarded": 227275,
+        "warm": 684951,
+        "guarded": 728153,
         "worried": 761295
       }
     },
@@ -373,13 +353,13 @@
       "sources": [
         "ch_cn_leader_sep_neutral_A",
         "ch_cn_leader_sep_warm_A",
-        "ch_cn_leader_sep_guarded_A",
+        "ch_cn_leader_sep_guarded_A_v2",
         "ch_cn_leader_sep_worried_A"
       ],
       "dehazed": {
         "neutral": 684904,
         "warm": 702817,
-        "guarded": 885000,
+        "guarded": 785436,
         "worried": 658750
       },
       "candidates": [
@@ -476,13 +456,13 @@
       "placeholder": false,
       "fromReference": false,
       "sources": [
-        "ch_mx_stranger_b_neutral_A",
+        "ch_mx_stranger_b_neutral_A_v2",
         "ch_mx_stranger_b_warm_A",
         "ch_mx_stranger_b_guarded_A",
         "ch_mx_stranger_b_worried_A"
       ],
       "dehazed": {
-        "neutral": 364610,
+        "neutral": 854601,
         "warm": 748881,
         "guarded": 751853,
         "worried": 722921
@@ -636,13 +616,13 @@
       "placeholder": false,
       "fromReference": false,
       "sources": [
-        "ch_in_leader_int_neutral_A",
+        "ch_in_leader_int_neutral_A_v2",
         "ch_in_leader_int_warm_A",
         "ch_in_leader_int_guarded_A",
         "ch_in_leader_int_worried_A"
       ],
       "dehazed": {
-        "neutral": 673174,
+        "neutral": 869795,
         "warm": 615037,
         "guarded": 1010925,
         "worried": 708631

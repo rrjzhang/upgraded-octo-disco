@@ -357,7 +357,7 @@ for (const [id, lighting] of Object.entries(BACKGROUNDS)) {
   if (!sid) { warn.push(`missing background ${choices.join(' / ')}`); continue; }
   const dest = out('bg', id + '.jpg');
   sips('-s', 'format', 'jpeg', '-s', 'formatOptions', '85', '--resampleWidth', String(BG_W), src(sid), '--out', dest);
-  manifest.backgrounds[id] = { file: rel(dest), ...dims(dest), lighting, source: sid };
+  manifest.backgrounds[id] = { file: rel(dest), ...dims(dest), lighting, source: latest(sid) };
 }
 
 const placeholderBust = out('portrait', 'placeholder_neutral.png');
