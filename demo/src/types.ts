@@ -28,6 +28,12 @@ export interface Hotspot { id: string; label: string; zone: Zone; action: Hotspo
 // listed NPC is in the player's roster; those NPCs are then present without a figure and are reached
 // through `talk` hotspots instead of clickable cut-outs.
 export interface Painted { background: string; npcs: string[] }
+/**
+ * SPEC "Content schemas" occupied: a background variant drawn while any of the named slots is taken by a present NPC
+ * (the park's chess game in progress: the board is only set when someone sits at it). Resolved like the other variants:
+ * only when the asset is real; `byBackground` quads resolve through the scene's base background.
+ */
+export interface Occupied { background: string; slots: string[] }
 /** SPEC "Content schemas" byPack: a per-pack background (and evening render) that replaces the scene's `background` once its asset exists. */
 export interface PackBackground { background: string; evening?: string }
 /** Where a figure's feet stand (fractions of the image; y may exceed 1 to crop the legs). `scale` overrides the horizon formula. */
@@ -57,6 +63,7 @@ export interface Scene {
   slots: Slot[];
   props: Prop[];
   painted?: Painted;
+  occupied?: Occupied;
   /** per-pack background variants (cn | mx | in); used only when the asset exists and is not a placeholder */
   byPack?: Partial<Record<CultureId, PackBackground>>;
   /** TV glass quads the engine draws the current story onto (SPEC "TV screens show the news") */
@@ -287,7 +294,11 @@ export interface GameState {
    * The conversation in progress; persisted so a reload resumes it (the last entry of `rules` is the row on screen).
    * `stayPaid`: the one-off charge for staying past the free turns was taken; `cost`: actions its choices spent so far.
    */
-  convo?: { npc: string; scene: string; started: number; last: number; turns: number; rules: string[]; stayPaid?: boolean; cost?: number };
+  convo?: {
+    npc: string; scene: string; started: number; last: number; turns: number; rules: string[]; stayPaid?: boolean; cost?: number;
+    /** dev only (`?dev=1`): JSON snapshots of the state before each choice or beat, for the Back button (SPEC "Dev: stepping back") */
+    history?: string[];
+  };
   /** The event on screen (already fired and paid for) and the ones queued behind it, so a reload shows them again. */
   openEvent?: string;
   queuedEvents?: string[];

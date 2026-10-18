@@ -88,7 +88,8 @@ export interface LogLine {
   room: string;
   day: number;
   actions: number;
-  type: 'dialogue' | 'choice' | 'event' | 'hotspot' | 'move' | 'window' | 'survey' | 'journal' | 'day_end' | 'start' | 'conversation';
+  /** `beat`: the player pressed Next inside a line split by `$`; `dev`: a debugging action (`op: 'back'`), only under ?dev=1 */
+  type: 'dialogue' | 'choice' | 'event' | 'hotspot' | 'move' | 'window' | 'survey' | 'journal' | 'day_end' | 'start' | 'conversation' | 'beat' | 'dev';
   scene: string;
   target?: string;
   rule?: string;

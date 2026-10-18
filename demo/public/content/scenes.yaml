@@ -187,13 +187,18 @@ scenes:
     painted:
       background: bg_park_chess_day
       npcs: [cn_stranger_a, us_stranger_a]
+    # The chess game in progress (bg_park_board_day_A, request 193) is drawn only while someone present sits at the board;
+    # otherwise the plain park with its empty inlaid board (bg_park_empty_day_A, request 240; until then bg_park_day_A).
+    occupied:
+      background: bg_park_game_day
+      slots: [chess_left, chess_right]
     lighting: outdoor
     horizon: 0.31        # the three stone tables (0.75 m) at three depths give 0.30, 0.30, 0.32
     description: "The chess tables by the path. Leaves on the paving, a lamppost, regulars who nod but don't say much."
     exits:
       - { to: street, label: "Back to the street" }
-    # No props: the chess game is baked into the plain park photo (bg_park_board_day_A, image request 193); until it
-    # exists the plain bg_park_day_A shows the faint board painted into the stone.
+    # No props: the chess game is baked into the park photo (bg_park_board_day_A, image request 193) and shown through
+    # `occupied` above; the empty board is part of the plain photo.
     hotspots:
       - id: chess_left_player
         label: "Mr. Lin"
@@ -206,7 +211,7 @@ scenes:
       - id: chess_table
         label: "Chess table"
         zone: { x: 0.17, y: 0.53, w: 0.29, h: 0.30 }
-        action: { type: look, text: "A game left mid-way. The squares in the middle of the board are worn pale where everyone's hands go." }
+        action: { type: look, text: "A chessboard inlaid in the stone top. The squares in the middle are worn pale where everyone's hands go." }
       - id: lamppost
         label: "Lamppost"
         zone: { x: 0.74, y: 0.16, w: 0.03, h: 0.27 }

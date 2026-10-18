@@ -82,7 +82,7 @@ Errors: `MISSING_FILE`, `YAML_PARSE`, `CSV_PARSE`, `UNKNOWN_COLUMN`, `MISSING_CO
 `BAD_EFFECT`, `DANGLING_NEXT`, `DUPLICATE_ID`, `UNKNOWN_SCENE`, `UNKNOWN_SLOT`, `UNKNOWN_NPC`,
 `MISSING_SHEET`, `MISSING_FALLBACK`, `TIE`, `NO_MATCH`, `UNREACHABLE`, `LIMIT_UNREACHABLE`, `SCENE_NOT_APPEARED`, `SEATED_SLOT`.
 Warnings: `NEVER_WINS`, `OVER_BUDGET`, `FALLBACK_PRIORITY`, `NEVER_INVITED`, `INVITE_TRIGGER`,
-`UNKNOWN_ASSET`, `PACK_INCOMPLETE`, `PACK_MISMATCH`, `PACK_GAP`, `PACK_LEAK`, `UNKNOWN_VAR`. Info: `NO_APPEARANCES` (TV-only NPC; reachability not enforced), `EVENT_SCENE_ONLY`. Warning `COLUMN_ORDER` also flags a `scene` column not right after `dayPhase`.
+`UNKNOWN_ASSET`, `PACK_INCOMPLETE`, `PACK_MISMATCH`, `PACK_GAP`, `PACK_LEAK`, `UNKNOWN_VAR`, `BEATS` (a line split by `$` into more than three beats; an empty beat or an unknown `[tag]` at the start of a beat is a `BAD_VALUE` error on the `line`/`text` cell, see SPEC "Writing dialogue: beats and stage directions"). Info: `NO_APPEARANCES` (TV-only NPC; reachability not enforced), `EVENT_SCENE_ONLY`. Warning `COLUMN_ORDER` also flags a `scene` column not right after `dayPhase`.
 
 ## Fixtures
 

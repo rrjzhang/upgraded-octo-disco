@@ -7,6 +7,8 @@ export const DAY_ACTIONS = 8;
 /** Wallet balance a new game starts with. */
 export const START_WALLET = 1000;
 export const DEMO_DAYS = 5;
+/** The bust expressions every roster character has (SPEC "Portraits"); the dialogue/event `emotion` column and beat tags accept exactly these. */
+export const EMOTIONS = ['neutral', 'warm', 'guarded', 'worried'] as const;
 /** What staying in a conversation past its free turns costs, once per conversation (SPEC "Pay when you stay"). */
 export const DIALOGUE_COST = 1;
 /** Turns (NPC lines shown) of every conversation that are free; the choice that leads to turn FREE_TURNS + 1 costs DIALOGUE_COST. */

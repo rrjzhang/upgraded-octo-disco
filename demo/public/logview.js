@@ -180,6 +180,12 @@
           (l.followup || (lastChoice && lastChoice.next === l.rule));
         if (cont) last.lines.push(l);
         else { const c = { kind: 'conv', target: l.target, lines: [l] }; loc.items.push(c); convs.push(c); }
+      } else if ((l.type === 'beat' && !l.event) || l.type === 'dev') {
+        // Next inside a line, or a dev step back: part of the open conversation
+        if (last && last.kind === 'conv' && last.target === l.target) last.lines.push(l); else loc.items.push({ kind: 'line', line: l });
+      } else if (l.type === 'beat' && l.event) {
+        const evItem = [...loc.items].reverse().find((x) => x.kind === 'event' && x.rule === l.rule);
+        if (evItem) evItem.lines.push(l); else loc.items.push({ kind: 'line', line: l });
       } else if (l.type === 'choice' && !l.event) {
         if (last && last.kind === 'conv' && last.target === l.target) last.lines.push(l);
         else { const c = { kind: 'conv', target: l.target, lines: [l] }; loc.items.push(c); convs.push(c); }
@@ -301,6 +307,10 @@
           el('span', { class: 'small' }, el('span', { class: 'id', text: l.rule }), l.trigger ? T(` · trigger ${l.trigger}`) : null,
             e ? T(` · ${e.valence} ${e.proximity}, ${e.source}→${e.target}`) : null, l.delta ? T(` · ${fmtDelta(l.delta)}`) : null)];
       }
+      case 'beat':
+        return [el('span', { class: 'who', text: 'Next: ' }), T(`beat ${l.beat} of the line`), el('span', { class: 'small' }, el('span', { class: 'id', text: l.rule }))];
+      case 'dev':
+        return [el('span', { class: 'who', text: 'Dev: ' }), T(l.op === 'back' ? 'stepped back one choice or beat' : String(l.op || 'action')), el('span', { class: 'small' }, el('span', { class: 'id', text: l.rule || '' }))];
       default:
         return [T(`${l.type || 'line'}${l.target ? ' ' + l.target : ''}${l.rule ? ' ' + l.rule : ''}`), l.delta ? el('span', { class: 'small', text: fmtDelta(l.delta) }) : null];
     }

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-18T21:20:49.865Z",
+  "generated": "2026-10-18T23:03:03.229Z",
   "source": "image_generation/out (_A set)",
   "backgrounds": {
     "bg_home_day": {
@@ -63,7 +63,7 @@
       "w": 1536,
       "h": 1024,
       "lighting": "outdoor",
-      "source": "bg_park_board_day_A"
+      "source": "bg_park_day_A"
     },
     "bg_park_chess_day": {
       "file": "bg/bg_park_chess_day.jpg",
@@ -71,6 +71,13 @@
       "h": 1024,
       "lighting": "outdoor",
       "source": "bg_park_chess_day_A"
+    },
+    "bg_park_game_day": {
+      "file": "bg/bg_park_game_day.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "outdoor",
+      "source": "bg_park_board_day_A"
     },
     "bg_home_cn_day": {
       "file": "bg/bg_home_cn_day.jpg",
@@ -129,6 +136,11 @@
         "ch_us_neighbor_worried_A",
         "ch_us_neighbor_ref_A"
       ],
+      "dehazed": {
+        "warm": 627736,
+        "guarded": 659270,
+        "worried": 630882
+      },
       "referenceCrop": {
         "x": 225,
         "y": 6,
@@ -149,6 +161,11 @@
         "ch_us_stranger_a_worried_A",
         "ch_us_stranger_a_ref_A"
       ],
+      "dehazed": {
+        "warm": 726658,
+        "guarded": 691810,
+        "worried": 692349
+      },
       "referenceCrop": {
         "x": 231,
         "y": 0,
@@ -168,7 +185,13 @@
         "ch_us_stranger_b_warm_A",
         "ch_us_stranger_b_guarded_A",
         "ch_us_stranger_b_worried_A"
-      ]
+      ],
+      "dehazed": {
+        "neutral": 657435,
+        "warm": 574839,
+        "guarded": 448143,
+        "worried": 731379
+      }
     },
     "us_leader_int": {
       "neutral": "portrait/us_leader_int_neutral.png",
@@ -182,7 +205,13 @@
         "ch_us_leader_int_warm_A",
         "ch_us_leader_int_guarded_A",
         "ch_us_leader_int_worried_A"
-      ]
+      ],
+      "dehazed": {
+        "neutral": 687119,
+        "warm": 729972,
+        "guarded": 727346,
+        "worried": 640485
+      }
     },
     "us_leader_seg": {
       "neutral": "portrait/us_leader_seg_neutral.png",
@@ -196,7 +225,13 @@
         "ch_us_leader_seg_warm_A",
         "ch_us_leader_seg_guarded_A",
         "ch_us_leader_seg_worried_A"
-      ]
+      ],
+      "dehazed": {
+        "neutral": 689849,
+        "warm": 671235,
+        "guarded": 676343,
+        "worried": 628372
+      }
     },
     "nat_enforcement": {
       "neutral": "portrait/nat_enforcement_neutral.png",
@@ -211,6 +246,11 @@
         "ch_nat_anti_worried_A",
         "ch_nat_anti_ref_A"
       ],
+      "dehazed": {
+        "warm": 703018,
+        "guarded": 690755,
+        "worried": 680102
+      },
       "referenceCrop": {
         "x": 225,
         "y": 7,
@@ -230,7 +270,13 @@
         "cast_president_inclusive_warm_A",
         "cast_president_inclusive_guarded_A",
         "cast_president_inclusive_worried_A"
-      ]
+      ],
+      "dehazed": {
+        "neutral": 765943,
+        "warm": 614961,
+        "guarded": 585509,
+        "worried": 573626
+      }
     },
     "cn_neighbor": {
       "neutral": "portrait/cn_neighbor_neutral.png",
@@ -244,7 +290,13 @@
         "ch_cn_neighbor_warm_A",
         "ch_cn_neighbor_guarded_A",
         "ch_cn_neighbor_worried_A"
-      ]
+      ],
+      "dehazed": {
+        "neutral": 598058,
+        "warm": 482580,
+        "guarded": 503403,
+        "worried": 674518
+      }
     },
     "cn_stranger_a": {
       "neutral": "portrait/cn_stranger_a_neutral.png",
@@ -259,6 +311,11 @@
         "ch_cn_stranger_a_worried_A",
         "ch_cn_stranger_a_ref_A"
       ],
+      "dehazed": {
+        "warm": 761854,
+        "guarded": 724393,
+        "worried": 733281
+      },
       "referenceCrop": {
         "x": 229,
         "y": 12,
@@ -278,7 +335,13 @@
         "ch_cn_stranger_b_warm_A",
         "ch_cn_stranger_b_guarded_A",
         "ch_cn_stranger_b_worried_A"
-      ]
+      ],
+      "dehazed": {
+        "neutral": 460133,
+        "warm": 521294,
+        "guarded": 540541,
+        "worried": 675803
+      }
     },
     "cn_leader_int": {
       "neutral": "portrait/cn_leader_int_neutral.png",
@@ -292,7 +355,13 @@
         "ch_cn_leader_int_warm_A",
         "ch_cn_leader_int_guarded_A",
         "ch_cn_leader_int_worried_A"
-      ]
+      ],
+      "dehazed": {
+        "neutral": 600988,
+        "warm": 189703,
+        "guarded": 227275,
+        "worried": 761295
+      }
     },
     "cn_leader_sep": {
       "neutral": "portrait/cn_leader_sep_neutral.png",
@@ -307,6 +376,12 @@
         "ch_cn_leader_sep_guarded_A",
         "ch_cn_leader_sep_worried_A"
       ],
+      "dehazed": {
+        "neutral": 684904,
+        "warm": 702817,
+        "guarded": 885000,
+        "worried": 658750
+      },
       "candidates": [
         "ch_cn_leader_sep_ref_A_1",
         "ch_cn_leader_sep_ref_A_2",
@@ -325,7 +400,13 @@
         "ch_us_leader_asm_warm_A",
         "ch_us_leader_asm_guarded_A",
         "ch_us_leader_asm_worried_A"
-      ]
+      ],
+      "dehazed": {
+        "neutral": 756980,
+        "warm": 667202,
+        "guarded": 693323,
+        "worried": 663831
+      }
     },
     "cn_leader_asm": {
       "neutral": "portrait/cn_leader_asm_neutral.png",
@@ -339,7 +420,13 @@
         "ch_cn_leader_asm_warm_A",
         "ch_cn_leader_asm_guarded_A",
         "ch_cn_leader_asm_worried_A"
-      ]
+      ],
+      "dehazed": {
+        "neutral": 803726,
+        "warm": 902259,
+        "guarded": 679358,
+        "worried": 728087
+      }
     },
     "mx_neighbor": {
       "neutral": "portrait/mx_neighbor_neutral.png",
@@ -353,7 +440,13 @@
         "ch_mx_neighbor_warm_A",
         "ch_mx_neighbor_guarded_A",
         "ch_mx_neighbor_worried_A"
-      ]
+      ],
+      "dehazed": {
+        "neutral": 771858,
+        "warm": 759890,
+        "guarded": 739596,
+        "worried": 733950
+      }
     },
     "mx_stranger_a": {
       "neutral": "portrait/mx_stranger_a_neutral.png",
@@ -367,7 +460,13 @@
         "ch_mx_stranger_a_warm_A",
         "ch_mx_stranger_a_guarded_A",
         "ch_mx_stranger_a_worried_A"
-      ]
+      ],
+      "dehazed": {
+        "neutral": 662753,
+        "warm": 653521,
+        "guarded": 554158,
+        "worried": 663981
+      }
     },
     "mx_stranger_b": {
       "neutral": "portrait/mx_stranger_b_neutral.png",
@@ -381,7 +480,13 @@
         "ch_mx_stranger_b_warm_A",
         "ch_mx_stranger_b_guarded_A",
         "ch_mx_stranger_b_worried_A"
-      ]
+      ],
+      "dehazed": {
+        "neutral": 364610,
+        "warm": 748881,
+        "guarded": 751853,
+        "worried": 722921
+      }
     },
     "mx_leader_asm": {
       "neutral": "portrait/mx_leader_asm_neutral.png",
@@ -395,7 +500,13 @@
         "ch_mx_leader_asm_warm_A",
         "ch_mx_leader_asm_guarded_A",
         "ch_mx_leader_asm_worried_A"
-      ]
+      ],
+      "dehazed": {
+        "neutral": 962620,
+        "warm": 663121,
+        "guarded": 668031,
+        "worried": 642530
+      }
     },
     "mx_leader_int": {
       "neutral": "portrait/mx_leader_int_neutral.png",
@@ -409,7 +520,13 @@
         "ch_mx_leader_int_warm_A_v2",
         "ch_mx_leader_int_guarded_A_v2",
         "ch_mx_leader_int_worried_A"
-      ]
+      ],
+      "dehazed": {
+        "neutral": 604152,
+        "warm": 654799,
+        "guarded": 533794,
+        "worried": 535792
+      }
     },
     "mx_leader_sep": {
       "neutral": "portrait/mx_leader_sep_neutral.png",
@@ -423,7 +540,13 @@
         "ch_mx_leader_sep_warm_A_v2",
         "ch_mx_leader_sep_guarded_A_v2",
         "ch_mx_leader_sep_worried_A"
-      ]
+      ],
+      "dehazed": {
+        "neutral": 664995,
+        "warm": 663031,
+        "guarded": 654338,
+        "worried": 624207
+      }
     },
     "in_neighbor": {
       "neutral": "portrait/in_neighbor_neutral.png",
@@ -437,7 +560,13 @@
         "ch_in_neighbor_warm_A",
         "ch_in_neighbor_guarded_A",
         "ch_in_neighbor_worried_A"
-      ]
+      ],
+      "dehazed": {
+        "neutral": 731992,
+        "warm": 748639,
+        "guarded": 639251,
+        "worried": 669521
+      }
     },
     "in_stranger_a": {
       "neutral": "portrait/in_stranger_a_neutral.png",
@@ -451,7 +580,13 @@
         "ch_in_stranger_a_warm_A",
         "ch_in_stranger_a_guarded_A",
         "ch_in_stranger_a_worried_A"
-      ]
+      ],
+      "dehazed": {
+        "neutral": 694457,
+        "warm": 712234,
+        "guarded": 707058,
+        "worried": 679478
+      }
     },
     "in_stranger_b": {
       "neutral": "portrait/in_stranger_b_neutral.png",
@@ -465,7 +600,13 @@
         "ch_in_stranger_b_warm_A",
         "ch_in_stranger_b_guarded_A",
         "ch_in_stranger_b_worried_A"
-      ]
+      ],
+      "dehazed": {
+        "neutral": 953847,
+        "warm": 771050,
+        "guarded": 746305,
+        "worried": 766255
+      }
     },
     "in_leader_asm": {
       "neutral": "portrait/in_leader_asm_neutral.png",
@@ -479,7 +620,13 @@
         "ch_in_leader_asm_warm_A",
         "ch_in_leader_asm_guarded_A",
         "ch_in_leader_asm_worried_A"
-      ]
+      ],
+      "dehazed": {
+        "neutral": 697289,
+        "warm": 695801,
+        "guarded": 702874,
+        "worried": 662861
+      }
     },
     "in_leader_int": {
       "neutral": "portrait/in_leader_int_neutral.png",
@@ -493,7 +640,13 @@
         "ch_in_leader_int_warm_A",
         "ch_in_leader_int_guarded_A",
         "ch_in_leader_int_worried_A"
-      ]
+      ],
+      "dehazed": {
+        "neutral": 673174,
+        "warm": 615037,
+        "guarded": 1010925,
+        "worried": 708631
+      }
     },
     "in_leader_sep": {
       "neutral": "portrait/in_leader_sep_neutral.png",
@@ -507,7 +660,13 @@
         "ch_in_leader_sep_warm_A",
         "ch_in_leader_sep_guarded_A",
         "ch_in_leader_sep_worried_A"
-      ]
+      ],
+      "dehazed": {
+        "neutral": 723702,
+        "warm": 716920,
+        "guarded": 775798,
+        "worried": 705715
+      }
     }
   },
   "aliases": {
@@ -828,7 +987,8 @@
         "cast_president_inclusive_ref_A",
         "cast_president_inclusive_bust_A",
         "cast_president_inclusive_tv_A"
-      ]
+      ],
+      "dehazed": 765943
     },
     "cast_governor": {
       "name": "Governor Dale Whitaker",
@@ -893,7 +1053,8 @@
       "sources": [
         "cast_principal_ref_A",
         "cast_principal_bust_A"
-      ]
+      ],
+      "dehazed": 686451
     },
     "cast_clinic_director": {
       "name": "Dr. Nadia Haddad",
@@ -907,7 +1068,8 @@
         "cast_clinic_director_ref_A",
         "cast_clinic_director_bust_A",
         "cast_clinic_director_tv_A"
-      ]
+      ],
+      "dehazed": 731569
     },
     "cast_agency_spokesperson": {
       "name": "Craig Mullins",
@@ -921,7 +1083,8 @@
         "cast_agency_spokesperson_ref_A",
         "cast_agency_spokesperson_bust_A",
         "cast_agency_spokesperson_tv_A"
-      ]
+      ],
+      "dehazed": 749041
     },
     "cast_council_member": {
       "name": "Councilmember Kevin Tran",
@@ -935,7 +1098,8 @@
         "cast_council_member_ref_A",
         "cast_council_member_bust_A",
         "cast_council_member_tv_A"
-      ]
+      ],
+      "dehazed": 745400
     },
     "cast_anchor": {
       "name": "Jasmine Porter",
@@ -949,7 +1113,8 @@
         "cast_anchor_ref_A",
         "cast_anchor_bust_A",
         "cast_anchor_tv_A"
-      ]
+      ],
+      "dehazed": 566672
     }
   }
 }

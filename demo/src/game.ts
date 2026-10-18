@@ -8,9 +8,13 @@ import {
   type Delta,
 } from './rules';
 import { appendLog, debugEnabled, getRoom, readLog, saveState } from './store';
-import { assetEntry, effectivePack, figureHeight, isSeatedFigure, overrideIds, questionnaireProblems, rowInPack, sceneInPack } from './content';
+import {
+  assetEntry, dialogueCsvFromRows, effectivePack, figureHeight, isSeatedFigure, liveSource, overrideForWrite, overrideIds, parseDialogueQuiet,
+  patchDialogueRow, questionnaireProblems, rowInPack, sceneInPack, storeOverride,
+} from './content';
 import { SILHOUETTE_BUST, appUrl, downloadText, h, isDev, params, seeded, silhouetteFigure, subst } from './util';
 import { matrix3d } from './homography';
+import { splitBeats, speechParts, type Beat } from './beats';
 
 const CULTURE_NAMES: Record<string, string> = { cn: 'Chinese', mx: 'Mexican', in: 'Indian' };
 const CULTURE_PACK_NAMES: Record<string, string> = { cn: 'China', mx: 'Mexico', in: 'India' };
@@ -18,9 +22,11 @@ const IMG_W = 900;
 const IMG_H = 600;
 
 type Panel =
-  | { kind: 'idle'; note?: string }
-  | { kind: 'dialogue'; npc: string; row: DialogueRow; tie: string[] }
-  | { kind: 'event'; ev: EventRow }
+  // `ended`: the conversation just finished; the last bust stays on the panel and fades (SPEC "Conversation end")
+  | { kind: 'idle'; note?: string; ended?: { npc: string; emotion: Emotion } }
+  // `beat`: which `$`-separated part of the line is on screen (SPEC "Writing dialogue: beats and stage directions")
+  | { kind: 'dialogue'; npc: string; row: DialogueRow; tie: string[]; beat?: number }
+  | { kind: 'event'; ev: EventRow; beat?: number }
   | { kind: 'text'; title?: string; text: string; rule?: string; figure?: string }
   | { kind: 'bed'; hs: string }; // going to bed with actions left: confirm first
 
@@ -65,6 +71,8 @@ export class Game {
   private devPlaced = new Map<string, { npc: string; slot: string }[]>();
   /** Debugging aids (SPEC "Debug toggle"): reveal button and H, status line, rapport/valence, dev guides. */
   private debug = debugEnabled();
+  /** dev only: the dialogue row being edited in place (SPEC "Dev: editing a line in place"); the draft survives re-renders */
+  private editing: { npc: string; row: string; line: string; choices: string[]; note?: string; busy?: boolean } | null = null;
   /** image URLs already loaded and decoded (a revisit swaps at once) */
   private loaded = new Set<string>();
   /** a scene swap is waiting for its images (the scene key it waits for): input is held, the old scene stays on screen */
@@ -369,6 +377,9 @@ export class Game {
     const evening = phaseOf(this.s.actions) === 'evening';
     let id = this.paintedActive(sc) ? sc.painted!.background : sc.background;
     let base = id;
+    // SPEC "Content schemas" occupied: the variant for a taken seat (the chess game) when someone present sits there
+    const occ = sc.occupied;
+    if (id === sc.background && occ && this.realBg(occ.background) && this.presentIn(sc.id).some((p) => !!p.slot && occ.slots.includes(p.slot.id))) id = occ.background;
     const pv = id === sc.background ? sc.byPack?.[this.s.player.pack] : undefined;
     if (pv && this.realBg(pv.background)) {
       if (!evening) id = pv.background;
@@ -468,13 +479,19 @@ export class Game {
     return d;
   }
 
-  moveTo(sceneId: string): void {
+  /** `force` (dev, gv.goto): leave even in the middle of a conversation; the exits are otherwise locked while one is on screen. */
+  moveTo(sceneId: string, opts: { force?: boolean } = {}): void {
     if (!this.c.sceneById.has(sceneId)) {
       console.error(`[move] unknown scene "${sceneId}"`);
       return;
     }
     if (!this.openToPlayer(sceneId)) {
       console.info(`[move] scene "${sceneId}" belongs to another culture pack (player pack ${this.s.player.pack}); refused`);
+      return;
+    }
+    if (this.panel.kind === 'dialogue' && !opts.force) {
+      // SPEC "Conversation end": no walking off mid-sentence; every row has a leave option
+      console.info(`[move] in a conversation with ${this.panel.npc}; take a leave option first (gv.goto forces)`);
       return;
     }
     if (this.moveBlocked(sceneId)) {
@@ -710,6 +727,150 @@ export class Game {
     return idx;
   }
 
+  // ------------------------------------------------------------------ beats (SPEC "Writing dialogue: beats and stage directions")
+  /** The `$`-separated beats of a line and the one on screen (`at`, clamped). */
+  private beatsOf(text: string, at: number | undefined): { beats: Beat[]; at: number; cur: Beat; last: boolean } {
+    const beats = splitBeats(text);
+    const i = Math.max(0, Math.min(at ?? 0, beats.length - 1));
+    return { beats, at: i, cur: beats[i], last: i === beats.length - 1 };
+  }
+
+  /** The bust shown with a row's last beat: its `[tag]`, else the row's emotion column. */
+  private closingEmotion(row: DialogueRow): Emotion {
+    const { beats } = this.beatsOf(row.line, 0);
+    return beats[beats.length - 1].emotion ?? row.emotion;
+  }
+
+  /** A line as paragraphs: speech, with any `_stage direction_` on its own italic line. Placeholders are filled first. */
+  private speech(text: string): HTMLElement[] {
+    return speechParts(this.t(text)).map((part) => h('p', { class: part.kind === 'stage' ? 'line stage' : 'line', text: part.text }));
+  }
+
+  /** Next inside a line: show the following beat. Not a turn (no stay charge); logged as `beat`. */
+  private nextBeat(): void {
+    const p = this.panel;
+    if (p.kind !== 'dialogue' && p.kind !== 'event') return;
+    const bt = this.beatsOf(p.kind === 'dialogue' ? p.row.line : p.ev.text, p.beat);
+    if (bt.last) return;
+    if (p.kind === 'dialogue') {
+      if (this.debug) this.snapshot();
+      appendLog(this.s, { type: 'beat', target: p.npc, rule: p.row.id, beat: bt.at + 2 });
+    } else appendLog(this.s, { type: 'beat', target: p.ev.npc || undefined, rule: p.ev.id, beat: bt.at + 2, event: true });
+    this.panel = { ...p, beat: bt.at + 1 };
+    this.save();
+    this.render();
+  }
+
+  // ------------------------------------------------------------------ dev: stepping back (SPEC "Dev: stepping back")
+  /** Remember the state before a choice or beat, so the Back button can restore it. Dev only; the log stays append-only. */
+  private snapshot(): void {
+    const cv = this.s.convo, p = this.panel;
+    if (!cv || p.kind !== 'dialogue') return;
+    const { history, ...rest } = cv;
+    const snap = JSON.stringify({ s: { ...this.s, convo: rest }, row: p.row.id, beat: p.beat ?? 0 });
+    cv.history = [...(history ?? []).slice(-19), snap];
+  }
+
+  private stepBack(): void {
+    const cv = this.s.convo;
+    const snap = cv?.history?.pop();
+    if (!cv || !snap) return;
+    const { s, row, beat } = JSON.parse(snap) as { s: GameState; row: string; beat: number };
+    const r = (this.c.dialogue.get(cv.npc) ?? []).find((x) => x.id === row);
+    if (!r) return;
+    appendLog(this.s, { type: 'dev', op: 'back', target: cv.npc, rule: row });
+    Object.assign(this.s, s);
+    this.s.convo = { ...s.convo!, history: cv.history };
+    this.panel = { kind: 'dialogue', npc: cv.npc, row: r, tie: [], beat };
+    this.save();
+    this.render();
+  }
+
+  // ------------------------------------------------------------------ dev: editing a line in place (SPEC "Dev: editing a line in place")
+  private startEdit(): void {
+    const p = this.panel;
+    if (!this.debug || p.kind !== 'dialogue') return;
+    this.editing = { npc: p.npc, row: p.row.id, line: p.row.line, choices: p.row.choices.map((c) => c.text) };
+    this.renderRight();
+    (this.right.querySelector('.dev-edit-line') as HTMLTextAreaElement | null)?.focus();
+  }
+
+  private cancelEdit(): void {
+    this.editing = null;
+    this.renderRight();
+  }
+
+  /**
+   * Writes the edited row into localStorage['gv:override:v1'].dialogue[npc] (the NPC's whole sheet, only this row's
+   * line and choice texts changed), re-parses it and swaps it into the loaded content, without a reload.
+   */
+  private async saveEdit(): Promise<void> {
+    const ed = this.editing, p = this.panel;
+    if (!ed || ed.busy || p.kind !== 'dialogue' || p.npc !== ed.npc || p.row.id !== ed.row) return;
+    const fail = (note: string) => { ed.note = note; ed.busy = false; this.renderRight(); };
+    if (!ed.line.trim()) return fail(this.str('ui.dev.emptyLine'));
+    const blank = ed.choices.findIndex((c) => !c.trim());
+    if (blank >= 0) return fail(this.str('ui.dev.emptyChoice', { n: blank + 1 }));
+    if (this.c.override.ignored) return fail('overrides are ignored on this load (&nooverride=1); saving would overwrite them. Reload without it.');
+    ed.busy = true;
+    const ov = overrideForWrite();
+    // the stored sheet unless it was rejected at load (then the bundled one is what is on screen)
+    const stored = ov.dialogue?.[ed.npc];
+    let base = typeof stored === 'string' && !this.c.override.rejected.some((x) => x.key === `dialogue/${ed.npc}`) ? stored : null;
+    // no (applied) override for this NPC yet: start from the bundled sheet as written, else regenerate it from the loaded rows
+    if (base === null && this.c.source === 'live') base = await liveSource().text(`content/dialogue/${ed.npc}.csv`);
+    if (base === null) base = dialogueCsvFromRows(this.c.dialogue.get(ed.npc) ?? []);
+    if (this.editing !== ed) return; // cancelled while the sheet loaded
+    const patched = patchDialogueRow(base, ed.row, ed.line, ed.choices.map((c) => c.trim()));
+    if ('error' in patched) return fail(patched.error);
+    const parsed = parseDialogueQuiet(ed.npc, patched.text, new Set(this.c.scenes.map((s) => s.id)));
+    if ('errors' in parsed) return fail(parsed.errors.slice(0, 3).map((e) => e.replace(/^\[content\] /, '')).join('; '));
+    const nr = parsed.rows.find((r) => r.id === ed.row);
+    if (!nr) return fail(`row "${ed.row}" vanished after the edit`);
+    ov.dialogue = { ...(ov.dialogue ?? {}), [ed.npc]: patched.text };
+    if (!storeOverride(ov)) return fail(`could not write localStorage['gv:override:v1']`);
+    // hot-apply: the loaded content, the override chip, the panel (same row, first beat; the conversation goes on)
+    this.c.dialogue.set(ed.npc, parsed.rows);
+    const o = this.c.override, key = `dialogue/${ed.npc}`;
+    if (!o.applied.includes(key)) o.applied.push(key);
+    o.rejected = o.rejected.filter((x) => x.key !== key);
+    o.updated = ov.updated;
+    appendLog(this.s, { type: 'dev', op: 'edit', target: ed.npc, rule: ed.row });
+    console.info(`[dev] edited ${ed.npc}/${ed.row}; saved to override dialogue/${ed.npc}`);
+    this.editing = null;
+    this.panel = { ...p, row: nr, beat: 0 };
+    this.save();
+    this.render();
+  }
+
+  /** The in-place editor: the raw line cell, one input per existing choice text, the marks hint, Save / Cancel. */
+  private editForm(ed: NonNullable<Game['editing']>): HTMLElement {
+    const keys = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.cancelEdit(); }
+      else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); void this.saveEdit(); }
+    };
+    const ta = h('textarea', { class: 'dev-edit-line', rows: 6, spellcheck: 'true', 'aria-label': 'line (raw CSV cell)' }) as HTMLTextAreaElement;
+    ta.value = ed.line;
+    ta.addEventListener('input', () => { ed.line = ta.value; });
+    ta.addEventListener('keydown', keys);
+    const inputs = ed.choices.map((c, i) => {
+      const inp = h('input', { class: 'dev-edit-choice', type: 'text', 'aria-label': `choice ${i + 1} text` }) as HTMLInputElement;
+      inp.value = c;
+      inp.addEventListener('input', () => { ed.choices[i] = inp.value; });
+      inp.addEventListener('keydown', keys);
+      return h('label', { class: 'dev-edit-row' }, h('span', { text: `${i + 1}` }), inp);
+    });
+    return h('div', { class: 'dev-edit' },
+      h('div', { class: 'dev-edit-head', text: `edit ${ed.npc}/${ed.row} (dev)` }),
+      ta,
+      h('p', { class: 'dev-edit-hint', text: this.str('ui.dev.editHint') }),
+      ...inputs,
+      ed.note ? h('p', { class: 'dev-edit-note', role: 'alert', text: ed.note }) : null,
+      h('div', { class: 'dev-edit-btns' },
+        h('button', { class: 'choice dev-edit-save', title: 'Save (Cmd/Ctrl+Enter)', onclick: () => void this.saveEdit(), text: this.str('ui.dev.save') }),
+        h('button', { class: 'choice dev-edit-cancel', title: 'Cancel (Escape)', onclick: () => this.cancelEdit(), text: this.str('ui.dev.cancel') })));
+  }
+
   /** idx = authored index (0-based); shown = displayed position (1-based). The log keeps both. */
   private chooseDialogue(row: DialogueRow, idx: number, shown: number): void {
     const ch = row.choices[idx];
@@ -719,6 +880,7 @@ export class Game {
       console.info(`[dialogue] ${row.npc}/${row.id} option ${idx + 1}: costs ${charge}, ${this.s.actions} action(s) left`);
       return;
     }
+    if (this.debug) this.snapshot();
     const before = this.s.actions;
     this.spend(charge);
     const cv = this.s.convo;
@@ -742,7 +904,8 @@ export class Game {
         this.endConvo('ended');
       }
     } else {
-      this.panel = { kind: 'idle', note: `${this.c.npcById.get(row.npc)?.name ?? row.npc}: conversation ended.` };
+      const name = this.c.npcById.get(row.npc)?.name ?? row.npc;
+      this.panel = { kind: 'idle', note: this.str('ui.convoEnded', { name }), ended: { npc: row.npc, emotion: this.closingEmotion(row) } };
       this.endConvo('ended');
     }
     this.save();
@@ -1406,19 +1569,23 @@ export class Game {
   private renderStrip(): void {
     const sc = this.scene;
     const exits = h('div', { class: 'exits' });
+    // SPEC "Conversation end": the exits are locked while a conversation is on screen (every row has a leave option)
+    const locked = this.panel.kind === 'dialogue';
+    const why = (blocked: boolean) => (blocked ? this.str('ui.tired') : locked ? this.str('ui.inConversation') : null);
     for (const ex of this.exitsOf(sc)) {
       const blocked = this.moveBlocked(ex.to);
       const name = this.c.sceneById.get(ex.to)?.name ?? ex.to;
+      const reason = why(blocked);
       exits.append(h('button', {
-        class: `exit${blocked ? ' blocked' : ''}`, 'data-fk': `exit:${ex.to}`, disabled: blocked, onclick: () => this.moveTo(ex.to),
-        'aria-label': `${ex.label}, go to ${name}${blocked ? ` (${this.str('ui.tired')})` : ''}`,
-        title: blocked ? this.str('ui.tired') : null,
+        class: `exit${blocked ? ' blocked' : ''}${locked ? ' locked' : ''}`, 'data-fk': `exit:${ex.to}`, disabled: blocked || locked, onclick: () => this.moveTo(ex.to),
+        'aria-label': `${ex.label}, go to ${name}${reason ? ` (${reason})` : ''}`,
+        title: reason,
       },
         h('span', { class: 'arrow', 'aria-hidden': 'true', text: '→' }), ex.label));
     }
     // out of actions away from home: home stays one click away even when no exit here leads there
     if (this.s.actions <= 0 && sc.id !== 'home' && !this.exitsOf(sc).some((ex) => ex.to === 'home')) {
-      exits.append(h('button', { class: 'exit', 'data-fk': 'exit:home', onclick: () => this.moveTo('home') },
+      exits.append(h('button', { class: `exit${locked ? ' locked' : ''}`, 'data-fk': 'exit:home', disabled: locked, title: why(false), onclick: () => this.moveTo('home') },
         h('span', { class: 'arrow', 'aria-hidden': 'true', text: '→' }), this.str('ui.goHome')));
     }
     this.strip.replaceChildren(
@@ -1465,10 +1632,12 @@ export class Game {
     const p = this.panel;
     let npc: Npc | undefined;
     let emotion: Emotion = 'neutral';
-    if (p.kind === 'dialogue') { npc = this.c.npcById.get(p.npc); emotion = p.row.emotion; }
-    if (p.kind === 'event' && p.ev.npc) { npc = this.c.npcById.get(p.ev.npc); emotion = p.ev.emotion; }
+    if (p.kind === 'dialogue') { npc = this.c.npcById.get(p.npc); emotion = this.beatsOf(p.row.line, p.beat).cur.emotion ?? p.row.emotion; }
+    if (p.kind === 'event' && p.ev.npc) { npc = this.c.npcById.get(p.ev.npc); emotion = this.beatsOf(p.ev.text, p.beat).cur.emotion ?? p.ev.emotion; }
+    if (p.kind === 'idle' && p.ended) { npc = this.c.npcById.get(p.ended.npc); emotion = p.ended.emotion; }
 
     const portrait = h('div', { class: 'portrait' });
+    if (p.kind === 'idle' && p.ended) portrait.classList.add('ended');
     let via: string | null = null;
     if (p.kind === 'event' && p.ev.medium) {
       // heard, not seen (a radio): the object, uncropped on a plain ground; `portrait` (if any) names the voice
@@ -1502,28 +1671,54 @@ export class Game {
     const choices = h('div', { class: 'choices' });
     let status = '';
 
-    if (p.kind === 'dialogue') {
-      body.append(h('p', { class: 'line', text: this.t(p.row.line) }));
-      this.choiceOrder(p.row.id, p.row.choices.length).forEach((i, pos) => {
-        const ch = p.row.choices[i];
-        const { charge } = this.optionCharge(p.row, i);
-        // the leave option (no `next`, no `cost N`) has charge 0, so it is never disabled by cost
-        choices.append(this.choiceBtn(i, this.t(ch.text), charge + this.choiceCost(ch.effect), () => this.chooseDialogue(p.row, i, pos + 1), charge > this.s.actions));
-      });
-      if (!p.row.choices.length) {
-        choices.append(h('button', { class: 'choice', 'data-fk': 'ch:cont', onclick: () => { this.endConvo('ended'); this.panel = { kind: 'idle' }; this.render(); }, text: this.str('ui.continue') }));
+    if (this.editing && !(p.kind === 'dialogue' && p.npc === this.editing.npc && p.row.id === this.editing.row)) this.editing = null;
+    if (p.kind === 'dialogue' && this.debug && this.editing) {
+      body.append(this.editForm(this.editing));
+      status = `editing rule ${p.row.id} · ${p.npc}`;
+    } else if (p.kind === 'dialogue') {
+      const bt = this.beatsOf(p.row.line, p.beat);
+      body.append(...this.speech(bt.cur.text));
+      if (!bt.last) {
+        // a beat in progress: only Next (the choices come with the last beat)
+        choices.append(h('button', { class: 'choice next', 'data-fk': 'ch:next', onclick: () => this.nextBeat(), text: `${this.str('ui.next')} \u25B8` }));
+      } else {
+        this.choiceOrder(p.row.id, p.row.choices.length).forEach((i, pos) => {
+          const ch = p.row.choices[i];
+          const { charge } = this.optionCharge(p.row, i);
+          // the leave option (no `next`, no `cost N`) has charge 0, so it is never disabled by cost
+          choices.append(this.choiceBtn(i, this.t(ch.text), charge + this.choiceCost(ch.effect), () => this.chooseDialogue(p.row, i, pos + 1), charge > this.s.actions));
+        });
+        if (!p.row.choices.length) {
+          const ended = { npc: p.npc, emotion };
+          choices.append(h('button', {
+            class: 'choice', 'data-fk': 'ch:cont', text: this.str('ui.continue'),
+            onclick: () => { this.endConvo('ended'); this.panel = { kind: 'idle', note: this.str('ui.convoEnded', { name: npc?.name ?? p.npc }), ended }; this.render(); },
+          }));
+        }
+      }
+      if (this.debug && this.s.convo?.history?.length) {
+        choices.append(h('button', { class: 'choice dev-back', 'data-fk': 'ch:back', title: 'dev: step back one choice or beat (the log keeps a dev line)', onclick: () => this.stepBack(), text: `\u25C2 ${this.str('ui.back')} (dev)` }));
+      }
+      if (this.debug) {
+        choices.append(h('button', { class: 'choice dev-back dev-edit-open', 'data-fk': 'ch:edit', title: 'dev: edit this line and its choice texts in place (saved to the override set)', onclick: () => this.startEdit(), text: `\u270E ${this.str('ui.dev.edit')} (dev)` }));
       }
       const cv = this.s.convo;
-      status = `rule ${p.row.id} · ${p.npc} · p${p.row.priority} s${p.row.specificity} · turn ${cv?.turns ?? 1}${cv?.stayPaid ? ' (stay paid)' : ''}${p.tie.length ? ` · TIE with ${p.tie.join(',')}` : ''}`;
+      const bts = this.beatsOf(p.row.line, p.beat);
+      status = `rule ${p.row.id} · ${p.npc} · p${p.row.priority} s${p.row.specificity} · turn ${cv?.turns ?? 1}${cv?.stayPaid ? ' (stay paid)' : ''}${bts.beats.length > 1 ? ` · beat ${bts.at + 1}/${bts.beats.length}` : ''}${p.tie.length ? ` · TIE with ${p.tie.join(',')}` : ''}`;
     } else if (p.kind === 'event') {
       if (via) body.append(h('h3', { class: 'text-title via', text: via }));
-      body.append(h('p', { class: 'line', text: this.t(p.ev.text) }));
-      this.choiceOrder(p.ev.id, p.ev.choices.length).forEach((i, pos) => {
-        const ch = p.ev.choices[i];
-        choices.append(this.choiceBtn(i, this.t(ch.text), this.choiceCost(ch.effect), () => this.chooseEvent(p.ev, i, pos + 1)));
-      });
-      if (!p.ev.choices.length) {
-        choices.append(h('button', { class: 'choice', 'data-fk': 'ch:cont', onclick: () => this.chooseEvent(p.ev, null), text: this.str('ui.continue') }));
+      const bt = this.beatsOf(p.ev.text, p.beat);
+      body.append(...this.speech(bt.cur.text));
+      if (!bt.last) {
+        choices.append(h('button', { class: 'choice next', 'data-fk': 'ch:next', onclick: () => this.nextBeat(), text: `${this.str('ui.next')} \u25B8` }));
+      } else {
+        this.choiceOrder(p.ev.id, p.ev.choices.length).forEach((i, pos) => {
+          const ch = p.ev.choices[i];
+          choices.append(this.choiceBtn(i, this.t(ch.text), this.choiceCost(ch.effect), () => this.chooseEvent(p.ev, i, pos + 1)));
+        });
+        if (!p.ev.choices.length) {
+          choices.append(h('button', { class: 'choice', 'data-fk': 'ch:cont', onclick: () => this.chooseEvent(p.ev, null), text: this.str('ui.continue') }));
+        }
       }
       status = `event ${p.ev.id} · ${p.ev.trigger}${p.ev.npc ? ` · ${p.ev.npc}` : ''}${p.ev.portrait ? ` · cast ${p.ev.portrait}` : ''}${p.ev.medium ? ` · medium ${p.ev.medium}` : ''}`;
     } else if (p.kind === 'bed') {
@@ -1682,7 +1877,7 @@ export class Game {
       },
       actions: (n: number) => { this.s.actions = n; this.save(); this.render(); },
       lean: (home: number, us: number) => { this.s.spent.home = home; this.s.spent.us = us; this.save(); this.render(); return leanOf(this.s.spent); },
-      goto: (scene: string) => this.moveTo(scene),
+      goto: (scene: string) => this.moveTo(scene, { force: true }),
       /** Starts a conversation; `{ force: true }` ignores the per-day conversation limit (dev only). */
       talk: (npc: string, opts: { force?: boolean } = {}) => this.talkTo(npc, opts),
       /** Conversations per NPC today and the limit. */

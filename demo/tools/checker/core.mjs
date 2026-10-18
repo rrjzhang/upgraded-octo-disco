@@ -271,7 +271,7 @@ function validateScenes(files, diag, assets) {
           // the backgrounds this scene can draw: its own, the painted variant, and the evening render of either
           const eve = (id) => (id.includes('_day') ? id.replace('_day', '_eve') : `${id}_eve`);
           const packBgs = sc.byPack && typeof sc.byPack === 'object' ? Object.values(sc.byPack).flatMap((v) => (v && typeof v === 'object' ? [v.background, v.evening] : [])) : [];
-          const own = [sc.background, sc.painted && sc.painted.background, ...packBgs].filter((b) => typeof b === 'string' && b && b !== 'none');
+          const own = [sc.background, sc.painted && sc.painted.background, sc.occupied && sc.occupied.background, ...packBgs].filter((b) => typeof b === 'string' && b && b !== 'none');
           const sceneBgs = new Set(own.flatMap((b) => [b, eve(b)]));
           for (const [bg, bq] of Object.entries(pr.byBackground)) {
             if (!isPropQuad(bq)) diag.error('BAD_VALUE', rel, loc(`props[${j}].byBackground.${bg}`), 'expected four [x, y] fraction pairs');
@@ -338,6 +338,16 @@ function validateScenes(files, diag, assets) {
         }
       });
     }
+    // SPEC "Content schemas": occupied { background, slots }, the variant drawn while a present NPC takes one of the slots
+    // (the park's chess game). Slot ids are checked after the slots are read (below); a missing asset is an info.
+    if (sc.occupied != null) {
+      const oc = sc.occupied;
+      if (!oc || typeof oc !== 'object' || Array.isArray(oc) || typeof oc.background !== 'string' || !oc.background) diag.error('SCHEMA', rel, loc('occupied'), 'occupied needs { background, slots: [slot ids] }');
+      else {
+        if (!Array.isArray(oc.slots) || !oc.slots.length || oc.slots.some((x) => typeof x !== 'string' || !x)) diag.error('SCHEMA', rel, loc('occupied.slots'), 'occupied.slots must list at least one slot id of this scene');
+        if (assets && !hasAsset(assets, 'backgrounds', oc.background)) diag.info('PENDING_ASSET', rel, loc('occupied.background'), `background "${oc.background}" not in assets/manifest.json yet (the scene's own background is drawn until it is)`);
+      }
+    }
     // SPEC "Content schemas": byPack { cn|mx|in: { background, evening? } }, per-pack background variants used once the
     // asset exists. A missing asset is an info PENDING_ASSET (the base background is drawn meanwhile), as events' medium.
     if (sc.byPack != null) {
@@ -371,6 +381,9 @@ function validateScenes(files, diag, assets) {
       // scale is optional: without it the engine sizes the figure from the scene's horizon and camera height
       if (sl.scale != null && !(typeof sl.scale === 'number' && sl.scale > 0 && sl.scale <= 1.5)) diag.error('BAD_VALUE', rel, loc(`slots[${j}].scale`), `expected a positive scale, got ${JSON.stringify(sl.scale)}`);
       if (typeof sl.y === 'number' && sc.horizon != null && sl.y <= sc.horizon && sl.scale == null) diag.error('BAD_VALUE', rel, loc(`slots[${j}].y`), `feet at y ${sl.y} are at or above the horizon ${sc.horizon}; the figure would have no height`);
+    }
+    if (sc.occupied && Array.isArray(sc.occupied.slots)) {
+      for (const [j, id] of sc.occupied.slots.entries()) if (typeof id === 'string' && id && !scenes.get(sc.id).slotIds.has(id)) diag.error('UNKNOWN_SLOT', rel, loc(`occupied.slots[${j}]`), `scene "${sc.id}" has no slot "${id}"; slots: ${[...scenes.get(sc.id).slotIds].join(', ') || '(none)'}`);
     }
   });
   // second pass: exits and move targets
@@ -558,6 +571,7 @@ function validateEvents(files, diag, scenes, npcs, assets, castIds) {
     let cost = 0;
     if (r.cost !== '') { if (/^\d+$/.test(r.cost)) cost = +r.cost; else diag.error('BAD_VALUE', rel, loc('cost'), `"${r.cost}"; expected a non-negative integer or blank`); }
     if (!r.text) diag.error('SCHEMA', rel, loc('text'), 'missing text');
+    else checkBeats(r.text, diag, rel, loc('text'));
     const choices = [];
     for (const k of [1, 2]) {
       const c = r[`choice${k}`], e = r[`effect${k}`];
@@ -630,6 +644,7 @@ function validateDialogue(files, npcId, diag, eventIds, scenes, npcScenes) {
     }
     if (r.emotion && !EMOTIONS.includes(r.emotion)) diag.error('BAD_VALUE', rel, loc('emotion'), `"${r.emotion}"; expected ${EMOTIONS.join('|')} or blank`);
     if (!r.line) diag.error('SCHEMA', rel, loc('line'), 'missing line');
+    else checkBeats(r.line, diag, rel, loc('line'));
     const choices = [];
     for (const k of [1, 2, 3]) {
       const c = r[`choice${k}`], e = r[`effect${k}`], n = r[`next${k}`];
@@ -649,6 +664,22 @@ function validateDialogue(files, npcId, diag, eventIds, scenes, npcScenes) {
     if (ch.next && !ids.has(ch.next)) diag.error('DANGLING_NEXT', rel, { line: row.line, row: row.id, column: `next${ch.k}` }, `next${ch.k} points to "${ch.next}", which is not a row id in this sheet`);
   }
   return { rel, rows: parsed, located: parsed.some(r => r.scenes) };
+}
+
+/**
+ * SPEC "Writing dialogue: beats and stage directions": `$` splits a line into beats; a beat may open with an emotion tag
+ * `[warm]`. An empty beat (two `$` in a row, or one at the end) and an unknown tag are errors; more than three beats a
+ * warning (the player is pressing Next, not talking).
+ */
+export function checkBeats(line, diag, rel, at) {
+  const beats = String(line).split('$');
+  if (beats.length === 1) return;
+  if (beats.some((b) => !b.trim())) diag.error('BAD_VALUE', rel, at, 'empty beat: text is missing between or after the $ marks');
+  for (const b of beats) {
+    const m = /^\s*\[([^\]]*)\]/.exec(b);
+    if (m && !EMOTIONS.includes(m[1])) diag.error('BAD_VALUE', rel, at, `beat tag "[${m[1]}]"; expected ${EMOTIONS.join('|')}`);
+  }
+  if (beats.length > 3) diag.warn('BEATS', rel, at, `${beats.length} beats in one line; three is the most a line should ask the player to click through`);
 }
 
 // ---------------------------------------------------------------- completeness

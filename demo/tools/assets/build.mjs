@@ -24,6 +24,7 @@ const BACKGROUNDS = {
   bg_center_cn_day: 'warm_indoor', bg_center_mx_day: 'warm_indoor', bg_center_in_day: 'warm_indoor',
   bg_library_day: 'warm_indoor', bg_clinic_day: 'cool_indoor', bg_work_day: 'cool_indoor', bg_park_day: 'outdoor',
   bg_park_chess_day: 'outdoor',
+  bg_park_game_day: 'outdoor', // scenes.yaml park `occupied`: the chess game in progress, drawn while someone sits at the board
   // scenes.yaml home byPack (requests 194-199): per-pack living rooms, lit as the home they replace
   bg_home_cn_day: 'warm_indoor', bg_home_cn_eve: 'warm_indoor', bg_home_mx_day: 'warm_indoor', bg_home_mx_eve: 'warm_indoor',
   bg_home_in_day: 'warm_indoor', bg_home_in_eve: 'warm_indoor',
@@ -38,7 +39,10 @@ const BG_SOURCES = {
   bg_home_mx_day: ['bg_home_mx_day_A'], bg_home_mx_eve: ['bg_home_mx_eve_A'],
   bg_home_in_day: ['bg_home_in_day_A'], bg_home_in_eve: ['bg_home_in_eve_A'],
   bg_clinic_day: ['bg_clinic_tv_day_A', 'bg_clinic_day_A'],
-  bg_park_day: ['bg_park_board_day_A', 'bg_park_day_A'], // request 193: chess game baked into the nearest table
+  // the empty inlaid board (request 240; the original plain park until it exists) and the game in progress (request 193;
+  // a `_vN` retake with a plausible number of pieces is preferred automatically, see latest())
+  bg_park_day: ['bg_park_empty_day_A', 'bg_park_day_A'],
+  bg_park_game_day: ['bg_park_board_day_A'],
 };
 // Characters come from public/content/npcs.yaml (SPEC "Art": a new pack needs no build change): each NPC's
 // `portrait` (`ch_<id>`) is the source base of its busts / reference sheet, and its `figure` plus every
@@ -274,6 +278,64 @@ function despill(img) {
   }
   return n;
 }
+/**
+ * Busts came back from the generator with a soft grey "studio" haze around the person: a blocky cloud of
+ * semi-transparent grey reaching into the corners, which shows on the panel as a pixellated grey aura (Don Ernesto
+ * guarded was the first noticed). Measured over the 104 sources: the person's alpha sits at 226-253 (1st percentile of
+ * the torso), the haze fades from ~250 at the body out to 0 at the corners. Flood from the image border through every
+ * pixel with alpha below HAZE_MAX and clear what the flood reaches, except a 2 px fringe next to a solid pixel (the
+ * anti-aliased edge of hair and shoulders). HAZE_MAX = 200 clears no pixel of any body (checked: nothing at alpha >= 200
+ * is reachable at that threshold in any source); the denser haze right next to the person (alpha 200-250) stays, and a
+ * bust where that still reads as a grey backdrop is a retake, not a patch. Interior semi-transparent pixels (glasses)
+ * are not reached and stay. Skipped when the image has no solid body (a flat-background bust).
+ */
+const HAZE_MAX = 200;
+const BUST_OPAQUE = 226; // the least opaque a body pixel gets; the fringe test
+function dehaze(img) {
+  const { w, h, data } = img;
+  const n = w * h;
+  let opaque = 0;
+  for (let i = 0; i < n; i++) if (data[i * 4 + 3] >= BUST_OPAQUE) opaque++;
+  if (opaque < n * 0.05) return 0;
+  const outside = new Uint8Array(n);
+  const stack = [];
+  const push = (i) => { if (!outside[i] && data[i * 4 + 3] < HAZE_MAX) { outside[i] = 1; stack.push(i); } };
+  for (let x = 0; x < w; x++) { push(x); push((h - 1) * w + x); }
+  for (let y = 0; y < h; y++) { push(y * w); push(y * w + w - 1); }
+  while (stack.length) {
+    const i = stack.pop(), x = i % w, y = (i - x) / w;
+    if (x > 0) push(i - 1);
+    if (x < w - 1) push(i + 1);
+    if (y > 0) push(i - w);
+    if (y < h - 1) push(i + w);
+  }
+  // keep a fringe: an outside pixel within 2 px (Chebyshev) of an opaque one keeps its alpha
+  let cleared = 0;
+  for (let i = 0; i < n; i++) {
+    if (!outside[i]) continue;
+    const x = i % w, y = (i - x) / w;
+    let nearOpaque = false;
+    for (let dy = -2; dy <= 2 && !nearOpaque; dy++) {
+      const yy = y + dy; if (yy < 0 || yy >= h) continue;
+      for (let dx = -2; dx <= 2; dx++) { const xx = x + dx; if (xx < 0 || xx >= w) continue; const j = yy * w + xx; if (!outside[j] && data[j * 4 + 3] >= BUST_OPAQUE) { nearOpaque = true; break; } }
+    }
+    if (!nearOpaque) { data[i * 4 + 3] = 0; cleared++; }
+  }
+  return cleared;
+}
+/** A bust source as a clean square PNG in a temp file: dehazed, and (Round 3's 2:3 busts) cropped to a square anchored above the subject. */
+function bustSquare(sid) {
+  const img = decodePNG(src(sid));
+  const cleared = dehaze(img);
+  const side = Math.min(img.w, img.h), t = tmp();
+  if (img.w !== img.h) {
+    const b = alphaBBox(img, 8, 0);
+    const y = Math.max(0, Math.min(img.h - side, b.y - Math.round(side * 0.04)));
+    const x = Math.max(0, Math.min(img.w - side, Math.round(b.x + b.w / 2 - side / 2)));
+    encodePNG(crop(img, x, y, side, side), t, true);
+  } else encodePNG(img, t, true);
+  return { file: t, cleared };
+}
 function trimTo(id, dest, mode, size, clean = false) {
   const img = decodePNG(src(id)), t = tmp();
   if (clean) despill(img); // before the bounding box, so dropped haze does not widen the figure
@@ -309,17 +371,10 @@ for (const [cid, base, portraitId] of CHARACTERS) {
       const sid = exists(`${base}_${ex}_A`) ? `${base}_${ex}_A` : (ex === 'neutral' && exists(`${base}_bust_A`) ? `${base}_bust_A` : null);
       if (!sid) continue;
       const dest = out('portrait', `${cid}_${ex}.png`);
-      const d0 = dims(src(sid));
-      if (d0.w !== d0.h) {
-        // Round 3 busts came back 2:3: take a square the width of the image, anchored just above the subject
-        // (alpha bounding box), so the head and shoulders fill the square without distortion.
-        const img = decodePNG(src(sid)), b = alphaBBox(img, 8, 0);
-        const side = Math.min(img.w, img.h), y = Math.max(0, Math.min(img.h - side, b.y - Math.round(side * 0.04)));
-        const x = Math.max(0, Math.min(img.w - side, Math.round(b.x + b.w / 2 - side / 2)));
-        const t = tmp(); encodePNG(crop(img, x, y, side, side), t, true);
-        sips('-z', String(PORTRAIT), String(PORTRAIT), t, '--out', dest);
-      } else sips('-z', String(PORTRAIT), String(PORTRAIT), src(sid), '--out', dest);
+      const sq = bustSquare(sid);
+      sips('-z', String(PORTRAIT), String(PORTRAIT), sq.file, '--out', dest);
       entry[ex] = rel(dest); entry.sources.push(latest(sid));
+      if (sq.cleared) (entry.dehazed ??= {})[ex] = sq.cleared;
     }
     if (!entry.neutral) {
       const refId = CANDIDATES[cid]?.[0] ?? `${base}_ref_A`;
@@ -425,16 +480,11 @@ if (incTv) {
       entry.ref = rel(dest); entry.sources.push(refId);
     }
     if (bustOk) {
-      const dest = out('cast', `${id}_bust.png`), d0 = dims(src(bustId));
-      if (d0.w !== d0.h) {
-        // same square crop as the Round 3 busts: image-width square anchored just above the subject's alpha box
-        const img = decodePNG(src(bustId)), b = alphaBBox(img, 8, 0);
-        const side = Math.min(img.w, img.h), y = Math.max(0, Math.min(img.h - side, b.y - Math.round(side * 0.04)));
-        const x = Math.max(0, Math.min(img.w - side, Math.round(b.x + b.w / 2 - side / 2)));
-        const t = tmp(); encodePNG(crop(img, x, y, side, side), t, true);
-        sips('-z', String(PORTRAIT), String(PORTRAIT), t, '--out', dest);
-      } else sips('-z', String(PORTRAIT), String(PORTRAIT), src(bustId), '--out', dest);
+      const dest = out('cast', `${id}_bust.png`);
+      const sq = bustSquare(bustId);
+      sips('-z', String(PORTRAIT), String(PORTRAIT), sq.file, '--out', dest);
       entry.bust = rel(dest); entry.sources.push(bustId);
+      if (sq.cleared) entry.dehazed = sq.cleared;
     } else if (exists(refId)) {
       const img = decodePNG(src(refId)), b = referenceBustBox(img), t = tmp(), dest = out('cast', `${id}_bust.png`);
       encodePNG(crop(img, b.x, b.y, b.w, b.h), t, false);

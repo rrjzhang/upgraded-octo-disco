@@ -7,7 +7,7 @@ import type {
 } from './types';
 import { COND_FIELDS } from './types';
 import { DEFAULT_STRINGS } from './strings';
-import { validateEffects, validateCond, sceneList } from './rules';
+import { validateEffects, validateCond, sceneList, EMOTIONS as EMOTION_LIST } from './rules';
 import { appUrl } from './util';
 
 export interface Source {
@@ -35,7 +35,7 @@ export const OVERRIDE_KEY = 'gv:override:v1';
 /** IndexedDB database / object store of the researcher's image overrides. */
 export const OVERRIDE_DB = 'gv';
 export const OVERRIDE_STORE = 'images';
-const EMOTIONS: Emotion[] = ['neutral', 'warm', 'guarded', 'worried'];
+const EMOTIONS: Emotion[] = [...EMOTION_LIST];
 /** SPEC "Stances": Berry's acculturation strategies minus marginalization. */
 export const STANCES = ['none', 'integration', 'assimilation', 'separation'] as const;
 /** SPEC "Packs": culture packs a scene may belong to (absent = shared by everyone). */
@@ -183,6 +183,9 @@ function parseScenes(r: Reporter, file: string, text: string): Scene[] {
       horizon: typeof s.horizon === 'number' && s.horizon > 0 && s.horizon < 1 ? s.horizon : DEFAULT_HORIZON,
       cameraHeight: typeof s.cameraHeight === 'number' && s.cameraHeight > 0 ? s.cameraHeight : DEFAULT_CAMERA_HEIGHT,
       ...(Number.isInteger(s.maxPresent) && s.maxPresent > 0 ? { maxPresent: s.maxPresent } : {}),
+      occupied: s.occupied && typeof s.occupied === 'object' && s.occupied.background
+        ? { background: str(s.occupied.background), slots: (Array.isArray(s.occupied.slots) ? s.occupied.slots : []).map((x: any) => str(x)) }
+        : undefined,
       painted: s.painted && typeof s.painted === 'object' && s.painted.background
         ? { background: str(s.painted.background), npcs: (Array.isArray(s.painted.npcs) ? s.painted.npcs : []).map((x: any) => str(x)) }
         : undefined,
@@ -482,6 +485,64 @@ function readOverrideText(): OverrideText | null {
     console.warn(`[override] ${OVERRIDE_KEY} ignored: ${(e as Error).message}`);
     return null;
   }
+}
+
+// ------------------------------------------------------------------ dev: editing a line in place (SPEC "Dev: editing a line in place")
+/** The override JSON to write into: the stored one (if valid), else a fresh empty set. */
+export function overrideForWrite(): OverrideText {
+  return readOverrideText() ?? { v: 1 };
+}
+
+/** Stores the override set with `updated` = now. Returns false when localStorage refuses (full, blocked). */
+export function storeOverride(o: OverrideText): boolean {
+  o.updated = new Date().toISOString();
+  try { localStorage.setItem(OVERRIDE_KEY, JSON.stringify(o)); return true; } catch { return false; }
+}
+
+/** CSV text in the editor's canonical form (Papa.unparse, quoting only where needed, \n newlines, trailing newline). */
+function unparseCsv(data: string[][]): string {
+  return Papa.unparse(data, { newline: '\n' }) + '\n';
+}
+
+/** A dialogue sheet regenerated from parsed rows (fallback when the bundled text cannot be read); `scene` written when used. */
+export function dialogueCsvFromRows(rows: DialogueRow[]): string {
+  const cols = [...DIALOGUE_COLUMNS];
+  if (rows.some((r) => r.scene)) cols.splice(cols.indexOf('dayPhase') + 1, 0, 'scene');
+  const data = rows.map((r) => {
+    const cell: Record<string, string> = {
+      ...r.conds, id: r.id, scene: r.scene, priority: String(r.priority), emotion: r.emotion, line: r.line,
+    };
+    r.choices.forEach((c, i) => { cell[`choice${i + 1}`] = c.text; cell[`effect${i + 1}`] = c.effect; cell[`next${i + 1}`] = c.next; });
+    return cols.map((c) => cell[c] ?? '');
+  });
+  return unparseCsv([cols, ...data]);
+}
+
+/**
+ * Rewrites one row of a dialogue sheet: its `line` cell and the texts of its existing (non-blank) choices, in order.
+ * Every other cell, row and the header are kept. Returns the new CSV text, or an error message.
+ */
+export function patchDialogueRow(text: string, rowId: string, line: string, choiceTexts: string[]): { text: string } | { error: string } {
+  if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+  const data = (Papa.parse<string[]>(text, { header: false, skipEmptyLines: 'greedy' }).data as string[][]).map((r) => r.map((x) => String(x ?? '')));
+  const header = (data[0] ?? []).map((x) => x.trim());
+  const col = (name: string) => header.indexOf(name);
+  if (col('id') < 0 || col('line') < 0) return { error: 'sheet has no id/line column' };
+  const rec = data.slice(1).find((r) => (r[col('id')] ?? '').trim() === rowId);
+  if (!rec) return { error: `row "${rowId}" not found in the sheet` };
+  while (rec.length < header.length) rec.push('');
+  rec[col('line')] = line;
+  const slots = [1, 2, 3].map((k) => col(`choice${k}`)).filter((i) => i >= 0 && (rec[i] ?? '').trim() !== '');
+  if (slots.length !== choiceTexts.length) return { error: 'choice count changed under the editor; reload and try again' };
+  slots.forEach((i, n) => { rec[i] = choiceTexts[n]; });
+  return { text: unparseCsv(data) };
+}
+
+/** Parses a dialogue sheet quietly (no console noise); the rows, or the problems found. */
+export function parseDialogueQuiet(npcId: string, text: string, sceneIds: Set<string>): { rows: DialogueRow[] } | { errors: string[] } {
+  const q = new Reporter(true);
+  const rows = parseDialogue(q, npcId, `content/dialogue/${npcId}.csv`, text, sceneIds);
+  return q.errors.length ? { errors: q.errors } : { rows };
 }
 
 /**

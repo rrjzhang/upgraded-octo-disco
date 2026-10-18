@@ -73,10 +73,15 @@ t('bad: C6 unreachable', () => { const d = find('UNREACHABLE', 'dialogue/carol.c
 t('bad: dangling next on C1 next2', () => { const d = find('DANGLING_NEXT', 'dialogue/carol.csv', 'C1'); assert.equal(d.length, 1); assert.equal(d[0].column, 'next2'); assert.equal(d[0].line, 3); assert.match(d[0].message, /C99/); });
 t('bad: unknown effect token on C3 effect1', () => { const d = find('UNKNOWN_EFFECT', 'dialogue/carol.csv', 'C3'); assert.equal(d.length, 1); assert.equal(d[0].column, 'effect1'); assert.match(d[0].message, /trust \+1/); });
 t('bad: malformed `cost -1` on C2 effect1 is BAD_VALUE', () => { const d = find('BAD_VALUE', 'dialogue/carol.csv', 'C2'); assert.equal(d.length, 1); assert.equal(d[0].column, 'effect1'); assert.match(d[0].message, /cost -1/); });
+t('bad: C4 beats: unknown [angry] tag and an empty beat are BAD_VALUE, five beats a BEATS warning', () => {
+  const d = find('BAD_VALUE', 'dialogue/carol.csv', 'C4'); assert.equal(d.length, 2); assert.ok(d.every(x => x.column === 'line'));
+  assert.ok(d.some(x => /\[angry\]/.test(x.message)) && d.some(x => /empty beat/.test(x.message)), d.map(x => x.message).join(' | '));
+  const w = find('BEATS', 'dialogue/carol.csv', 'C4'); assert.equal(w.length, 1); assert.equal(w[0].severity, 'warning'); assert.match(w[0].message, /5 beats/);
+});
 t('bad: dave has no fallback', () => assert.equal(find('MISSING_FALLBACK', 'dialogue/dave.csv').length, 1));
 t('bad: nothing else is reported', () => {
   const codes = bad.result.diagnostics.filter(d => d.severity !== 'info').map(d => d.code).sort();
-  assert.deepEqual(codes, ['BAD_VALUE', 'DANGLING_NEXT', 'MISSING_FALLBACK', 'NEVER_WINS', 'TIE', 'UNKNOWN_EFFECT', 'UNREACHABLE']);
+  assert.deepEqual(codes, ['BAD_VALUE', 'BAD_VALUE', 'BAD_VALUE', 'BEATS', 'DANGLING_NEXT', 'MISSING_FALLBACK', 'NEVER_WINS', 'TIE', 'UNKNOWN_EFFECT', 'UNREACHABLE']);
 });
 t('bad: C3 (tie partner) is still reachable via C5/choice1', () => {
   const c = bad.result.npcs.find(n => n.id === 'carol');
