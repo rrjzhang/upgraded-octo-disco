@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-18T20:22:12.169Z",
+  "generated": "2026-10-18T20:33:22.470Z",
   "source": "image_generation/out (_A set)",
   "backgrounds": {
     "bg_home_day": {
@@ -63,7 +63,7 @@
       "w": 1536,
       "h": 1024,
       "lighting": "outdoor",
-      "source": "bg_park_day_A"
+      "source": "bg_park_board_day_A"
     },
     "bg_park_chess_day": {
       "file": "bg/bg_park_chess_day.jpg",
@@ -71,6 +71,48 @@
       "h": 1024,
       "lighting": "outdoor",
       "source": "bg_park_chess_day_A"
+    },
+    "bg_home_cn_day": {
+      "file": "bg/bg_home_cn_day.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "warm_indoor",
+      "source": "bg_home_cn_day_A"
+    },
+    "bg_home_cn_eve": {
+      "file": "bg/bg_home_cn_eve.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "warm_indoor",
+      "source": "bg_home_cn_eve_A"
+    },
+    "bg_home_mx_day": {
+      "file": "bg/bg_home_mx_day.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "warm_indoor",
+      "source": "bg_home_mx_day_A"
+    },
+    "bg_home_mx_eve": {
+      "file": "bg/bg_home_mx_eve.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "warm_indoor",
+      "source": "bg_home_mx_eve_A"
+    },
+    "bg_home_in_day": {
+      "file": "bg/bg_home_in_day.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "warm_indoor",
+      "source": "bg_home_in_day_A"
+    },
+    "bg_home_in_eve": {
+      "file": "bg/bg_home_in_eve.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "warm_indoor",
+      "source": "bg_home_in_eve_A"
     }
   },
   "portraits": {

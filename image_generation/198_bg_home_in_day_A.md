@@ -11,7 +11,7 @@ depends_on: ["bg_home_tv_day_A"]
 attach: "out/bg_home_tv_day_A.png"
 save_image_as: "out/bg_home_in_day_A.png"
 save_prompt_used_as: "out/bg_home_in_day_A.prompt.txt"
-status: "pending"
+status: "done"
 ---
 
 # bg_home_in_day_A
