@@ -11,7 +11,7 @@ depends_on: ["cast_president_inclusive_ref_A"]
 attach: "out/cast_president_inclusive_ref_A.png"
 save_image_as: "out/cast_president_inclusive_warm_A.png"
 save_prompt_used_as: "out/cast_president_inclusive_warm_A.prompt.txt"
-status: "pending"
+status: "done"
 ---
 
 # cast_president_inclusive_warm_A

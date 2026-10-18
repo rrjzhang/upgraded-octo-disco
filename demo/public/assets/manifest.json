@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-18T20:33:22.470Z",
+  "generated": "2026-10-18T21:20:49.865Z",
   "source": "image_generation/out (_A set)",
   "backgrounds": {
     "bg_home_day": {
@@ -119,12 +119,14 @@
     "us_neighbor": {
       "neutral": "portrait/us_neighbor_neutral.png",
       "warm": "portrait/us_neighbor_warm.png",
-      "guarded": null,
-      "worried": null,
+      "guarded": "portrait/us_neighbor_guarded.png",
+      "worried": "portrait/us_neighbor_worried.png",
       "placeholder": false,
       "fromReference": true,
       "sources": [
         "ch_us_neighbor_warm_A",
+        "ch_us_neighbor_guarded_A",
+        "ch_us_neighbor_worried_A",
         "ch_us_neighbor_ref_A"
       ],
       "referenceCrop": {
@@ -136,12 +138,15 @@
     },
     "us_stranger_a": {
       "neutral": "portrait/us_stranger_a_neutral.png",
-      "warm": null,
-      "guarded": null,
-      "worried": null,
+      "warm": "portrait/us_stranger_a_warm.png",
+      "guarded": "portrait/us_stranger_a_guarded.png",
+      "worried": "portrait/us_stranger_a_worried.png",
       "placeholder": false,
       "fromReference": true,
       "sources": [
+        "ch_us_stranger_a_warm_A",
+        "ch_us_stranger_a_guarded_A",
+        "ch_us_stranger_a_worried_A",
         "ch_us_stranger_a_ref_A"
       ],
       "referenceCrop": {
@@ -155,49 +160,55 @@
       "neutral": "portrait/us_stranger_b_neutral.png",
       "warm": "portrait/us_stranger_b_warm.png",
       "guarded": "portrait/us_stranger_b_guarded.png",
-      "worried": null,
+      "worried": "portrait/us_stranger_b_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
         "ch_us_stranger_b_neutral_A",
         "ch_us_stranger_b_warm_A",
-        "ch_us_stranger_b_guarded_A"
+        "ch_us_stranger_b_guarded_A",
+        "ch_us_stranger_b_worried_A"
       ]
     },
     "us_leader_int": {
       "neutral": "portrait/us_leader_int_neutral.png",
       "warm": "portrait/us_leader_int_warm.png",
       "guarded": "portrait/us_leader_int_guarded.png",
-      "worried": null,
+      "worried": "portrait/us_leader_int_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
         "ch_us_leader_int_neutral_A",
         "ch_us_leader_int_warm_A",
-        "ch_us_leader_int_guarded_A"
+        "ch_us_leader_int_guarded_A",
+        "ch_us_leader_int_worried_A"
       ]
     },
     "us_leader_seg": {
       "neutral": "portrait/us_leader_seg_neutral.png",
       "warm": "portrait/us_leader_seg_warm.png",
       "guarded": "portrait/us_leader_seg_guarded.png",
-      "worried": null,
+      "worried": "portrait/us_leader_seg_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
         "ch_us_leader_seg_neutral_A",
         "ch_us_leader_seg_warm_A",
-        "ch_us_leader_seg_guarded_A"
+        "ch_us_leader_seg_guarded_A",
+        "ch_us_leader_seg_worried_A"
       ]
     },
     "nat_enforcement": {
       "neutral": "portrait/nat_enforcement_neutral.png",
-      "warm": null,
-      "guarded": null,
-      "worried": null,
+      "warm": "portrait/nat_enforcement_warm.png",
+      "guarded": "portrait/nat_enforcement_guarded.png",
+      "worried": "portrait/nat_enforcement_worried.png",
       "placeholder": false,
       "fromReference": true,
       "sources": [
+        "ch_nat_anti_warm_A",
+        "ch_nat_anti_guarded_A",
+        "ch_nat_anti_worried_A",
         "ch_nat_anti_ref_A"
       ],
       "referenceCrop": {
@@ -209,36 +220,43 @@
     },
     "nat_inclusive": {
       "neutral": "portrait/nat_inclusive_neutral.png",
-      "warm": null,
-      "guarded": null,
-      "worried": null,
+      "warm": "portrait/nat_inclusive_warm.png",
+      "guarded": "portrait/nat_inclusive_guarded.png",
+      "worried": "portrait/nat_inclusive_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
-        "cast_president_inclusive_bust_A"
+        "cast_president_inclusive_bust_A",
+        "cast_president_inclusive_warm_A",
+        "cast_president_inclusive_guarded_A",
+        "cast_president_inclusive_worried_A"
       ]
     },
     "cn_neighbor": {
       "neutral": "portrait/cn_neighbor_neutral.png",
       "warm": "portrait/cn_neighbor_warm.png",
       "guarded": "portrait/cn_neighbor_guarded.png",
-      "worried": null,
+      "worried": "portrait/cn_neighbor_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
         "ch_cn_neighbor_neutral_A",
         "ch_cn_neighbor_warm_A",
-        "ch_cn_neighbor_guarded_A"
+        "ch_cn_neighbor_guarded_A",
+        "ch_cn_neighbor_worried_A"
       ]
     },
     "cn_stranger_a": {
       "neutral": "portrait/cn_stranger_a_neutral.png",
-      "warm": null,
-      "guarded": null,
-      "worried": null,
+      "warm": "portrait/cn_stranger_a_warm.png",
+      "guarded": "portrait/cn_stranger_a_guarded.png",
+      "worried": "portrait/cn_stranger_a_worried.png",
       "placeholder": false,
       "fromReference": true,
       "sources": [
+        "ch_cn_stranger_a_warm_A",
+        "ch_cn_stranger_a_guarded_A",
+        "ch_cn_stranger_a_worried_A",
         "ch_cn_stranger_a_ref_A"
       ],
       "referenceCrop": {
@@ -252,38 +270,42 @@
       "neutral": "portrait/cn_stranger_b_neutral.png",
       "warm": "portrait/cn_stranger_b_warm.png",
       "guarded": "portrait/cn_stranger_b_guarded.png",
-      "worried": null,
+      "worried": "portrait/cn_stranger_b_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
         "ch_cn_stranger_b_neutral_A",
         "ch_cn_stranger_b_warm_A",
-        "ch_cn_stranger_b_guarded_A"
+        "ch_cn_stranger_b_guarded_A",
+        "ch_cn_stranger_b_worried_A"
       ]
     },
     "cn_leader_int": {
       "neutral": "portrait/cn_leader_int_neutral.png",
       "warm": "portrait/cn_leader_int_warm.png",
       "guarded": "portrait/cn_leader_int_guarded.png",
-      "worried": null,
+      "worried": "portrait/cn_leader_int_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
         "ch_cn_leader_int_neutral_A",
         "ch_cn_leader_int_warm_A",
-        "ch_cn_leader_int_guarded_A"
+        "ch_cn_leader_int_guarded_A",
+        "ch_cn_leader_int_worried_A"
       ]
     },
     "cn_leader_sep": {
       "neutral": "portrait/cn_leader_sep_neutral.png",
-      "warm": null,
+      "warm": "portrait/cn_leader_sep_warm.png",
       "guarded": "portrait/cn_leader_sep_guarded.png",
-      "worried": null,
+      "worried": "portrait/cn_leader_sep_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
         "ch_cn_leader_sep_neutral_A",
-        "ch_cn_leader_sep_guarded_A"
+        "ch_cn_leader_sep_warm_A",
+        "ch_cn_leader_sep_guarded_A",
+        "ch_cn_leader_sep_worried_A"
       ],
       "candidates": [
         "ch_cn_leader_sep_ref_A_1",
@@ -295,182 +317,196 @@
       "neutral": "portrait/us_leader_asm_neutral.png",
       "warm": "portrait/us_leader_asm_warm.png",
       "guarded": "portrait/us_leader_asm_guarded.png",
-      "worried": null,
+      "worried": "portrait/us_leader_asm_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
         "ch_us_leader_asm_neutral_A",
         "ch_us_leader_asm_warm_A",
-        "ch_us_leader_asm_guarded_A"
+        "ch_us_leader_asm_guarded_A",
+        "ch_us_leader_asm_worried_A"
       ]
     },
     "cn_leader_asm": {
       "neutral": "portrait/cn_leader_asm_neutral.png",
       "warm": "portrait/cn_leader_asm_warm.png",
       "guarded": "portrait/cn_leader_asm_guarded.png",
-      "worried": null,
+      "worried": "portrait/cn_leader_asm_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
         "ch_cn_leader_asm_neutral_A",
         "ch_cn_leader_asm_warm_A",
-        "ch_cn_leader_asm_guarded_A"
+        "ch_cn_leader_asm_guarded_A",
+        "ch_cn_leader_asm_worried_A"
       ]
     },
     "mx_neighbor": {
       "neutral": "portrait/mx_neighbor_neutral.png",
       "warm": "portrait/mx_neighbor_warm.png",
       "guarded": "portrait/mx_neighbor_guarded.png",
-      "worried": null,
+      "worried": "portrait/mx_neighbor_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
         "ch_mx_neighbor_neutral_A",
         "ch_mx_neighbor_warm_A",
-        "ch_mx_neighbor_guarded_A"
+        "ch_mx_neighbor_guarded_A",
+        "ch_mx_neighbor_worried_A"
       ]
     },
     "mx_stranger_a": {
       "neutral": "portrait/mx_stranger_a_neutral.png",
       "warm": "portrait/mx_stranger_a_warm.png",
       "guarded": "portrait/mx_stranger_a_guarded.png",
-      "worried": null,
+      "worried": "portrait/mx_stranger_a_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
         "ch_mx_stranger_a_neutral_A",
         "ch_mx_stranger_a_warm_A",
-        "ch_mx_stranger_a_guarded_A"
+        "ch_mx_stranger_a_guarded_A",
+        "ch_mx_stranger_a_worried_A"
       ]
     },
     "mx_stranger_b": {
       "neutral": "portrait/mx_stranger_b_neutral.png",
       "warm": "portrait/mx_stranger_b_warm.png",
       "guarded": "portrait/mx_stranger_b_guarded.png",
-      "worried": null,
+      "worried": "portrait/mx_stranger_b_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
         "ch_mx_stranger_b_neutral_A",
         "ch_mx_stranger_b_warm_A",
-        "ch_mx_stranger_b_guarded_A"
+        "ch_mx_stranger_b_guarded_A",
+        "ch_mx_stranger_b_worried_A"
       ]
     },
     "mx_leader_asm": {
       "neutral": "portrait/mx_leader_asm_neutral.png",
       "warm": "portrait/mx_leader_asm_warm.png",
       "guarded": "portrait/mx_leader_asm_guarded.png",
-      "worried": null,
+      "worried": "portrait/mx_leader_asm_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
         "ch_mx_leader_asm_neutral_A",
         "ch_mx_leader_asm_warm_A",
-        "ch_mx_leader_asm_guarded_A"
+        "ch_mx_leader_asm_guarded_A",
+        "ch_mx_leader_asm_worried_A"
       ]
     },
     "mx_leader_int": {
       "neutral": "portrait/mx_leader_int_neutral.png",
       "warm": "portrait/mx_leader_int_warm.png",
       "guarded": "portrait/mx_leader_int_guarded.png",
-      "worried": null,
+      "worried": "portrait/mx_leader_int_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
         "ch_mx_leader_int_neutral_A_v2",
         "ch_mx_leader_int_warm_A_v2",
-        "ch_mx_leader_int_guarded_A_v2"
+        "ch_mx_leader_int_guarded_A_v2",
+        "ch_mx_leader_int_worried_A"
       ]
     },
     "mx_leader_sep": {
       "neutral": "portrait/mx_leader_sep_neutral.png",
       "warm": "portrait/mx_leader_sep_warm.png",
       "guarded": "portrait/mx_leader_sep_guarded.png",
-      "worried": null,
+      "worried": "portrait/mx_leader_sep_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
         "ch_mx_leader_sep_neutral_A_v2",
         "ch_mx_leader_sep_warm_A_v2",
-        "ch_mx_leader_sep_guarded_A_v2"
+        "ch_mx_leader_sep_guarded_A_v2",
+        "ch_mx_leader_sep_worried_A"
       ]
     },
     "in_neighbor": {
       "neutral": "portrait/in_neighbor_neutral.png",
       "warm": "portrait/in_neighbor_warm.png",
       "guarded": "portrait/in_neighbor_guarded.png",
-      "worried": null,
+      "worried": "portrait/in_neighbor_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
         "ch_in_neighbor_neutral_A",
         "ch_in_neighbor_warm_A",
-        "ch_in_neighbor_guarded_A"
+        "ch_in_neighbor_guarded_A",
+        "ch_in_neighbor_worried_A"
       ]
     },
     "in_stranger_a": {
       "neutral": "portrait/in_stranger_a_neutral.png",
       "warm": "portrait/in_stranger_a_warm.png",
       "guarded": "portrait/in_stranger_a_guarded.png",
-      "worried": null,
+      "worried": "portrait/in_stranger_a_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
         "ch_in_stranger_a_neutral_A",
         "ch_in_stranger_a_warm_A",
-        "ch_in_stranger_a_guarded_A"
+        "ch_in_stranger_a_guarded_A",
+        "ch_in_stranger_a_worried_A"
       ]
     },
     "in_stranger_b": {
       "neutral": "portrait/in_stranger_b_neutral.png",
       "warm": "portrait/in_stranger_b_warm.png",
       "guarded": "portrait/in_stranger_b_guarded.png",
-      "worried": null,
+      "worried": "portrait/in_stranger_b_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
         "ch_in_stranger_b_neutral_A",
         "ch_in_stranger_b_warm_A",
-        "ch_in_stranger_b_guarded_A"
+        "ch_in_stranger_b_guarded_A",
+        "ch_in_stranger_b_worried_A"
       ]
     },
     "in_leader_asm": {
       "neutral": "portrait/in_leader_asm_neutral.png",
       "warm": "portrait/in_leader_asm_warm.png",
       "guarded": "portrait/in_leader_asm_guarded.png",
-      "worried": null,
+      "worried": "portrait/in_leader_asm_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
         "ch_in_leader_asm_neutral_A",
         "ch_in_leader_asm_warm_A",
-        "ch_in_leader_asm_guarded_A"
+        "ch_in_leader_asm_guarded_A",
+        "ch_in_leader_asm_worried_A"
       ]
     },
     "in_leader_int": {
       "neutral": "portrait/in_leader_int_neutral.png",
       "warm": "portrait/in_leader_int_warm.png",
       "guarded": "portrait/in_leader_int_guarded.png",
-      "worried": null,
+      "worried": "portrait/in_leader_int_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
         "ch_in_leader_int_neutral_A",
         "ch_in_leader_int_warm_A",
-        "ch_in_leader_int_guarded_A"
+        "ch_in_leader_int_guarded_A",
+        "ch_in_leader_int_worried_A"
       ]
     },
     "in_leader_sep": {
       "neutral": "portrait/in_leader_sep_neutral.png",
       "warm": "portrait/in_leader_sep_warm.png",
       "guarded": "portrait/in_leader_sep_guarded.png",
-      "worried": null,
+      "worried": "portrait/in_leader_sep_worried.png",
       "placeholder": false,
       "fromReference": false,
       "sources": [
         "ch_in_leader_sep_neutral_A",
         "ch_in_leader_sep_warm_A",
-        "ch_in_leader_sep_guarded_A"
+        "ch_in_leader_sep_guarded_A",
+        "ch_in_leader_sep_worried_A"
       ]
     }
   },

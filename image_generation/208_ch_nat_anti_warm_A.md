@@ -11,7 +11,7 @@ depends_on: ["ch_nat_anti_ref_A"]
 attach: "out/ch_nat_anti_ref_A.png"
 save_image_as: "out/ch_nat_anti_warm_A.png"
 save_prompt_used_as: "out/ch_nat_anti_warm_A.prompt.txt"
-status: "pending"
+status: "done"
 ---
 
 # ch_nat_anti_warm_A
