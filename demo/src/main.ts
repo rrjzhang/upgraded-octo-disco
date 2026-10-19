@@ -76,11 +76,27 @@ function roomForm(content: Content): void {
     const room = getRoom(c);
     if (!room) { err.textContent = `No room "${c}" on this computer.`; return; }
     if (room.password.trim().toLowerCase() !== pw.value.trim().toLowerCase()) { err.textContent = 'Wrong password.'; return; }
-    if (loadState(c)) startGame(content, room);
-    else setupForm(content, room);
+    enter(content, room);
   });
+  // a room entered before on this browser can be re-entered without the password (SPEC "Study administration")
+  const last = rememberedRoom();
+  if (last && getRoom(last)) {
+    form.append(h('p', { class: 'muted', style: 'margin-top:14px' }, 'Back again? ',
+      h('button', { class: 'btn ghost', type: 'button', text: `Continue in room ${last}`, onclick: () => enter(content, getRoom(last)!) })));
+  }
   app.replaceChildren(h('div', { class: 'form-page' }, form));
   (code.value ? pw : code).focus();
+}
+
+const LOGIN_KEY = 'gv:login';
+/** The room entered in this tab (sessionStorage: survives a refresh, not a new tab) or on this browser (localStorage, for the Continue button). */
+function rememberedRoom(): string | null {
+  try { return sessionStorage.getItem(LOGIN_KEY) || localStorage.getItem(LOGIN_KEY); } catch { return null; }
+}
+function enter(content: Content, room: RoomRecord): void {
+  try { sessionStorage.setItem(LOGIN_KEY, room.code); localStorage.setItem(LOGIN_KEY, room.code); } catch { /* private mode */ }
+  if (loadState(room.code)) startGame(content, room);
+  else setupForm(content, room);
 }
 
 async function main(): Promise<void> {
@@ -118,6 +134,10 @@ async function main(): Promise<void> {
     });
     return;
   }
+  // a refresh in the same tab goes straight back into the room (SPEC "Study administration")
+  let remembered: string | null = null;
+  try { remembered = sessionStorage.getItem(LOGIN_KEY); } catch { /* private mode */ }
+  if (remembered && getRoom(remembered)) { enter(content, getRoom(remembered)!); return; }
   roomForm(content);
 }
 

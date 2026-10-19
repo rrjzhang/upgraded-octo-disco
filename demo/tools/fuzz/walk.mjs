@@ -147,6 +147,9 @@ const PAGE_LIB = `window.__fz = (() => {
       holes, pendingArt: document.querySelectorAll('.right .pending, .right .ph-mark').length,
       line: (document.querySelector('.right .line') || {}).textContent || '', status: (document.querySelector('.right .status') || {}).textContent || '',
       sceneBg: (document.querySelector('.scene-box img') || {}).getAttribute ? (document.querySelector('.scene-box img').getAttribute('src') || '') : '',
+      // a scene that should show a photo but shows none, or a broken one (the 'park disappeared' report)
+      sceneBlank: (() => { const sc = g && g.game.scene; if (!sc || sc.background === 'none') return false; if (document.querySelector('.stage.swapping')) return false; const img = document.querySelector('.scene-box img'); return !img || (img.complete && img.naturalWidth === 0); })(),
+      swapping: !!document.querySelector('.stage.swapping'),
     };
   }
   return { candidates, act, snapshot };
@@ -170,7 +173,7 @@ async function walk(seed) {
   for (let i = 0; i < 80; i++) { await sleep(100); try { if (await ev(`!!(window.gv && window.gv.game && document.querySelector('.stage'))`)) break; } catch { /* loading */ } }
   await ev(PAGE_LIB);
   const trace = [], fails = [], notes = [];
-  let steps = 0, idle = 0, lastDay = 0, finished = false, maxDay = 1, topups = 0;
+  let steps = 0, idle = 0, lastDay = 0, finished = false, maxDay = 1, topups = 0, blank = 0;
   const tour = { visited: new Set(), known: new Set(), done: false }; // per day: scenes visited, scenes known from exits, tour finished
   const t0 = Date.now();
   for (; steps < STEPS; steps++) {
@@ -180,6 +183,7 @@ async function walk(seed) {
     maxDay = Math.max(maxDay, snap.day || 1);
     if (typeof snap.actions === 'number' && snap.actions < 0) fails.push({ step: steps, what: 'actions below zero', detail: `actions=${snap.actions}` });
     if (snap.holes.length) fails.push({ step: steps, what: 'unfilled placeholder on screen', detail: `${snap.holes.join(' ')} in ${snap.scene} (${snap.panel})` });
+    if (snap.sceneBlank) { blank++; if (blank >= 2) fails.push({ step: steps, what: 'scene shows no background image', detail: `${snap.scene} (${snap.panel}), src ${snap.sceneBg || 'none'}` }); } else blank = 0;
     if (snap.day !== lastDay) { trace.push(`\n## Day ${snap.day} (${snap.actions} actions)`); lastDay = snap.day; tour.visited.clear(); tour.done = false; }
     if (snap.scene) tour.visited.add(snap.scene);
     // test mode: the tour must not stall on an empty action bar; top up and say so in the trace

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-19T00:35:17.225Z",
+  "generated": "2026-10-19T01:40:50.966Z",
   "source": "image_generation/out (_A set)",
   "backgrounds": {
     "bg_home_day": {
@@ -137,10 +137,10 @@
         "ch_us_neighbor_worried_A"
       ],
       "dehazed": {
-        "neutral": 638967,
-        "warm": 627736,
-        "guarded": 659270,
-        "worried": 630882
+        "neutral": 617308,
+        "warm": 597868,
+        "guarded": 642047,
+        "worried": 609263
       }
     },
     "us_stranger_a": {
@@ -157,10 +157,10 @@
         "ch_us_stranger_a_worried_A"
       ],
       "dehazed": {
-        "neutral": 634680,
-        "warm": 726658,
-        "guarded": 691810,
-        "worried": 692349
+        "neutral": 632155,
+        "warm": 724385,
+        "guarded": 689422,
+        "worried": 690122
       }
     },
     "us_stranger_b": {
@@ -177,10 +177,10 @@
         "ch_us_stranger_b_worried_A"
       ],
       "dehazed": {
-        "neutral": 657435,
-        "warm": 574839,
-        "guarded": 448143,
-        "worried": 731379
+        "neutral": 610210,
+        "warm": 551460,
+        "guarded": 359238,
+        "worried": 708767
       }
     },
     "us_leader_int": {
@@ -197,10 +197,10 @@
         "ch_us_leader_int_worried_A"
       ],
       "dehazed": {
-        "neutral": 687119,
-        "warm": 729972,
-        "guarded": 727346,
-        "worried": 640485
+        "neutral": 660463,
+        "warm": 680813,
+        "guarded": 706658,
+        "worried": 615444
       }
     },
     "us_leader_seg": {
@@ -217,10 +217,10 @@
         "ch_us_leader_seg_worried_A"
       ],
       "dehazed": {
-        "neutral": 689849,
-        "warm": 671235,
-        "guarded": 676343,
-        "worried": 628372
+        "neutral": 687035,
+        "warm": 668492,
+        "guarded": 672998,
+        "worried": 624995
       }
     },
     "nat_enforcement": {
@@ -237,10 +237,10 @@
         "ch_nat_anti_worried_A"
       ],
       "dehazed": {
-        "neutral": 745234,
-        "warm": 703018,
-        "guarded": 690755,
-        "worried": 680102
+        "neutral": 743089,
+        "warm": 700848,
+        "guarded": 688403,
+        "worried": 677706
       }
     },
     "nat_inclusive": {
@@ -257,10 +257,10 @@
         "cast_president_inclusive_worried_A"
       ],
       "dehazed": {
-        "neutral": 765943,
-        "warm": 614961,
-        "guarded": 585509,
-        "worried": 573626
+        "neutral": 656780,
+        "warm": 591705,
+        "guarded": 567449,
+        "worried": 549406
       }
     },
     "cn_neighbor": {
@@ -277,10 +277,10 @@
         "ch_cn_neighbor_worried_A"
       ],
       "dehazed": {
-        "neutral": 598058,
-        "warm": 655439,
-        "guarded": 503403,
-        "worried": 674518
+        "neutral": 576636,
+        "warm": 637878,
+        "guarded": 487421,
+        "worried": 656185
       }
     },
     "cn_stranger_a": {
@@ -297,10 +297,10 @@
         "ch_cn_stranger_a_worried_A"
       ],
       "dehazed": {
-        "neutral": 850842,
-        "warm": 761854,
-        "guarded": 724393,
-        "worried": 733281
+        "neutral": 847465,
+        "warm": 756995,
+        "guarded": 720401,
+        "worried": 729548
       }
     },
     "cn_stranger_b": {
@@ -317,10 +317,10 @@
         "ch_cn_stranger_b_worried_A"
       ],
       "dehazed": {
-        "neutral": 758730,
-        "warm": 521294,
-        "guarded": 540541,
-        "worried": 675803
+        "neutral": 745491,
+        "warm": 503564,
+        "guarded": 518806,
+        "worried": 660606
       }
     },
     "cn_leader_int": {
@@ -337,10 +337,10 @@
         "ch_cn_leader_int_worried_A"
       ],
       "dehazed": {
-        "neutral": 600988,
-        "warm": 684951,
-        "guarded": 728153,
-        "worried": 761295
+        "neutral": 560055,
+        "warm": 669219,
+        "guarded": 709236,
+        "worried": 744854
       }
     },
     "cn_leader_sep": {
@@ -357,10 +357,10 @@
         "ch_cn_leader_sep_worried_A"
       ],
       "dehazed": {
-        "neutral": 684904,
-        "warm": 702817,
-        "guarded": 785436,
-        "worried": 658750
+        "neutral": 682466,
+        "warm": 700910,
+        "guarded": 784029,
+        "worried": 656032
       },
       "candidates": [
         "ch_cn_leader_sep_ref_A_1",
@@ -382,10 +382,10 @@
         "ch_us_leader_asm_worried_A"
       ],
       "dehazed": {
-        "neutral": 756980,
-        "warm": 667202,
-        "guarded": 693323,
-        "worried": 663831
+        "neutral": 703877,
+        "warm": 663283,
+        "guarded": 690815,
+        "worried": 661365
       }
     },
     "cn_leader_asm": {
@@ -402,10 +402,10 @@
         "ch_cn_leader_asm_worried_A"
       ],
       "dehazed": {
-        "neutral": 803726,
-        "warm": 902259,
-        "guarded": 679358,
-        "worried": 728087
+        "neutral": 767797,
+        "warm": 858803,
+        "guarded": 614795,
+        "worried": 721564
       }
     },
     "mx_neighbor": {
@@ -422,10 +422,10 @@
         "ch_mx_neighbor_worried_A"
       ],
       "dehazed": {
-        "neutral": 771858,
-        "warm": 759890,
-        "guarded": 739596,
-        "worried": 733950
+        "neutral": 734709,
+        "warm": 706470,
+        "guarded": 720111,
+        "worried": 715635
       }
     },
     "mx_stranger_a": {
@@ -442,10 +442,10 @@
         "ch_mx_stranger_a_worried_A"
       ],
       "dehazed": {
-        "neutral": 662753,
-        "warm": 653521,
-        "guarded": 554158,
-        "worried": 663981
+        "neutral": 661391,
+        "warm": 639425,
+        "guarded": 489595,
+        "worried": 662896
       }
     },
     "mx_stranger_b": {
@@ -462,10 +462,10 @@
         "ch_mx_stranger_b_worried_A"
       ],
       "dehazed": {
-        "neutral": 854601,
-        "warm": 748881,
-        "guarded": 751853,
-        "worried": 722921
+        "neutral": 824234,
+        "warm": 709718,
+        "guarded": 717937,
+        "worried": 689258
       }
     },
     "mx_leader_asm": {
@@ -482,10 +482,10 @@
         "ch_mx_leader_asm_worried_A"
       ],
       "dehazed": {
-        "neutral": 962620,
-        "warm": 663121,
-        "guarded": 668031,
-        "worried": 642530
+        "neutral": 889776,
+        "warm": 661527,
+        "guarded": 662809,
+        "worried": 640841
       }
     },
     "mx_leader_int": {
@@ -502,10 +502,10 @@
         "ch_mx_leader_int_worried_A"
       ],
       "dehazed": {
-        "neutral": 604152,
-        "warm": 654799,
-        "guarded": 533794,
-        "worried": 535792
+        "neutral": 580727,
+        "warm": 633004,
+        "guarded": 423001,
+        "worried": 509769
       }
     },
     "mx_leader_sep": {
@@ -522,10 +522,10 @@
         "ch_mx_leader_sep_worried_A"
       ],
       "dehazed": {
-        "neutral": 664995,
-        "warm": 663031,
-        "guarded": 654338,
-        "worried": 624207
+        "neutral": 663478,
+        "warm": 660936,
+        "guarded": 652593,
+        "worried": 622316
       }
     },
     "in_neighbor": {
@@ -542,10 +542,10 @@
         "ch_in_neighbor_worried_A"
       ],
       "dehazed": {
-        "neutral": 731992,
-        "warm": 748639,
-        "guarded": 639251,
-        "worried": 669521
+        "neutral": 708317,
+        "warm": 719961,
+        "guarded": 600026,
+        "worried": 643231
       }
     },
     "in_stranger_a": {
@@ -562,10 +562,10 @@
         "ch_in_stranger_a_worried_A"
       ],
       "dehazed": {
-        "neutral": 694457,
-        "warm": 712234,
-        "guarded": 707058,
-        "worried": 679478
+        "neutral": 693266,
+        "warm": 710195,
+        "guarded": 686939,
+        "worried": 678576
       }
     },
     "in_stranger_b": {
@@ -582,10 +582,10 @@
         "ch_in_stranger_b_worried_A"
       ],
       "dehazed": {
-        "neutral": 953847,
-        "warm": 771050,
-        "guarded": 746305,
-        "worried": 766255
+        "neutral": 887798,
+        "warm": 764452,
+        "guarded": 741666,
+        "worried": 760042
       }
     },
     "in_leader_asm": {
@@ -602,10 +602,10 @@
         "ch_in_leader_asm_worried_A"
       ],
       "dehazed": {
-        "neutral": 697289,
-        "warm": 695801,
-        "guarded": 702874,
-        "worried": 662861
+        "neutral": 692612,
+        "warm": 693119,
+        "guarded": 697562,
+        "worried": 659292
       }
     },
     "in_leader_int": {
@@ -622,10 +622,10 @@
         "ch_in_leader_int_worried_A"
       ],
       "dehazed": {
-        "neutral": 869795,
-        "warm": 615037,
-        "guarded": 1010925,
-        "worried": 708631
+        "neutral": 835669,
+        "warm": 551668,
+        "guarded": 903973,
+        "worried": 674605
       }
     },
     "in_leader_sep": {
@@ -642,10 +642,10 @@
         "ch_in_leader_sep_worried_A"
       ],
       "dehazed": {
-        "neutral": 723702,
-        "warm": 716920,
-        "guarded": 775798,
-        "worried": 705715
+        "neutral": 722025,
+        "warm": 669285,
+        "guarded": 707219,
+        "worried": 702891
       }
     }
   },
@@ -968,7 +968,7 @@
         "cast_president_inclusive_bust_A",
         "cast_president_inclusive_tv_A"
       ],
-      "dehazed": 765943
+      "dehazed": 656780
     },
     "cast_governor": {
       "name": "Governor Dale Whitaker",
@@ -1034,7 +1034,7 @@
         "cast_principal_ref_A",
         "cast_principal_bust_A"
       ],
-      "dehazed": 686451
+      "dehazed": 564626
     },
     "cast_clinic_director": {
       "name": "Dr. Nadia Haddad",
@@ -1049,7 +1049,7 @@
         "cast_clinic_director_bust_A",
         "cast_clinic_director_tv_A"
       ],
-      "dehazed": 731569
+      "dehazed": 683894
     },
     "cast_agency_spokesperson": {
       "name": "Craig Mullins",
@@ -1064,7 +1064,7 @@
         "cast_agency_spokesperson_bust_A",
         "cast_agency_spokesperson_tv_A"
       ],
-      "dehazed": 749041
+      "dehazed": 746040
     },
     "cast_council_member": {
       "name": "Councilmember Kevin Tran",
@@ -1079,7 +1079,7 @@
         "cast_council_member_bust_A",
         "cast_council_member_tv_A"
       ],
-      "dehazed": 745400
+      "dehazed": 742688
     },
     "cast_anchor": {
       "name": "Jasmine Porter",
@@ -1094,7 +1094,7 @@
         "cast_anchor_bust_A",
         "cast_anchor_tv_A"
       ],
-      "dehazed": 566672
+      "dehazed": 215055
     }
   }
 }

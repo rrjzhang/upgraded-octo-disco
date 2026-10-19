@@ -284,12 +284,13 @@ function despill(img) {
  * guarded was the first noticed). Measured over the 104 sources: the person's alpha sits at 226-253 (1st percentile of
  * the torso), the haze fades from ~250 at the body out to 0 at the corners. Flood from the image border through every
  * pixel with alpha below HAZE_MAX and clear what the flood reaches, except a 2 px fringe next to a solid pixel (the
- * anti-aliased edge of hair and shoulders). HAZE_MAX = 200 clears no pixel of any body (checked: nothing at alpha >= 200
- * is reachable at that threshold in any source); the denser haze right next to the person (alpha 200-250) stays, and a
- * bust where that still reads as a grey backdrop is a retake, not a patch. Interior semi-transparent pixels (glasses)
+ * anti-aliased edge of hair and shoulders). HAZE_MAX was 200 at first (nothing at alpha >= 200 is reachable at that
+ * threshold), but loose hair and thin fabric below that alpha were cleared too and looked eaten; it is now 40, which
+ * only removes the near-invisible speckle (Don Ernesto's aura was alpha <= 15). The remaining faint grey haze is
+ * accepted as consistent across the set; a bust that reads as a grey backdrop is a retake, not a patch. Interior semi-transparent pixels (glasses)
  * are not reached and stay. Skipped when the image has no solid body (a flat-background bust).
  */
-const HAZE_MAX = 200;
+const HAZE_MAX = 40; // was 200: at 200 the flood also took wisps of hair below that alpha (the user saw portraits 'eaten'); 40 clears only the near-invisible speckle that read as a pixellated aura, and a faint consistent haze is accepted
 const BUST_OPAQUE = 226; // the least opaque a body pixel gets; the fringe test
 function dehaze(img) {
   const { w, h, data } = img;

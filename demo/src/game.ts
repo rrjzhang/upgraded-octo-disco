@@ -106,6 +106,10 @@ export class Game {
     document.addEventListener('keydown', (e) => this.onKey(e));
     // stamp the open conversation when the page goes away, so a reload closes it with its real duration
     window.addEventListener('pagehide', () => { if (this.s.convo) { this.s.convo.last = Date.now(); this.save(); } });
+    // SPEC "Action log": client_error lines, so a blank scene or a crash seen on a participant's machine can be read back
+    // from the exported log (what failed, where, which build)
+    window.addEventListener('error', (e) => this.clientError('uncaught', `${e.message} @ ${e.filename ?? ''}:${e.lineno ?? ''}`));
+    window.addEventListener('unhandledrejection', (e) => this.clientError('unhandledrejection', String((e as PromiseRejectionEvent).reason?.message ?? (e as PromiseRejectionEvent).reason).slice(0, 300)));
     this.fit();
   }
 
@@ -1418,6 +1422,16 @@ export class Game {
     return h('span', { class: 'pending', text: this.str('ui.pendingArt') });
   }
 
+  /** One `client_error` log line (deduplicated per message within a session) plus a console.error for the walker. */
+  private clientErrors = new Set<string>();
+  private clientError(what: string, detail: string): void {
+    const key = `${what}|${detail}`;
+    if (this.clientErrors.has(key)) return;
+    this.clientErrors.add(key);
+    console.error(`[client] ${what}: ${detail}`);
+    try { appendLog(this.s, { type: 'client_error', what, detail: detail.slice(0, 400), ua: navigator.userAgent.slice(0, 120), href: location.href.slice(0, 200) }); } catch { /* logging must never throw */ }
+  }
+
   private flatPanel(sc: Scene, bgId: string): HTMLElement {
     return h('div', { class: 'bg-flat', role: 'img', 'aria-label': `${sc.name} (background pending)` },
       h('div', { class: 'bg-flat-name', text: sc.name }),
@@ -1446,7 +1460,7 @@ export class Game {
     const bg = this.bgFor(sc)!;
     if (bg.url) {
       const img = h('img', { class: 'bg', src: bg.url, alt: '', draggable: 'false' });
-      img.addEventListener('error', () => img.replaceWith(this.flatPanel(sc, bg.id)));
+      img.addEventListener('error', () => { this.clientError('image', `background ${bg.id} failed to load: ${bg.url}`); img.replaceWith(this.flatPanel(sc, bg.id)); });
       box.append(img);
       if (bg.placeholder) box.append(this.pendingTag());
     } else {
@@ -1690,7 +1704,7 @@ export class Game {
       body.append(...this.speech(bt.cur.text));
       if (!bt.last) {
         // a beat in progress: only Next (the choices come with the last beat)
-        choices.append(h('button', { class: 'choice next', 'data-fk': 'ch:next', onclick: () => this.nextBeat(), text: `${this.str('ui.next')} \u25B8` }));
+        choices.append(h('button', { class: 'choice next', 'data-fk': 'ch:next', 'aria-label': this.str('ui.next'), title: this.str('ui.next'), onclick: () => this.nextBeat() }, h('span', { class: 'tri', 'aria-hidden': 'true', text: '\u25BE' })));
       } else {
         this.choiceOrder(p.row.id, p.row.choices.length).forEach((i, pos) => {
           const ch = p.row.choices[i];
@@ -1720,7 +1734,7 @@ export class Game {
       const bt = this.beatsOf(p.ev.text, p.beat);
       body.append(...this.speech(bt.cur.text));
       if (!bt.last) {
-        choices.append(h('button', { class: 'choice next', 'data-fk': 'ch:next', onclick: () => this.nextBeat(), text: `${this.str('ui.next')} \u25B8` }));
+        choices.append(h('button', { class: 'choice next', 'data-fk': 'ch:next', 'aria-label': this.str('ui.next'), title: this.str('ui.next'), onclick: () => this.nextBeat() }, h('span', { class: 'tri', 'aria-hidden': 'true', text: '\u25BE' })));
       } else {
         this.choiceOrder(p.ev.id, p.ev.choices.length).forEach((i, pos) => {
           const ch = p.ev.choices[i];
