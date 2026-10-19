@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-19T02:06:48.829Z",
+  "generated": "2026-10-19T03:56:44.743Z",
   "source": "image_generation/out (_A set)",
   "backgrounds": {
     "bg_home_day": {
@@ -182,6 +182,15 @@
         "guarded": 359238,
         "worried": 708767
       }
+    },
+    "us_super": {
+      "neutral": "portrait/placeholder_neutral.png",
+      "warm": null,
+      "guarded": null,
+      "worried": null,
+      "placeholder": true,
+      "fromReference": false,
+      "sources": []
     },
     "us_leader_int": {
       "neutral": "portrait/us_leader_int_neutral.png",
@@ -653,6 +662,7 @@
     "ch_us_neighbor": "us_neighbor",
     "ch_us_stranger_a": "us_stranger_a",
     "ch_us_stranger_b": "us_stranger_b",
+    "ch_us_super": "us_super",
     "ch_us_leader_int": "us_leader_int",
     "ch_us_leader_seg": "us_leader_seg",
     "ch_nat_enforcement": "nat_enforcement",
@@ -900,6 +910,13 @@
       "w": 300,
       "h": 700,
       "seated": true,
+      "placeholder": true
+    },
+    "ch_us_super_fig_stand": {
+      "file": "figure/placeholder_stand.png",
+      "w": 260,
+      "h": 700,
+      "seated": false,
       "placeholder": true
     }
   },
