@@ -2088,6 +2088,8 @@ export class Game {
         appendLog(this.s, { type: 'townhall', op: 'end', ratings: th.ratings, answers: th.answers, ...this.thTally() });
         this.s.townhall = { ...th, stage: 'done' };
         this.panel = { kind: 'idle' };
+        // back home before the call: a player who closes the survey must not be left in a room with no exits
+        this.s.scene = 'home';
         this.save();
         return this.endDay();
       }

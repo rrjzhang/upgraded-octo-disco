@@ -148,7 +148,8 @@ const PAGE_LIB = `window.__fz = (() => {
       line: (document.querySelector('.right .line') || {}).textContent || '', status: (document.querySelector('.right .status') || {}).textContent || '',
       sceneBg: (document.querySelector('.scene-box img') || {}).getAttribute ? (document.querySelector('.scene-box img').getAttribute('src') || '') : '',
       // a scene that should show a photo but shows none, or a broken one (the 'park disappeared' report)
-      sceneBlank: (() => { const sc = g && g.game.scene; if (!sc || sc.background === 'none') return false; if (document.querySelector('.stage.swapping')) return false; const img = document.querySelector('.scene-box img'); return !img || (img.complete && img.naturalWidth === 0); })(),
+      // a labelled flat panel (PLACEHOLDER background, no art yet) is intended, not blank
+      sceneBlank: (() => { const sc = g && g.game.scene; if (!sc || sc.background === 'none') return false; if (document.querySelector('.stage.swapping') || document.querySelector('.scene-box .bg-flat')) return false; const img = document.querySelector('.scene-box img'); return !img || (img.complete && img.naturalWidth === 0); })(),
       swapping: !!document.querySelector('.stage.swapping'),
     };
   }
@@ -166,7 +167,9 @@ async function walk(seed) {
   const culture = cultures[Math.floor(rng() * 3)];
   const viaProfile = rng() < 0.3;
   const region = ['north', 'south', ''][Math.floor(rng() * 3)], faith = ['hindu', 'muslim', ''][Math.floor(rng() * 3)];
-  const q = new URLSearchParams({ dev: '1', reset: '1', name: `Fuzz${seed}` });
+  // SPEC "Leads": which local leader is first among equals on each side, drawn per seed like the culture
+  const usLead = rng() < 0.5 ? 'pro' : 'anti', homeLead = rng() < 0.5 ? 'pro' : 'anti';
+  const q = new URLSearchParams({ dev: '1', reset: '1', name: `Fuzz${seed}`, uslead: usLead, homelead: homeLead });
   if (viaProfile) q.set('profile', '1'); else { q.set('culture', culture); if (culture === 'in') { if (region) q.set('region', region); if (faith) q.set('faith', faith); } }
   errors = [];
   await send('Page.navigate', { url: `${BASE}/?${q}` });
@@ -234,7 +237,7 @@ async function walk(seed) {
   const lines = (log || '').split('\n').filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
   const content = await ev(`JSON.stringify({ rows: Object.fromEntries([...gv.content.dialogue].map(([k, rs]) => [k, Object.fromEntries(rs.map(r => [r.id, { line: r.line, choices: r.choices.map(c => c.text) }]))])), events: Object.fromEntries(gv.content.events.map(e => [e.id, e.text])), names: Object.fromEntries(gv.content.npcs.map(n => [n.id, n.name])), nrows: [...gv.content.dialogue.values()].reduce((a, rs) => a + rs.length, 0), nevents: gv.content.events.length })`).then(JSON.parse);
   const rowsSeen = new Set(), eventsSeen = new Set(); let convos = 0, charged = 0;
-  const tr = [`# Seed ${seed}: ${viaProfile ? 'profile asked' : `culture ${culture}${culture === 'in' ? ` ${region || 'region-skip'} ${faith || 'faith-skip'}` : ''}`}`, ''];
+  const tr = [`# Seed ${seed}: ${viaProfile ? 'profile asked' : `culture ${culture}${culture === 'in' ? ` ${region || 'region-skip'} ${faith || 'faith-skip'}` : ''}`} · usLead ${usLead} · homeLead ${homeLead}`, ''];
   let day = 0;
   for (const l of lines) {
     if (l.day !== day) { day = l.day; tr.push(`\n## Day ${day}`); }
