@@ -3,6 +3,7 @@
 // Usage: node tools/themes/shoot.mjs [--only id1,id2] [--base http://localhost:5173] [--port 9371]
 // A theme may `extends` another (palette and fonts copied) and carry `scale` / `phoneScale` (type size multipliers).
 import { spawn } from 'node:child_process';
+import { inflateSync, deflateSync } from 'node:zlib';
 import { mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -181,7 +182,7 @@ const all = raw.map((t) => {
 });
 const themes = only?.length ? all.filter((t) => only.includes(t.id)) : all;
 const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\..*/, '').replace('T', '-');
-const out = join(here, 'out', stamp); mkdirSync(join(out, 'png'), { recursive: true }); mkdirSync(join(out, 'jpg'), { recursive: true }); mkdirSync(join(out, 'html'), { recursive: true });
+const out = join(here, 'out', stamp); mkdirSync(join(out, 'png'), { recursive: true }); mkdirSync(join(out, 'jpg'), { recursive: true }); mkdirSync(join(out, 'html'), { recursive: true }); mkdirSync(join(out, 'jpg2x'), { recursive: true });
 const profile = join(here, 'out', '.profile');
 
 const chrome = spawn(CHROME, ['--headless=new', `--remote-debugging-port=${PORT}`, '--window-size=1440,900', '--no-first-run', '--no-default-browser-check', `--user-data-dir=${profile}`, '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
@@ -194,12 +195,53 @@ const send = (method, params = {}, ms = 20000) => new Promise((r, j) => { const 
 await send('Page.enable'); await send('Runtime.enable');
 await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: DSF, mobile: false });
 const ev = async (e) => { const r = await send('Runtime.evaluate', { expression: e, awaitPromise: true, returnByValue: true }); if (r.result?.exceptionDetails) throw new Error(r.result.exceptionDetails.exception?.description ?? r.result.exceptionDetails.text); return r.result?.result?.value; };
+// Full screens at DSF 2 are captured as two halves and joined here: in this Chromium build a single 2880x1800 capture of a
+// scene with a bust in the right panel never returns (it works up to DSF 1.75, and for any 720 px wide clip), and
+// neither does joining them on a 2880x1800 canvas in the page. The JPGs are encoded from the joined PNGs after the run.
+const pngDecode = (buf) => {
+  let i = 8, w, h, ct, idat = [];
+  while (i < buf.length) { const n = buf.readUInt32BE(i), t = buf.toString('latin1', i + 4, i + 8); if (t === 'IHDR') { w = buf.readUInt32BE(i + 8); h = buf.readUInt32BE(i + 12); ct = buf[i + 17]; if (buf[i + 16] !== 8 || buf[i + 20]) throw new Error('png: only 8-bit, non-interlaced'); } if (t === 'IDAT') idat.push(buf.subarray(i + 8, i + 8 + n)); i += 12 + n; }
+  const bpp = { 2: 3, 6: 4 }[ct]; if (!bpp) throw new Error('png: colour type ' + ct);
+  const raw = inflateSync(Buffer.concat(idat)), stride = w * bpp, px = Buffer.alloc(h * stride);
+  for (let y = 0; y < h; y++) {
+    const f = raw[y * (stride + 1)], src = raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1)), row = px.subarray(y * stride, (y + 1) * stride), up = y ? px.subarray((y - 1) * stride, y * stride) : null;
+    for (let x = 0; x < stride; x++) {
+      const a = x >= bpp ? row[x - bpp] : 0, b = up ? up[x] : 0, c = up && x >= bpp ? up[x - bpp] : 0;
+      let v = src[x];
+      if (f === 1) v += a; else if (f === 2) v += b; else if (f === 3) v += (a + b) >> 1;
+      else if (f === 4) { const p = a + b - c, pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c); v += pa <= pb && pa <= pc ? a : pb <= pc ? b : c; }
+      row[x] = v & 255;
+    }
+  }
+  return { w, h, bpp, px };
+};
+const crcTable = Array.from({ length: 256 }, (_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
+const crc = (b) => { let c = 0xffffffff; for (const x of b) c = crcTable[(c ^ x) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
+const chunk = (t, d) => { const len = Buffer.alloc(4); len.writeUInt32BE(d.length); const td = Buffer.concat([Buffer.from(t, 'latin1'), d]); const c = Buffer.alloc(4); c.writeUInt32BE(crc(td)); return Buffer.concat([len, td, c]); };
+/** Joins PNGs of equal height side by side (same colour type) into one PNG. */
+const pngJoin = (bufs) => {
+  const ims = bufs.map(pngDecode), h = ims[0].h, bpp = ims[0].bpp, w = ims.reduce((s, m) => s + m.w, 0), stride = w * bpp;
+  const raw = Buffer.alloc(h * (stride + 1));
+  for (let y = 0; y < h; y++) { let o = y * (stride + 1) + 1; for (const m of ims) { m.px.copy(raw, o, y * m.w * bpp, (y + 1) * m.w * bpp); o += m.w * bpp; } }
+  const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8; ihdr[9] = bpp === 4 ? 6 : 2;
+  return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', deflateSync(raw, { level: 6 })), chunk('IEND', Buffer.alloc(0))]);
+};
+/** Full-screen PNGs waiting for their JPGs; encoded by Chrome on a blank page after the run. */
+const toEncode = [];
 const shot = async (name, clip) => {
-  const png = await send('Page.captureScreenshot', { format: 'png', ...(clip ? { clip: { ...clip, scale: 1 } } : {}) });
+  if (!clip) {
+    const parts = [];
+    for (const x of [0, 720]) parts.push(Buffer.from((await send('Page.captureScreenshot', { format: 'png', clip: { x, y: 0, width: 720, height: 900, scale: 1 } })).result.data, 'base64'));
+    const pngPath = join(out, 'png', name + '.png');
+    writeFileSync(pngPath, pngJoin(parts));
+    toEncode.push(name);
+    return;
+  }
+  const png = await send('Page.captureScreenshot', { format: 'png', clip: { ...clip, scale: 1 } });
   writeFileSync(join(out, 'png', name + '.png'), Buffer.from(png.result.data, 'base64'));
-  // the clip scale multiplies the device scale factor: full screens come out 1440 px wide, phone crops 720 px wide (2x of 360)
-  const w = clip ? clip.width : 1440, h = clip ? clip.height : 900, scale = (clip ? Math.min(DSF, 720 / w) : 1) / DSF;
-  const jpg = await send('Page.captureScreenshot', { format: 'jpeg', quality: 82, clip: { x: clip?.x ?? 0, y: clip?.y ?? 0, width: w, height: h, scale } });
+  // the clip scale multiplies the device scale factor: phone crops come out 720 px wide (2x of the 360 px they show at)
+  const scale = Math.min(DSF, 720 / clip.width) / DSF;
+  const jpg = await send('Page.captureScreenshot', { format: 'jpeg', quality: 82, clip: { ...clip, scale } });
   writeFileSync(join(out, 'jpg', name + '.jpg'), Buffer.from(jpg.result.data, 'base64'));
 };
 
@@ -244,7 +286,7 @@ async function captureRendition() {
 const STYLE_CSS = readFileSync(join(here, '..', '..', 'src', 'style.css'), 'utf8');
 function writeRendition(t, q, links, css, rd, sizes) {
   const e = (x) => String(x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-  const sized = (x) => x.html.replace(/^<div /, `<div style="height:${x.h}px" `).replaceAll('__BUST__', BUST);
+  const sized = (x) => x.html.replace(/^<(\w+) /, `<$1 style="height:${x.h}px" `).replaceAll('__BUST__', BUST);
   const sz = Object.entries({ dialogue: sizes.line, choices: sizes.choice, 'scene description': sizes.desc, 'name tag': sizes.who, 'mood chip': sizes.chip, 'phone tabs': sizes.phoneTab, journal: sizes.journal, 'contact names': sizes.ctName, 'contact detail': sizes.ctMeta }).filter(([, v]) => v).map(([k, v]) => `${k} ${v}`).join(' · ');
   const cell = (cap, inner) => `<figure class="gvr-cell"><figcaption class="gvr-cap">${cap}</figcaption>${inner}</figure>`;
   const page = `<!doctype html>
@@ -256,8 +298,8 @@ ${STYLE_CSS}</style>
 <style>/* the theme exactly as tools/themes/shoot.mjs injects it into the game: colours, fonts and the type scale */
 ${css}</style>
 <style>/* rendition layout only: the panels side by side at their real size; no type sizes for game elements */
-body.gvr { height: auto; min-height: 100%; overflow: auto; background: ${q.strip}; color: ${q.stripInk}; }
-.gvr-top { font: 14px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif; padding: 20px 24px 0; max-width: 1100px; }
+body.gvr { height: auto; min-height: 100%; overflow: auto; background: ${q.strip}; }
+.gvr-top { color: ${q.stripInk}; font: 14px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif; padding: 20px 24px 0; max-width: 1100px; }
 .gvr-top h1 { font: 600 19px/1.3 system-ui, -apple-system, 'Segoe UI', sans-serif; margin: 0 0 4px; }
 .gvr-top p { margin: 0 0 4px; opacity: .85; }
 .stage.gvr-stage { position: static; width: auto; height: auto; overflow: visible; display: block; background: transparent; }
@@ -266,11 +308,14 @@ body.gvr { height: auto; min-height: 100%; overflow: auto; background: ${q.strip
 .gvr-cap { font: 600 12px/1.3 system-ui, -apple-system, 'Segoe UI', sans-serif; letter-spacing: .06em; text-transform: uppercase; color: ${q.stripInk}; opacity: .8; margin: 0 0 8px; }
 .gvr-row .right { flex: none; border-radius: 4px; }
 .gvr-row .phone { position: relative; left: auto; bottom: auto; z-index: auto; }
+/* Kept for renditions shot against an older build: a stage direction used to be <p class="line stage">, so style.css's .stage rule (the 1440x900
+   absolute game container) also matches it and in the game it covers the whole screen. Font rules are left untouched. */
+.dialogue .line.direction { position: static; width: auto; height: auto; overflow: visible; display: block; background: none; }
 </style></head>
 <body class="gvr">
 <header class="gvr-top"><h1>${e(t.name)}</h1>
 <p>${e(t.serifStack ? t.serifStack.split(',')[0] : t.serif)} for dialogue, ${e(t.uiStack ? t.uiStack.split(',')[0] : t.ui)} for the interface. Text ${t.scale}&times;${t.phoneScale !== t.scale ? `, phone ${t.phoneScale}&times;` : ''}${t.smallScale !== 1 ? `, small text a further ${t.smallScale}&times;` : ''}.</p>
-<p>Rendered from the game's own markup and stylesheet with this theme's CSS, at 1:1 CSS pixels (zoom in: the text stays sharp). Sizes measured in the game: ${e(sz)}. Portraits are a neutral placeholder; dev-only buttons are left out.</p></header>
+<p>Rendered from the game's own markup and stylesheet with this theme's CSS, at 1:1 CSS pixels (zoom in: the text stays sharp). Sizes measured in the game: ${e(sz)}. Portraits are a neutral placeholder; dev-only buttons are left out. Stage directions are <code>.line.direction</code> (renamed 2026-10-19 after the old class collided with the game container).</p></header>
 <div class="stage gvr-stage"><div class="gvr-row">
 ${cell('Right panel &middot; a beat with a stage direction', sized(rd.right[0]))}
 ${cell('Right panel &middot; the last beat, three choices', sized(rd.right[1]))}
@@ -359,6 +404,17 @@ for (const t of themes) {
   const { warn, failed, probe, contacts, layout, sizes } = r; results.push(r);
   console.log(`${t.id.padEnd(22)} fonts:${failed.length ? ' FAILED ' + failed.join(',') : ' ok'}  contrast:${warn.length ? ' ' + warn.length + ' warn' : ' ok'}  layout:${layout.length ? ' ' + layout.length + ' note' : ' ok'}  choices:${probe.choices} contacts:${contacts}  line ${sizes.line} choice ${sizes.choice}`);
 }
+// the full-screen JPGs, from the joined PNGs: 1440 px wide at quality 82 in jpg/, full size at quality 80 in jpg2x/
+// (Chrome's encoder on a blank page; a 2880 px canvas inside the game page hangs like the single capture does)
+await send('Page.navigate', { url: 'about:blank' }); await sleep(300);
+for (const name of toEncode) {
+  const b64 = readFileSync(join(out, 'png', name + '.png')).toString('base64');
+  const r = await ev(`(async()=>{const bm=await createImageBitmap(await (await fetch('data:image/png;base64,${b64}')).blob());
+    const enc=(w,q)=>{const c=document.createElement('canvas'); c.width=w; c.height=Math.round(bm.height*w/bm.width); const g=c.getContext('2d'); g.imageSmoothingQuality='high'; g.drawImage(bm,0,0,c.width,c.height); return c.toDataURL('image/jpeg',q).split(',')[1];};
+    return {jpg:enc(1440,0.82), jpg2x:${DSF > 1 ? 'enc(bm.width,0.8)' : 'null'}};})()`);
+  writeFileSync(join(out, 'jpg', name + '.jpg'), Buffer.from(r.jpg, 'base64'));
+  if (r.jpg2x) writeFileSync(join(out, 'jpg2x', name + '.jpg'), Buffer.from(r.jpg2x, 'base64'));
+}
 // each HTML rendition, opened on its own: its text sizes must be the ones measured in the game
 const REND_SIZES = { line: '.dialogue .line:not(.stage)', choice: '.choice:not(.next)', desc: '.right .desc', who: '.portrait .who', chip: '.portrait .chip', phoneTab: '.ph-tab', journal: '.ph-journal', hint: '.ph-hint', ctName: '.ct-name', ctMeta: '.ct-talk' };
 for (const r of results) {
@@ -366,7 +422,7 @@ for (const r of results) {
     await send('Page.navigate', { url: pathToFileURL(join(out, 'html', r.t.id + '.html')).href }); await sleep(1200);
     await ev(`document.fonts.ready.then(()=>true)`);
     const got = await ev(SIZES(REND_SIZES));
-    const stage = await ev(`getComputedStyle(document.querySelector('.line.stage')).fontSize`);
+    const stage = await ev(`getComputedStyle(document.querySelector('.line.direction')).fontSize`);
     r.rendition = { sizes: got, stage, mismatch: Object.keys(REND_SIZES).filter((k) => got[k] !== r.sizes[k]).map((k) => `${k}: game ${r.sizes[k]}, html ${got[k]}`), errors: errors.length };
     r.sizes.stage = stage;
     if (r.rendition.mismatch.length) console.log(`  ! ${r.t.id} html rendition differs: ${r.rendition.mismatch.join('; ')}`);

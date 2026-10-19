@@ -838,7 +838,7 @@ export class Game {
 
   /** A line as paragraphs: speech, with any `_stage direction_` on its own italic line. Placeholders are filled first. */
   private speech(text: string): HTMLElement[] {
-    return speechParts(this.t(text)).map((part) => h('p', { class: part.kind === 'stage' ? 'line stage' : 'line', text: part.text }));
+    return speechParts(this.t(text)).map((part) => h('p', { class: part.kind === 'stage' ? 'line direction' : 'line', text: part.text }));
   }
 
   /** Next inside a line: show the following beat. Not a turn (no stay charge); logged as `beat`. */
@@ -2329,7 +2329,7 @@ export class Game {
         break;
       }
       case 'rate': {
-        body.append(h('p', { class: 'line stage', text: this.str('ui.townhall.rate') }));
+        body.append(h('p', { class: 'line direction', text: this.str('ui.townhall.rate') }));
         const scale = h('div', { class: 'scale7', role: 'group', 'aria-label': this.str('ui.townhall.rate') });
         for (let v = 1; v <= 7; v++) {
           const end = v === 1 ? this.str('ui.townhall.boo') : v === 7 ? this.str('ui.townhall.cheer') : '';

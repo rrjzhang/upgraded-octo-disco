@@ -24,7 +24,7 @@ export function splitBeats(line: string): Beat[] {
 /**
  * A stage direction is a short phrase in underscores or asterisks standing on its own between sentences:
  * `Here a notary is a man with a stamp. _scowls_ And the flyers count on people not knowing that.` It is shown on its own
- * line in italics (`.line.stage`), the way a script prints an action. Markers glued inside a word (snake_case ids, 2*3)
+ * line in italics (`.line.direction`), the way a script prints an action. Markers glued inside a word (snake_case ids, 2*3)
  * are left alone: the opening mark must follow a space or the start, the closing one must be followed by space,
  * punctuation or the end.
  */

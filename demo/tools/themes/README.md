@@ -23,7 +23,11 @@ Output goes to `tools/themes/out/<stamp>/` (git-ignored):
 - `png/` full-size screenshots of the 1440x900 page at the device scale factor (2880x1800 by default) (`<id>_main`, `<id>_phone`, `<id>_later` = the same conversation two clicks on,
   with a longer line and more choices) and phone crops (`<id>_phone_journal`, `<id>_phone_contacts`, `<id>_phone_profile`
   = the opening questions with India chosen, the longest version).
-- `jpg/` previews: full screens 1440 px wide, phone crops 720 px wide (quality 82).
+- `jpg/` previews: full screens 1440 px wide, phone crops 720 px wide (quality 82); `jpg2x/` the full screens at full
+  2880x1800 (quality 80), a lighter stand-in for the PNGs when publishing. At device scale factor 2 this Chromium build
+  never returns a single full-screen capture of a scene with a bust in the right panel, so full screens are captured as
+  two 720 px halves and joined in `shoot.mjs` (`pngJoin`); the JPGs are encoded from the joined PNG on a blank page after
+  the run.
 - `html/<id>.html` - an HTML rendition per theme: the right panel twice (Walt at the park, row WT28: a beat with a
   stage direction and the Next triangle, then the last beat with its three choices) and the phone (journal with the
   two-line draft, contacts), side by side at their real CSS size. It is the game's own DOM, captured while the theme is

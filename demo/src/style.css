@@ -211,7 +211,9 @@ button { font-family: inherit; }
 @keyframes bust-fade { from { opacity: 1; } to { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .portrait.ended .bust, .portrait.ended .chip { animation: none; opacity: 0; } }
 /* a stage direction (SPEC "Writing dialogue: beats and stage directions"): its own italic line, like an action in a script */
-.line.stage { font-style: italic; color: var(--muted); font-size: 17px; margin: 2px 0 6px; }
+/* class `direction`, not `stage`: `.stage` is the 1440x900 game container, and a paragraph carrying that class took its
+   absolute box and blanked the whole screen (the "white room with the stage direction top-left" bug, fixed 2026-10-19) */
+.line.direction { font-style: italic; color: var(--muted); font-size: 17px; margin: 2px 0 6px; }
 .choice.next { position: relative; text-align: center; padding: 6px 0; min-height: 32px; background: none; border: 0; box-shadow: none; }
 .choice.next::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; border-top: 1.5px solid var(--line, #cfc7b6); }
 .choice.next .tri { position: relative; display: inline-block; font-size: 22px; line-height: 1; color: var(--accent); background: var(--panel); padding: 0 12px; animation: tri-bob 1.1s ease-in-out infinite; }
