@@ -70,6 +70,12 @@ export const DEFAULT_STRINGS: Record<string, string> = {
   'ui.via.message': 'Message from {name}',
   'ui.talkedToday': 'Talked already today',
   'ui.via.door': '{name} at the door',
+  // SPEC "Plans": an accepted invitation with a time
+  'ui.plan.chip': 'Plans: {name}, {when}',
+  'ui.plan.now': 'Time to go: {name}.',
+  'ui.plan.morning': 'this morning',
+  'ui.plan.afternoon': 'this afternoon',
+  'ui.plan.evening': 'this evening',
   // SPEC "Town hall" (day 5)
   'ui.townhall.inSession': 'The town hall is in session',
   'ui.townhall.rate': 'How did that land with you?',

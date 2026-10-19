@@ -27,9 +27,9 @@ export const EVENT_COLUMNS = [
 export const NEWS_COLUMNS = ['id', 'channel', 'nationalLeader', 'dayMin', 'valence', 'headline', 'body'];
 /** Optional dialogue columns, placed after dayPhase: `scene` (SPEC "Dialogue location": blank = anywhere, else scene ids
  *  joined by `|`), then `usLead` and `homeLead` (SPEC "Leads": blank = any room, else pro|anti). */
-export const DIALOGUE_OPTIONAL_COLUMNS = ['scene', 'usLead', 'homeLead', 'day'];
+export const DIALOGUE_OPTIONAL_COLUMNS = ['scene', 'usLead', 'homeLead', 'day', 'absent'];
 /** Optional columns (SPEC "Cast", "Packs", "Leads"): blank or absent = unchanged behaviour. */
-export const EVENT_OPTIONAL_COLUMNS = ['portrait', 'medium', 'pack', 'day', 'usLead', 'homeLead'];
+export const EVENT_OPTIONAL_COLUMNS = ['portrait', 'medium', 'pack', 'day', 'usLead', 'homeLead', 'when'];
 /** content/townhall/<npcId>.csv (SPEC "Town hall") */
 export const TOWNHALL_COLUMNS = ['id', 'kind', 'nationalLeader', 'block', 'stance', 'emotion', 'text'];
 export const NEWS_OPTIONAL_COLUMNS = ['figure', 'pack'];
@@ -339,7 +339,7 @@ function parseNpcs(r: Reporter, file: string, text: string, scenes: Map<string, 
   return out;
 }
 
-function parseDialogue(r: Reporter, npcId: string, file: string, text: string, sceneIds?: Set<string>): DialogueRow[] {
+function parseDialogue(r: Reporter, npcId: string, file: string, text: string, sceneIds?: Set<string>, npcIds?: Set<string>): DialogueRow[] {
   const rows = parseCsv(r, file, text, DIALOGUE_COLUMNS, DIALOGUE_OPTIONAL_COLUMNS);
   const out: DialogueRow[] = [];
   rows.forEach((row, i) => {
@@ -371,6 +371,9 @@ function parseDialogue(r: Reporter, npcId: string, file: string, text: string, s
     // optional `day` cell (same grammar as events): the row only shows on those days; more specific than the same row any day
     const day = row.day ?? '';
     if (day) { const e = validateDay(day); if (e) r.error(file, `${where}: ${e}`); specificity++; }
+    // optional `absent` cell: the named NPC must not be in the scene (SPEC "Presence, place and conversation limits")
+    const absent = row.absent ?? '';
+    if (absent) { if (npcIds && !npcIds.has(absent)) r.error(file, `${where}: absent "${absent}" is not an NPC id`); specificity++; }
     const emotion = (row.emotion || 'neutral') as Emotion;
     if (!EMOTIONS.includes(emotion)) r.error(file, `${where}: unknown emotion "${row.emotion}"`);
     if (row.priority && !Number.isFinite(Number(row.priority))) r.error(file, `${where}: priority "${row.priority}" is not a number`);
@@ -382,7 +385,7 @@ function parseDialogue(r: Reporter, npcId: string, file: string, text: string, s
       });
     for (const c of choices) for (const e of validateEffects(c.effect)) r.error(file, `${where}: ${e}`);
     out.push({
-      id: row.id, npc: npcId, conds, scene: scenes.join('|'), scenes, usLead, homeLead, day, specificity, rowNum,
+      id: row.id, npc: npcId, conds, scene: scenes.join('|'), scenes, usLead, homeLead, day, absent, specificity, rowNum,
       priority: num(row.priority, 0),
       emotion: EMOTIONS.includes(emotion) ? emotion : 'neutral',
       line: row.line ?? '',
@@ -420,6 +423,10 @@ function parseEvents(r: Reporter, file: string, text: string, scenes: Map<string
     // SPEC "Leads": optional day and lead cells
     const day = row.day ?? '', usLead = row.usLead ?? '', homeLead = row.homeLead ?? '';
     for (const e of [validateDay(day), validateLead(usLead), validateLead(homeLead)]) if (e) r.error(file, `${where}: ${e}`);
+    // SPEC "Plans": `when` on an invitation = the part of the day it happens
+    const when = (row.when ?? '') as EventRow['when'];
+    if (when && !['morning', 'afternoon', 'evening'].includes(when)) r.error(file, `${where}: when "${when}"; expected morning|afternoon|evening or blank`);
+    if (when && row.trigger !== 'invite') r.error(file, `${where}: when is for trigger invite rows`);
     const choices = [1, 2].map((k) => ({ text: row[`choice${k}`] ?? '', effect: row[`effect${k}`] ?? '' })).filter((c) => c.text);
     for (const c of choices) for (const e of validateEffects(c.effect)) r.error(file, `${where}: ${e}`);
     out.push({
@@ -430,7 +437,7 @@ function parseEvents(r: Reporter, file: string, text: string, scenes: Map<string
       chance: num(row.chance, 1), cost: num(row.cost, 0),
       emotion: EMOTIONS.includes(emotion) ? emotion : 'neutral',
       text: row.text, choices, rowNum, portrait: row.portrait ?? '', medium: (row.medium ?? '').trim(), pack: rowPack(r, file, where, row.pack),
-      day, usLead, homeLead,
+      day, usLead, homeLead, when: ['morning', 'afternoon', 'evening'].includes(when) ? when : '',
     });
   });
   const ids = new Set(out.map((e) => e.id));
@@ -705,10 +712,11 @@ export async function loadContent(src: Source, opts: LoadOptions = {}): Promise<
   }
   const dialogue = new Map<string, DialogueRow[]>();
   const sceneIds = new Set(scenes.map((s) => s.id));
+  const npcIdSet = new Set(npcs.map((n) => n.id));
   await Promise.all(
     npcs.map(async (n) => {
       const file = `content/dialogue/${n.id}.csv`;
-      const fromOv = tryOverride(`dialogue/${n.id}`, file, ovDialogue[n.id], (q, f, t) => parseDialogue(q, n.id, f, t, sceneIds));
+      const fromOv = tryOverride(`dialogue/${n.id}`, file, ovDialogue[n.id], (q, f, t) => parseDialogue(q, n.id, f, t, sceneIds, npcIdSet));
       if (fromOv) { dialogue.set(n.id, fromOv); return; }
       const t = await src.text(file);
       if (t === null) {
@@ -718,7 +726,7 @@ export async function loadContent(src: Source, opts: LoadOptions = {}): Promise<
         dialogue.set(n.id, []);
         return;
       }
-      dialogue.set(n.id, parseDialogue(r, n.id, file, t, sceneIds));
+      dialogue.set(n.id, parseDialogue(r, n.id, file, t, sceneIds, npcIdSet));
     }),
   );
 

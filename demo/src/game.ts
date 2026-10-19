@@ -1,7 +1,7 @@
 /** The game runtime: state transitions + plain-DOM rendering of the 1440x900 stage. */
 import type {
   Content, CultureId, DialogueRow, Questionnaire, Emotion, EventRow, GameState, Hotspot, ModuleId, NewsRow, Npc, Prop, Scene, Screen, Slot,
-  LeadPos, TownhallRow, TownhallState, TopicStance,
+  LeadPos, Phase, TownhallRow, TownhallState, TopicStance,
 } from './types';
 import { TOPIC_STANCES } from './types';
 import {
@@ -168,10 +168,13 @@ export class Game {
     s.talks = { day: s.day, counts: {} };
     this.panel = { kind: 'idle' };
     this.queue = [];
+    // SPEC "Plans": an invitation with a `when` becomes today's plan and fires at that time; the others fire now, as before
+    s.plans = [];
     for (const id of s.invites) {
       const ev = this.c.events.find((e) => e.id === id);
-      if (ev) this.queue.push(ev);
-      else console.error(`[events] invitation to unknown event "${id}"`);
+      if (!ev) { console.error(`[events] invitation to unknown event "${id}"`); continue; }
+      if (ev.when) s.plans.push({ id: ev.id, when: ev.when });
+      else this.queue.push(ev);
     }
     s.invites = [];
     const rng = seeded(s.config.seed, 'day_start', s.day);
@@ -196,6 +199,51 @@ export class Game {
     }
     this.panel = this.panel.kind === 'event' ? { kind: 'idle' } : this.panel;
     this.render();
+  }
+
+  // ------------------------------------------------------------------ SPEC "Plans": timed invitations
+  /** Today's plans that have not fired yet, with their event rows. */
+  private plans(): { id: string; when: Phase; ev: EventRow }[] {
+    return (this.s.plans ?? []).flatMap((p) => { const ev = this.c.events.find((e) => e.id === p.id); return ev ? [{ ...p, ev }] : []; });
+  }
+
+  /** Actions kept back for today's plans (their costs): the player cannot spend below this before they happen. */
+  private reserved(): number {
+    return this.plans().reduce((a, p) => a + p.ev.cost, 0);
+  }
+
+  /** Actions the player may still spend on other things today. */
+  private available(): number {
+    return Math.max(0, this.s.actions - this.reserved());
+  }
+
+  /** The plan whose time has come: its phase has arrived, or the free actions are used up (the plan is what is left). */
+  private duePlan(): { id: string; when: Phase; ev: EventRow } | null {
+    const order: Phase[] = ['morning', 'afternoon', 'evening'];
+    const now = order.indexOf(phaseOf(this.s.actions));
+    const list = this.plans();
+    const byTime = list.find((p) => order.indexOf(p.when) <= now);
+    if (byTime) return byTime;
+    return this.available() <= 0 && list.length ? list.slice().sort((a, b) => order.indexOf(a.when) - order.indexOf(b.when))[0] : null;
+  }
+
+  /** Fires the due plan when nothing else is on screen. Returns true when it took over the panel. */
+  private checkPlans(): boolean {
+    if (this.panel.kind !== 'idle' || this.win || this.phoneOpen || this.s.player.profilePending || this.townhallActive() || this.swapping) return false;
+    const p = this.duePlan();
+    if (!p) return false;
+    this.s.plans = (this.s.plans ?? []).filter((x) => x.id !== p.id);
+    this.endConvo('left');
+    if (p.ev.scene && this.openToPlayer(p.ev.scene) && this.s.scene !== p.ev.scene) {
+      const from = this.s.scene;
+      this.s.scene = p.ev.scene;
+      appendLog(this.s, { type: 'move', target: p.ev.scene, from, plan: p.id });
+    }
+    this.fireEvent(p.ev, false, true);
+    appendLog(this.s, { type: 'dev', op: 'plan', rule: p.id, when: p.when, phase: phaseOf(this.s.actions) });
+    this.panel = { kind: 'event', ev: p.ev };
+    this.save();
+    return true;
   }
 
   private save(): void {
@@ -266,6 +314,11 @@ export class Game {
   /** Out of actions: every destination except home is closed. */
   private moveBlocked(to: string): boolean {
     return this.s.actions <= 0 && to !== 'home';
+  }
+
+  /** What the player may spend on something that is not today's plan (SPEC "Plans": the plan's actions are kept back). */
+  private spendable(): number {
+    return this.available();
   }
 
   /** SPEC "Packs": shared scenes and the scenes of the player's effective pack. */
@@ -557,8 +610,9 @@ export class Game {
   }
 
   /** Shows an event in the right panel. Returns false if it could not be afforded. */
-  private fireEvent(ev: EventRow, rerender = true): boolean {
-    if (ev.cost > this.s.actions) return false;
+  private fireEvent(ev: EventRow, rerender = true, force = false): boolean {
+    // SPEC "Plans": a plan's own cost is no longer reserved when it fires; a plan fires even if an `actions -N` effect ate into its reserve
+    if (!force && ev.cost > this.spendable()) return false;
     const before = this.s.actions;
     this.spend(ev.cost);
     this.s.fired.push(ev.id);
@@ -696,6 +750,11 @@ export class Game {
     if (!n) return;
     // the conversation with this person is already on screen: clicking them again keeps it (and does not end it)
     if (this.s.convo?.npc === n.id && this.panel.kind === 'dialogue' && this.panel.npc === n.id && !opts.force) return;
+    // SPEC "Conversation end": no switching to someone else mid-sentence; every row has a leave option (gv.talk forces)
+    if (this.panel.kind === 'dialogue' && this.panel.npc !== n.id && !opts.force) {
+      console.info(`[talk] in a conversation with ${this.panel.npc}; take a leave option first (gv.talk forces)`);
+      return;
+    }
     if (this.talkedOut(n.id) && !opts.force) {
       // the figure is non-interactive; this covers gv.talk and anything else that calls in directly (no visible notice)
       console.info(`[talk] ${n.id}: already talked ${this.talksToday(n.id)} time(s) today (limit ${this.maxTalks})`);
@@ -737,6 +796,7 @@ export class Game {
       scene: this.s.scene, // rows with a `scene` cell only match where they are set
       ...this.leads(), // rows with a usLead/homeLead cell only match rooms with that lead (SPEC "Leads")
       day: this.s.day, // rows with a `day` cell only match on those days
+      present: new Set(this.presentIn(this.s.scene).map((p) => p.npc.id)), // rows with an `absent` cell need that person away
     });
     if (!sel.row) {
       if (!quiet) console.error(`[dialogue] ${n.id}: no row matched (missing fallback?)`);
@@ -910,7 +970,7 @@ export class Game {
   private chooseDialogue(row: DialogueRow, idx: number, shown: number): void {
     const ch = row.choices[idx];
     const { charge, stay } = this.optionCharge(row, idx);
-    if (charge > this.s.actions) {
+    if (charge > this.spendable()) {
       // the button is disabled; this covers anything that calls in directly
       console.info(`[dialogue] ${row.npc}/${row.id} option ${idx + 1}: costs ${charge}, ${this.s.actions} action(s) left`);
       return;
@@ -963,7 +1023,7 @@ export class Game {
     const a = hs.action;
     if (a.type !== 'talk' && a.type !== 'end_day' && !(a.type === 'window' && a.module === 'survey')) this.endConvo('left');
     const cost = a.cost ?? (a.type === 'window' || a.type === 'news' ? 1 : 0);
-    if (cost > this.s.actions) {
+    if (cost > this.spendable()) {
       this.panel = { kind: 'idle', note: this.str('ui.notEnough') };
       return this.render();
     }
@@ -1062,7 +1122,7 @@ export class Game {
     const { urls: imgs, overridden } = this.tvImages(leaderId);
     const placeholder = !overridden && !!this.c.manifest.tvMeta?.[leaderId]?.placeholder;
     const leaderName = this.vars().leaderName;
-    const stories = this.pickNews('tv').slice(0, 2).map((n, i) => {
+    const stories = this.pickNews('tv').slice(0, FEATURES.tvKeepWatching ? 2 : 1).map((n, i) => {
       const leaderImg = imgs.length ? imgs[i % imgs.length] : null;
       const base = { id: n.id, valence: n.valence, headline: this.t(n.headline), body: this.t(n.body) };
       if (!n.figure) return { ...base, image: leaderImg, placeholder, figure: null, figureName: leaderName };
@@ -1211,7 +1271,7 @@ export class Game {
       }
       case 'spend': {
         const n = Math.max(0, Math.round(Number(m.actions) || 0));
-        if (n > this.s.actions) return this.reply('state', { ok: false });
+        if (n > this.spendable()) return this.reply('state', { ok: false });
         const before = this.s.actions;
         this.spend(n);
         if (w.module === 'tv' && !FEATURES.tvKeepWatching) return this.reply('state', { ok: false }); // Keep watching is off
@@ -1275,6 +1335,8 @@ export class Game {
     if (this.sceneKey() !== this.shownScene) { this.beginSwap(); return; }
     // whatever replaced the dialogue panel (a hotspot's text, a note, an event) means the player left the conversation
     if (this.s.convo && !(this.panel.kind === 'dialogue' && this.panel.npc === this.s.convo.npc)) this.endConvo('left');
+    // SPEC "Plans": a plan whose time has come takes the panel as soon as it is free (a scene change re-enters render)
+    if (this.checkPlans() && this.sceneKey() !== this.shownScene) { this.beginSwap(); return; }
     const focusKey = (document.activeElement as HTMLElement | null)?.dataset?.fk;
     this.renderTop();
     this.renderScene();
@@ -1424,11 +1486,22 @@ export class Game {
       h('div', { class: 'tb-right' },
         h('span', { class: 'tb-legend', title: this.str('ui.costLegendTitle') }, this.costDots(1), ` = ${this.costWords(1)}`),
         dots,
+        this.planChip(),
         h('span', { class: 'tb-wallet', 'aria-label': this.str('ui.wallet'), text: `$${s.wallet}` }),
         h('span', { class: 'tb-room', text: `${this.str('ui.room')} ${s.room}` }),
         this.overrideChip(),
         this.c.source === 'fixtures' ? h('span', { class: 'tb-fx', text: 'FIXTURES' }) : null),
     );
+  }
+
+  /** SPEC "Plans": today's accepted invitation and its time, in the top bar; the actions it needs are kept back. */
+  private planChip(): HTMLElement | null {
+    const list = this.plans();
+    if (!list.length) return null;
+    const p = list[0];
+    const who = p.ev.npc ? this.c.npcById.get(p.ev.npc)?.name ?? p.ev.npc : p.ev.id;
+    const text = this.str('ui.plan.chip', { name: who, when: this.str(`ui.plan.${p.when}`) });
+    return h('span', { class: 'tb-plan', title: `${text}. ${this.costWords(p.ev.cost)} kept back for it.`, text: `\u{1F4CC} ${text}` });
   }
 
   /** "edited content" chip while a researcher override is active; the tooltip lists what changed and any rejection. */
@@ -1525,16 +1598,18 @@ export class Game {
       const cost = talkNpc ? 0 : a.cost ?? (a.type === 'window' || a.type === 'news' ? 1 : 0); // starting a conversation is free
       const blockedMove = a.type === 'move' && this.moveBlocked(String(a.to));
       const speaking = !!talkNpc && ((this.panel.kind === 'dialogue' && this.panel.npc === talkNpc.id) || (this.panel.kind === 'event' && this.panel.ev.npc === talkNpc.id));
+      // another conversation is on screen: this person waits (SPEC "Conversation end")
+      const inOther = !!talkNpc && this.panel.kind === 'dialogue' && this.panel.npc !== talkNpc.id;
       // SPEC "Conversation limit semantics" / "TV once a day": simply non-interactive, no visible label or notice
       const talked = !!talkNpc && this.talkedOut(talkNpc.id) && !speaking;
       const watched = a.type === 'window' && a.module === 'tv' && this.tvWatchedToday();
       const spent = talked || watched;
-      const disabled = spent || (talkNpc ? !this.canTalk() : tired || cost > this.s.actions || blockedMove);
+      const disabled = spent || inOther || (talkNpc ? !this.canTalk() : tired || cost > this.spendable() || blockedMove);
       const label = talkNpc ? this.str('ui.talkTo', { name: talkNpc.name }) : hs.label;
       const costTxt = talkNpc ? this.talkLabel(talkNpc).slice(label.length) : cost ? ` (${this.costWords(cost)})` : blockedMove ? ` (${this.str('ui.tired')})` : '';
-      const aria = talked ? this.talkedAria(talkNpc!) : watched ? `${hs.label} (watched today)` : `${label}${costTxt}`;
+      const aria = talked ? this.talkedAria(talkNpc!) : watched ? `${hs.label} (watched today)` : inOther ? `${label} (${this.str('ui.inConversation')})` : `${label}${costTxt}`;
       const b = h('button', {
-        class: `hotspot${hs.placeholder ? ' ph' : ''}${talkNpc ? ' talk' : ''}${speaking ? ' speaking' : ''}${spent ? ' spent' : ''}`,
+        class: `hotspot${hs.placeholder ? ' ph' : ''}${talkNpc ? ' talk' : ''}${speaking ? ' speaking' : ''}${spent ? ' spent' : ''}${inOther ? ' locked' : ''}`,
         'data-fk': `hs:${hs.id}`, 'aria-label': aria, title: spent ? null : aria,
         disabled, onclick: () => this.hotspot(hs),
         style: `left:${hs.zone.x * 100}%;top:${hs.zone.y * 100}%;width:${hs.zone.w * 100}%;height:${hs.zone.h * 100}%;`,
@@ -1554,13 +1629,14 @@ export class Game {
       const speaking = (this.panel.kind === 'dialogue' && this.panel.npc === npc.id) || (this.panel.kind === 'event' && this.panel.ev.npc === npc.id);
       // SPEC "Conversation limit semantics": still standing there, simply non-interactive (no outline, no label)
       const talked = this.talkedOut(npc.id) && !speaking;
+      const inOther = this.panel.kind === 'dialogue' && this.panel.npc !== npc.id; // someone else is talking to the player (SPEC "Conversation end")
       // SPEC "Town hall": the person at the podium is not someone to talk to
-      const talkLabel = sc.hidden ? npc.name : talked ? this.talkedAria(npc) : this.talkLabel(npc);
+      const talkLabel = sc.hidden ? npc.name : talked ? this.talkedAria(npc) : inOther ? `${this.talkLabel(npc)} (${this.str('ui.inConversation')})` : this.talkLabel(npc);
       // starting a conversation is free (SPEC "Pay when you stay"): no cost dot; the paid turn shows its dot on the choice
       const btn = h('button', {
-        class: `figure${speaking ? ' speaking' : ''}${fig.seated ? ' seated' : ''}${talked ? ' talked' : ''}`, 'data-fk': `npc:${npc.id}`,
-        'aria-label': talkLabel, title: talked ? null : talkLabel,
-        disabled: talked || !this.canTalk(), onclick: () => this.talkTo(npc.id),
+        class: `figure${speaking ? ' speaking' : ''}${fig.seated ? ' seated' : ''}${talked ? ' talked' : ''}${inOther ? ' locked' : ''}`, 'data-fk': `npc:${npc.id}`,
+        'aria-label': talkLabel, title: talked ? null : inOther ? this.str('ui.inConversation') : talkLabel,
+        disabled: talked || inOther || !this.canTalk(), onclick: () => this.talkTo(npc.id),
         style: `left:${left}px;top:${top}px;width:${wid}px;height:${hgt}px;z-index:${10 + Math.round(slot.y * 100)};`,
       },
       h('span', { class: 'shadow', style: `width:${wid * (fig.seated ? 0.9 : 0.7)}px;height:${Math.max(8, hgt * 0.05)}px;` }),
@@ -1739,7 +1815,7 @@ export class Game {
           const ch = p.row.choices[i];
           const { charge } = this.optionCharge(p.row, i);
           // the leave option (no `next`, no `cost N`) has charge 0, so it is never disabled by cost
-          choices.append(this.choiceBtn(i, this.t(ch.text), charge + this.choiceCost(ch.effect), () => this.chooseDialogue(p.row, i, pos + 1), charge > this.s.actions));
+          choices.append(this.choiceBtn(i, this.t(ch.text), charge + this.choiceCost(ch.effect), () => this.chooseDialogue(p.row, i, pos + 1), charge > this.spendable()));
         });
         if (!p.row.choices.length) {
           const ended = { npc: p.npc, emotion };

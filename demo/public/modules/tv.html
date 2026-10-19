@@ -58,7 +58,7 @@
     if (pending && s.image) screen.append(el('span', { className: 'pending', textContent: s.pendingNote ? `PLACEHOLDER · ${s.pendingNote}` : 'PLACEHOLDER' }));
     if (s.figure && s.figureName) screen.append(el('span', { className: 'lower', textContent: s.figureRole ? `${s.figureName} · ${s.figureRole}` : s.figureName }));
     main.replaceChildren(screen, el('div', {},
-      el('div', { className: 'count', textContent: `Story ${idx + 1} of ${stories.length}` }),
+      stories.length > 1 ? el('div', { className: 'count', textContent: `Story ${idx + 1} of ${stories.length}` }) : el('div', { className: 'count', textContent: 'Tonight' }),
       el('h2', { textContent: s.headline }),
       el('p', { className: 'body', textContent: s.body })));
     // "Keep watching" is behind the host's FEATURES.tvKeepWatching (off for the study: one story a day)

@@ -78,7 +78,7 @@ export function rapportMatches(cell: string, r: number): boolean {
  * `scene`: the scene the conversation happens in. A row whose `scene` cell is non-blank only matches there
  * (SPEC "Dialogue location"); with `scene` undefined, only rows with a blank `scene` cell match.
  */
-export interface Ctx extends NpcState { nationalLeader: Leader; playerLean: Lean; dayPhase: DayPhase; scene?: string; usLead?: LeadPos; homeLead?: LeadPos; day?: number }
+export interface Ctx extends NpcState { nationalLeader: Leader; playerLean: Lean; dayPhase: DayPhase; scene?: string; usLead?: LeadPos; homeLead?: LeadPos; day?: number; /** NPC ids present in the scene (for `absent` cells) */ present?: Set<string> }
 
 /** Default conversations per NPC per day (SPEC "Conversation limit"). */
 export const DEFAULT_TALKS_PER_DAY = 1;
@@ -138,6 +138,8 @@ export function rowMatches(row: DialogueRow, ctx: Ctx): boolean {
   if (row.usLead && !leadMatches(row.usLead, ctx.usLead ?? 'pro')) return false;
   if (row.homeLead && !leadMatches(row.homeLead, ctx.homeLead ?? 'pro')) return false;
   if (row.day && (ctx.day === undefined || !dayMatches(row.day, ctx.day))) return false;
+  // `absent`: the named NPC is not in the scene (no presence information = treat as present, so the row stays quiet)
+  if (row.absent && (!ctx.present || ctx.present.has(row.absent))) return false;
   for (const f of COND_FIELDS) {
     const cell = row.conds[f];
     if (cell === '') continue;

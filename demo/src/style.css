@@ -52,6 +52,8 @@ button { font-family: inherit; }
 .tb-legend .cost { margin: 0 4px 0 0; }
 .choice .cost { margin-left: 8px; }
 .tb-wallet { font-weight: 600; min-width: 48px; }
+/* SPEC "Plans": today's accepted invitation, in the top bar */
+.tb-plan { font-size: 13px; color: var(--amber); white-space: nowrap; }
 .tb-room { color: #d8d1c2; font-family: ui-monospace, Menlo, monospace; }
 .tb-fx { background: #a3271f; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
 
@@ -100,6 +102,9 @@ button { font-family: inherit; }
 }
 .figure:focus-visible { outline: none; }
 .figure:disabled { cursor: not-allowed; }
+/* someone else is mid-sentence: other people wait, quietly (SPEC "Conversation end") */
+.figure.locked img { filter: saturate(.7) brightness(.92); }
+.hotspot.talk.locked { border-color: transparent; }
 .scene-box.evening[data-lighting="outdoor"] .figure img { filter: brightness(.8) saturate(.9); }
 
 .pending {
@@ -204,9 +209,13 @@ button { font-family: inherit; }
 @media (prefers-reduced-motion: reduce) { .portrait.ended .bust, .portrait.ended .chip { animation: none; opacity: .3; filter: grayscale(.8); } }
 /* a stage direction (SPEC "Writing dialogue: beats and stage directions"): its own italic line, like an action in a script */
 .line.stage { font-style: italic; color: var(--muted); font-size: 17px; margin: 2px 0 6px; }
-.choice.next { text-align: right; padding-right: 22px; min-height: 40px; }
-.choice.next .tri { display: inline-block; font-size: 20px; line-height: 1; color: var(--accent); animation: tri-bob 1.1s ease-in-out infinite; }
-@keyframes tri-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
+.choice.next { position: relative; text-align: center; padding: 6px 0; min-height: 32px; background: none; border: 0; box-shadow: none; }
+.choice.next::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; border-top: 1.5px solid var(--line, #cfc7b6); }
+.choice.next .tri { position: relative; display: inline-block; font-size: 22px; line-height: 1; color: var(--accent); background: var(--panel); padding: 0 12px; animation: tri-bob 1.1s ease-in-out infinite; }
+.choice.next:hover:not(:disabled), .choice.next:focus-visible { background: none; transform: none; }
+.choice.next:hover:not(:disabled) .tri, .choice.next:focus-visible .tri { color: var(--accentHover, var(--accent)); }
+.choice.next:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+@keyframes tri-bob { 0%, 100% { transform: translateY(-2px); } 50% { transform: translateY(3px); } }
 @media (prefers-reduced-motion: reduce) { .choice.next .tri { animation: none; } }
 .choice.dev-back { font-size: 13px; color: var(--muted); border-style: dashed; }
 .exit.locked { cursor: not-allowed; }
@@ -360,7 +369,12 @@ th { color: var(--muted); font-weight: 500; }
 /* SPEC "TV screens show the news": the still projected onto the TV glass (matrix3d from the unit square), dimmed and soft */
 .tv-screen { position: absolute; inset: 0; z-index: 3; pointer-events: none; filter: blur(1.5px); }
 .tv-glass { position: absolute; left: 0; top: 0; transform-origin: 0 0; overflow: hidden; background: #0d1012; }
-.tv-glass img { display: block; width: 100%; height: 100%; object-fit: cover; filter: brightness(.55) saturate(.92); }
+.tv-glass img { display: block; width: 100%; height: 100%; object-fit: cover; filter: brightness(.55) saturate(.92); transform-origin: 50% 50%; animation: tv-drift 16s ease-in-out infinite alternate; }
+/* SPEC "TV screens show the news": the still drifts and zooms a little inside the glass (the quad clips it), so the set reads as switched on */
+@keyframes tv-drift { 0% { transform: scale(1.04) translate(-1.5%, 0.5%); } 50% { transform: scale(1.09) translate(1%, -1%); } 100% { transform: scale(1.05) translate(0.5%, 1.2%); } }
+.tv-glass .tv-sheen { animation: tv-flicker 3.2s steps(2, end) infinite; }
+@keyframes tv-flicker { 0%, 100% { opacity: 1; } 50% { opacity: .92; } }
+@media (prefers-reduced-motion: reduce) { .tv-glass img, .tv-glass .tv-sheen { animation: none; } }
 .tv-glass .tv-sheen {
   position: absolute; inset: 0;
   background: linear-gradient(to bottom, rgba(225,235,255,.13) 0%, rgba(225,235,255,.04) 38%, rgba(0,0,0,0) 60%, rgba(0,0,0,.16) 100%);

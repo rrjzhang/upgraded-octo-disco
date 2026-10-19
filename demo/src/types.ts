@@ -137,6 +137,8 @@ export interface DialogueRow {
   homeLead: string;
   /** optional `day` column: '' = any day, else `4`, `2-3` or `4+` (SPEC "Leads": the day-4 story does not repeat on day 5); adds 1 to specificity */
   day: string;
+  /** optional `absent` column: an NPC id who must NOT be in the scene for the row ("I'm waiting on Walt" only while Walt is not there); adds 1 to specificity */
+  absent: string;
   /** optional `scene` column: raw cell ('' = anywhere) and its `|`-separated scene ids */
   scene: string;
   scenes: string[];
@@ -178,6 +180,8 @@ export interface EventRow {
   /** optional lead conditions, `|` alternatives allowed: '' = any room, else pro|anti */
   usLead: string;
   homeLead: string;
+  /** invitations only (SPEC "Plans"): the part of the day the plan happens; '' = at the next day start, as before */
+  when: '' | Phase;
 }
 
 export interface NewsRow {
@@ -325,6 +329,8 @@ export interface GameState {
   npcs: Record<string, NpcState>;
   spent: { home: number; us: number; neutral: number };
   invites: string[];
+  /** SPEC "Plans": invitations accepted for today with a `when`; they fire at that phase (or before the actions run out) */
+  plans?: { id: string; when: Phase }[];
   fired: string[];
   seenNews: string[];
   entries: Record<string, number>; // `${day}:${scene}` -> entry count, seeds event rolls
