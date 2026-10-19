@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-19T01:40:50.966Z",
+  "generated": "2026-10-19T02:06:48.829Z",
   "source": "image_generation/out (_A set)",
   "backgrounds": {
     "bg_home_day": {
@@ -251,13 +251,13 @@
       "placeholder": false,
       "fromReference": false,
       "sources": [
-        "cast_president_inclusive_bust_A",
+        "cast_president_inclusive_bust_A_v2",
         "cast_president_inclusive_warm_A",
         "cast_president_inclusive_guarded_A",
         "cast_president_inclusive_worried_A"
       ],
       "dehazed": {
-        "neutral": 656780,
+        "neutral": 614273,
         "warm": 591705,
         "guarded": 567449,
         "worried": 549406
@@ -377,13 +377,13 @@
       "fromReference": false,
       "sources": [
         "ch_us_leader_asm_neutral_A",
-        "ch_us_leader_asm_warm_A",
+        "ch_us_leader_asm_warm_A_v2",
         "ch_us_leader_asm_guarded_A",
         "ch_us_leader_asm_worried_A"
       ],
       "dehazed": {
         "neutral": 703877,
-        "warm": 663283,
+        "warm": 748189,
         "guarded": 690815,
         "worried": 661365
       }
@@ -396,14 +396,14 @@
       "placeholder": false,
       "fromReference": false,
       "sources": [
-        "ch_cn_leader_asm_neutral_A",
-        "ch_cn_leader_asm_warm_A",
+        "ch_cn_leader_asm_neutral_A_v2",
+        "ch_cn_leader_asm_warm_A_v2",
         "ch_cn_leader_asm_guarded_A",
         "ch_cn_leader_asm_worried_A"
       ],
       "dehazed": {
-        "neutral": 767797,
-        "warm": 858803,
+        "neutral": 880485,
+        "warm": 851688,
         "guarded": 614795,
         "worried": 721564
       }
@@ -476,13 +476,13 @@
       "placeholder": false,
       "fromReference": false,
       "sources": [
-        "ch_mx_leader_asm_neutral_A",
+        "ch_mx_leader_asm_neutral_A_v2",
         "ch_mx_leader_asm_warm_A",
         "ch_mx_leader_asm_guarded_A",
         "ch_mx_leader_asm_worried_A"
       ],
       "dehazed": {
-        "neutral": 889776,
+        "neutral": 745791,
         "warm": 661527,
         "guarded": 662809,
         "worried": 640841
@@ -576,13 +576,13 @@
       "placeholder": false,
       "fromReference": false,
       "sources": [
-        "ch_in_stranger_b_neutral_A",
+        "ch_in_stranger_b_neutral_A_v2",
         "ch_in_stranger_b_warm_A",
         "ch_in_stranger_b_guarded_A",
         "ch_in_stranger_b_worried_A"
       ],
       "dehazed": {
-        "neutral": 887798,
+        "neutral": 837916,
         "warm": 764452,
         "guarded": 741666,
         "worried": 760042
@@ -598,13 +598,13 @@
       "sources": [
         "ch_in_leader_asm_neutral_A",
         "ch_in_leader_asm_warm_A",
-        "ch_in_leader_asm_guarded_A",
+        "ch_in_leader_asm_guarded_A_v2",
         "ch_in_leader_asm_worried_A"
       ],
       "dehazed": {
         "neutral": 692612,
         "warm": 693119,
-        "guarded": 697562,
+        "guarded": 740583,
         "worried": 659292
       }
     },
@@ -618,13 +618,13 @@
       "sources": [
         "ch_in_leader_int_neutral_A_v2",
         "ch_in_leader_int_warm_A",
-        "ch_in_leader_int_guarded_A",
+        "ch_in_leader_int_guarded_A_v2",
         "ch_in_leader_int_worried_A"
       ],
       "dehazed": {
         "neutral": 835669,
         "warm": 551668,
-        "guarded": 903973,
+        "guarded": 743890,
         "worried": 674605
       }
     },
@@ -968,7 +968,7 @@
         "cast_president_inclusive_bust_A",
         "cast_president_inclusive_tv_A"
       ],
-      "dehazed": 656780
+      "dehazed": 614273
     },
     "cast_governor": {
       "name": "Governor Dale Whitaker",

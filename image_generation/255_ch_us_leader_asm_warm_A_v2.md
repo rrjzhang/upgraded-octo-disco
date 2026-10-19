@@ -11,7 +11,8 @@ depends_on: ["ch_us_leader_asm_warm_A"]
 attach: "out/ch_us_leader_asm_ref_A.png"
 save_image_as: "out/ch_us_leader_asm_warm_A_v2.png"
 save_prompt_used_as: "out/ch_us_leader_asm_warm_A_v2.prompt.txt"
-status: "pending"
+status: "done"  # generator noted a non-square canvas (about 1312x1199); accepted, the asset build crops busts to a square and the body no longer fades out
+error: "Output remains non-square after one retry."
 ---
 
 # ch_us_leader_asm_warm_A_v2
