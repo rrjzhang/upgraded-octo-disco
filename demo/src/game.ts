@@ -41,6 +41,8 @@ const SWAP_FADE_MS = 150;
 /** The TV still is laid out at this size, then mapped onto the screen quad. */
 const TV_W = 1280;
 const TV_H = 720;
+/** The phone's top row with its camera cutout (SPEC "Phone"): decorative, hidden from assistive tech, nothing clickable under it. */
+const phoneStatus = (): HTMLElement => h('div', { class: 'ph-status', 'aria-hidden': 'true' }, h('span', { class: 'ph-island' }));
 
 interface OpenWindow {
   module: ModuleId;
@@ -1867,7 +1869,7 @@ export class Game {
       pane.append(h('p', { class: 'ph-hint', text: this.str('ui.phone.callIncoming') }),
         h('button', { class: 'btn', 'data-fk': 'ph:callhome', onclick: () => this.endDay(), text: this.str('ui.phone.callHome') }));
     }
-    el.replaceChildren(
+    el.replaceChildren(phoneStatus(),
       h('div', { class: 'ph-head' },
         h('span', { text: this.str('ui.phone') }),
         h('button', { class: 'ph-close', 'aria-label': this.str('ui.close'), onclick: () => { this.phoneOpen = false; this.renderPhone(); this.renderStrip(); }, text: '×' })),
@@ -1899,7 +1901,7 @@ export class Game {
     const note = h('p', { class: 'ph-hint ph-profile-note', text: ready ? '' : this.str('ui.profile.pick') });
     pane.append(note, h('div', { class: 'ph-row' },
       h('button', { class: 'btn', 'data-fk': 'prof:begin', disabled: !ready, onclick: () => this.completeProfile(), text: this.str('ui.profile.begin') })));
-    el.replaceChildren(h('div', { class: 'ph-head' }, h('span', { text: this.str('ui.profile.title') })), pane);
+    el.replaceChildren(phoneStatus(), h('div', { class: 'ph-head' }, h('span', { text: this.str('ui.profile.title') })), pane);
   }
 
   /** The answers become the player's pack and variant; logged as `profile`; then the first day begins. */

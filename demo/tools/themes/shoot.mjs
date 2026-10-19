@@ -1,6 +1,7 @@
 // Font/theme review gallery for Great Vote. Injects each theme from themes.json into the RUNNING dev server page
 // (no source file changes), screenshots the main screen in a conversation and the phone, writes out/<stamp>/index.html.
 // Usage: node tools/themes/shoot.mjs [--only id1,id2] [--base http://localhost:5173] [--port 9371]
+// A theme may `extends` another (palette and fonts copied) and carry `scale` / `phoneScale` (type size multipliers).
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -70,7 +71,7 @@ async function fontUrl(fam, wantItalic) {
 
 function themeCss(t, q) {
   const serif = t.serifStack ?? fontStack(t.serif, SERIF_FB), ui = t.uiStack ?? fontStack(t.ui, UI_FB);
-  return `:root{--ink:${q.ink};--panel:${q.panel};--panel2:${q.panel2};--accent:${q.accent};--amber:${q.amber};--muted:${q.muted};--ui:${ui};--serif:${serif};}
+  return `:root{--ink:${q.ink};--panel:${q.panel};--panel2:${q.panel2};--accent:${q.accent};--amber:${q.amber};--muted:${q.muted};--ui:${ui};--serif:${serif};--phoneFrame:${q.phoneFrame};}
 html,body{background:${q.strip}}
 .topbar{background:${q.topbar};color:${q.topbarInk}}
 .tb-scene,.tb-legend,.tb-room{color:${q.topbarMuted}}
@@ -93,7 +94,6 @@ html,body{background:${q.strip}}
 .bg-flat{background:repeating-linear-gradient(135deg,${q.panel2} 0 22px,${mix(q.panel2, q.ink, 0.05)} 22px 44px)}
 .chip{background:${q.card};color:${q.ink}}
 .who{background:rgba(20,18,16,.82);color:#f4f1ea}
-.phone{border-color:${q.phoneFrame}}
 .ph-tabs{border-bottom-color:${q.line}}
 .ph-tab:disabled{color:${mix(q.muted, q.panel, 0.35)}}
 .ph-journal{background:${q.card};border-color:${q.line};color:${q.ink}}
@@ -101,8 +101,74 @@ html,body{background:${q.strip}}
 .card textarea.q-json,.card input,.card select{background:${q.card};border-color:${q.line};color:${q.ink}}`;
 }
 
+/**
+ * In-page expression that builds the type-scale overrides: every px font-size in the game's own stylesheets (not the
+ * injected theme) is re-declared under the same selector, times `scale`, or times `phoneScale` for the phone's own
+ * selectors (`.phone`, `.ph-*`; not `.phone-btn` in the strip or the `.ph-mark` placeholder tag). Inherited sizes
+ * follow from `.stage` / `.phone` (16 px default) and the phone's buttons get the phone scale.
+ */
+const scaleCssExpr = (scale, phoneScale) => `(()=>{const S=${scale},P=${phoneScale},out=[];
+  const isPhone=(sel)=>/(^|[\\s>+~(])\\.(phone(?![-\\w])|ph-(?!mark))/.test(sel);
+  const px=(v,k)=>(Math.round(parseFloat(v)*k*100)/100)+'px';
+  for (const sh of document.styleSheets) {
+    if (sh.ownerNode?.dataset?.gvTheme) continue;
+    let rules; try { rules = sh.cssRules; } catch { continue; }
+    for (const r of rules) {
+      if (!(r instanceof CSSStyleRule)) continue;
+      // a 'font' shorthand that uses var() leaves the longhands empty in the CSSOM, so read its size from the text
+      let fs=r.style.fontSize; if (!fs) { const m=/(?:^|\\s)(\\d+(?:\\.\\d+)?px)(?:\\/\\S+)?\\s/.exec(r.style.getPropertyValue('font')+' '); fs=m?m[1]:''; }
+      if (!fs || !fs.endsWith('px')) continue;
+      const sels=r.selectorText.split(',').map(x=>x.trim());
+      const ph=sels.filter(isPhone), main=sels.filter(x=>!isPhone(x));
+      if (main.length && S!==1) out.push(main.join(',')+'{font-size:'+px(fs,S)+'}');
+      if (ph.length && P!==1) out.push(ph.join(',')+'{font-size:'+px(fs,P)+'}');
+    }
+  }
+  out.unshift('.stage{font-size:'+px('16px',S)+'}');
+  out.push('.phone{font-size:'+px('16px',P)+'}', '.phone .btn{font-size:'+px('15px',P)+'}', '.phone .btn.small{font-size:'+px('13px',P)+'}');
+  return out.join('\\n');})()`;
+
+/** In-page layout probe for the main screen: text cut off, boxes overlapping, the right panel needing to scroll. */
+const MAIN_PROBE = `(()=>{const w=[]; const R=(e)=>e.getBoundingClientRect(); const hit=(a,b)=>a.left<b.right-1&&a.right>b.left+1&&a.top<b.bottom-1&&a.bottom>b.top+1;
+  const clipX=(sel,what)=>document.querySelectorAll(sel).forEach((e,i)=>{ if(e.offsetParent&&e.scrollWidth>e.clientWidth+1) w.push(what+' '+(i+1)+' cut off ('+(e.scrollWidth-e.clientWidth)+' px)'); });
+  // a squeezed dialogue box: measured as shot (dev mode) and again with the dev-only buttons (Back, edit) hidden, as a player sees it
+  const devBtns=[...document.querySelectorAll('.choices .choice')].filter(e=>e.classList.contains('dev-back')||/\\(dev\\)/.test(e.textContent));
+  const over=()=>[...document.querySelectorAll('.right .dialogue, .right .desc')].map(e=>[e, e.scrollHeight-e.clientHeight]).filter(([,d])=>d>1);
+  const asShot=over(); devBtns.forEach(e=>e.style.display='none'); const asPlayer=new Set(over().map(([e])=>e)); devBtns.forEach(e=>e.style.display='');
+  for (const [e,d] of asShot) w.push((e.classList.contains('desc')?'scene description':'dialogue')+' text overflows its box by '+d+' px and runs under the choices'+(devBtns.length?(asPlayer.has(e)?' (also without the dev-only buttons)':' (only with the dev-only buttons; fits as a player sees it)'):''));
+  clipX('.choice','choice'); clipX('.exit','exit'); clipX('.topbar','top bar'); clipX('.tb-left > *, .tb-right > *','top bar item'); clipX('.line','dialogue line');
+  const tl=document.querySelector('.tb-left'), tr=document.querySelector('.tb-right'); if(tl&&tr&&hit(R(tl),R(tr))) w.push('top bar: left and right groups overlap');
+  const tb=document.querySelector('.topbar'); if(tb) for(const c of tb.querySelectorAll('.tb-left > *, .tb-right > *')){const r=R(c); if(r.height>R(tb).height-4) w.push('top bar item wraps or is taller than the bar'); if(r.right>R(tb).right+1) w.push('top bar item runs off the bar');}
+  const ch=[...document.querySelectorAll('.choice')]; for(let i=0;i<ch.length;i++) for(let j=i+1;j<ch.length;j++) if(hit(R(ch[i]),R(ch[j]))) w.push('choices '+(i+1)+' and '+(j+1)+' overlap');
+  const ex=[...document.querySelectorAll('.exit, .phone-btn')]; for(let i=0;i<ex.length;i++) for(let j=i+1;j<ex.length;j++) if(hit(R(ex[i]),R(ex[j]))) w.push('exit buttons overlap');
+  const st=document.querySelector('.strip'); if(st){ for(const e of ex) if(R(e).bottom>R(st).bottom+1||R(e).top<R(st).top-1) w.push('exit strip: a button sits outside the strip'); }
+  const rp=document.querySelector('.right'); let below=0; if(rp&&rp.scrollHeight>rp.clientHeight+1){ below=rp.scrollHeight-rp.clientHeight; const last=ch[ch.length-1]; const hidden=last&&R(last).bottom>R(rp).bottom; w.push('right panel scrolls '+below+' px'+(hidden?' (last choice below the fold at 1440x900)':'')); }
+  return {warn:[...new Set(w)], choices:ch.length, rightOverflow:below, lineFont:getComputedStyle(document.querySelector('.dialogue .line')||document.body).fontSize, choiceFont:getComputedStyle(ch[0]||document.body).fontSize};})()`;
+
+/** In-page layout probe for the open phone: the camera cutout covers nothing interactive, tabs fit, pane text not cut. */
+const PHONE_PROBE = `(()=>{const w=[]; const ph=document.querySelector('.phone'); if(!ph||ph.hidden) return {warn:['phone not open']};
+  const R=(e)=>e.getBoundingClientRect(); const hit=(a,b)=>a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;
+  const isl=ph.querySelector('.ph-island'); const ir=isl&&R(isl);
+  const items=[...ph.querySelectorAll('button,input,textarea,select,a[href],label')].filter(e=>e.getClientRects().length);
+  if(!isl) w.push('no camera cutout'); else for(const e of items) if(hit(R(e),ir)) w.push('camera cutout covers '+e.tagName.toLowerCase()+'.'+e.className);
+  const f=items[0]; if(f){const r=R(f); const at=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2); if(!(at&&(at===f||f.contains(at)))) w.push('first control not reachable');}
+  const tabs=ph.querySelector('.ph-tabs'); if(tabs&&tabs.scrollWidth>tabs.clientWidth+1) w.push('phone tabs do not fit');
+  ph.querySelectorAll('.ph-tab').forEach(t=>{ if(t.scrollWidth>t.clientWidth+1) w.push('phone tab cut off: '+t.textContent); if(R(t).height>60) w.push('phone tab wraps: '+t.textContent); });
+  const pane=ph.querySelector('.ph-pane'); if(pane&&pane.scrollHeight>pane.clientHeight+1) w.push('phone pane scrolls '+(pane.scrollHeight-pane.clientHeight)+' px');
+  const ta=ph.querySelector('.ph-journal'); if(ta&&R(ta).height<140) w.push('journal box only '+Math.round(R(ta).height)+' px tall');
+  return {warn:[...new Set(w)], island:ir&&{w:Math.round(ir.width),h:Math.round(ir.height)}, tabFont:getComputedStyle(ph.querySelector('.ph-tab')||ph).fontSize};})()`;
+
 // ---------------------------------------------------------------- browser
-const all = JSON.parse(readFileSync(join(here, 'themes.json'), 'utf8')).themes;
+const raw = JSON.parse(readFileSync(join(here, 'themes.json'), 'utf8')).themes;
+const byId = new Map(raw.map((t) => [t.id, t]));
+/** `extends` copies the base theme's fonts and palette (own keys win); scale defaults to 1, phoneScale to scale. */
+const all = raw.map((t) => {
+  const b = t.extends ? byId.get(t.extends) : null;
+  if (t.extends && !b) throw new Error(`theme ${t.id}: extends unknown theme ${t.extends}`);
+  const m = b ? { ...b, mood: b.mood, ...t, palette: { ...b.palette, ...(t.palette ?? {}) } } : { ...t };
+  m.scale = +(t.scale ?? 1); m.phoneScale = +(t.phoneScale ?? m.scale);
+  return m;
+});
 const themes = only?.length ? all.filter((t) => only.includes(t.id)) : all;
 const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\..*/, '').replace('T', '-');
 const out = join(here, 'out', stamp); mkdirSync(join(out, 'png'), { recursive: true }); mkdirSync(join(out, 'jpg'), { recursive: true });
@@ -142,8 +208,10 @@ async function shootTheme(t) {
   const fams = [...new Set([t.serifStack ? null : t.serif, t.uiStack ? null : t.ui].filter(Boolean))];
   const links = [];
   for (const f of fams) { const u = await fontUrl(f, f === t.serif); links.push({ family: f, url: u?.url ?? null, spec: u?.spec ?? null }); }
-  const css = themeCss(t, q);
-  await ev(`(()=>{document.querySelectorAll('[data-gv-theme]').forEach(e=>e.remove());
+  await ev(`(()=>{document.querySelectorAll('[data-gv-theme]').forEach(e=>e.remove()); return true})()`);
+  const scaleCss = t.scale !== 1 || t.phoneScale !== 1 ? await ev(scaleCssExpr(t.scale, t.phoneScale)) : '';
+  const css = themeCss(t, q) + (scaleCss ? '\n/* type scale ' + t.scale + ', phone ' + t.phoneScale + ' */\n' + scaleCss : '');
+  await ev(`(()=>{
     for (const u of ${JSON.stringify(links.filter((l) => l.url).map((l) => l.url))}) { const l=document.createElement('link'); l.rel='stylesheet'; l.href=u; l.dataset.gvTheme=1; document.head.append(l); }
     const s=document.createElement('style'); s.dataset.gvTheme=1; s.textContent=${JSON.stringify(css)}; document.head.append(s); return true;})()`);
   // (a) main screen in a conversation
@@ -157,6 +225,7 @@ async function shootTheme(t) {
     return Object.fromEntries(fams.map(f=>[f,[...document.fonts].some(ff=>ff.family.replace(/"/g,'')===f && ff.status==='loaded')]));})()`);
   const probe = await ev(`({line:getComputedStyle(document.querySelector('.dialogue .line')||document.body).fontFamily, choice:getComputedStyle(document.querySelector('.choice')||document.body).fontFamily, choices:document.querySelectorAll('.choice').length})`);
   await sleep(150);
+  const mainLayout = await ev(MAIN_PROBE);
   await shot(`${t.id}_main`);
   // (b) phone open on the journal tab, then the contacts tab
   await ev(`gv.game.phoneTab='journal'; gv.game.journalDraft=${JSON.stringify(JOURNAL)}; document.querySelector('.phone-btn').click(); true`);
@@ -164,12 +233,31 @@ async function shootTheme(t) {
   await shot(`${t.id}_phone`);
   const rect = await ev(`(()=>{const r=document.querySelector('.phone').getBoundingClientRect(); return {x:Math.max(0,r.x-12),y:Math.max(0,r.y-12),width:Math.min(1440,r.width+24),height:Math.min(900,r.height+24)}})()`);
   await shot(`${t.id}_phone_journal`, rect);
+  const journalLayout = await ev(PHONE_PROBE);
   await ev(`[...document.querySelectorAll('.ph-tab')][1].click(); true`); await sleep(250);
   const contacts = await ev(`document.querySelectorAll('.ph-contacts li').length`);
   await shot(`${t.id}_phone_contacts`, rect);
+  const contactsLayout = await ev(PHONE_PROBE);
+  // the opening questions (SPEC: a single screen), worst case: heritage `in` with both follow-ups shown; state restored after
+  await ev(`gv.game.s.player.profilePending=true; gv.game.profileDraft={heritage:'in'}; gv.game.phoneOpen=true; gv.game.render(); true`); await sleep(250);
+  await shot(`${t.id}_phone_profile`, rect);
+  const profileLayout = await ev(PHONE_PROBE);
+  await ev(`gv.game.s.player.profilePending=false; gv.game.profileDraft={}; gv.game.phoneOpen=false; gv.game.render(); true`);
   await ev(`gv.game.phoneOpen=false; gv.game.phoneTab='journal'; gv.game.render(); true`);
+  // (c) lead on twice in the conversation, so longer lines and choice lists are checked too; the last state is shot as _later
+  const laterWarn = [];
+  for (let k = 0; k < 2; k++) {
+    const ok = await ev(`(()=>{const c=[...document.querySelectorAll('.choices .choice:not(.dev-back):not([disabled])')].filter(e=>!/edit \\(dev\\)/.test(e.textContent)); const e=c.find(e=>e.classList.contains('next'))||c[1]||c[0]; if(!e) return false; e.click(); return true})()`);
+    if (!ok) break; await sleep(250);
+    for (const w of (await ev(MAIN_PROBE)).warn) if (!mainLayout.warn.includes(w)) laterWarn.push(`after ${k + 1} click${k ? "s" : ""} in the conversation: ${w}`);
+  }
+  mainLayout.warn.push(...new Set(laterWarn));
+  await sleep(150);
+  await shot(`${t.id}_later`);
   const failed = Object.entries(fontState).filter(([, ok]) => !ok).map(([f]) => f).concat(links.filter((l) => !l.url).map((l) => l.family + ' (no css)'));
-  return { t, q, checks, warn, links, fontState, failed, probe, contacts };
+  const layout = [...mainLayout.warn.map((x) => 'main: ' + x), ...journalLayout.warn.map((x) => 'phone journal: ' + x), ...contactsLayout.warn.map((x) => 'phone contacts: ' + x), ...profileLayout.warn.map((x) => 'phone opening questions: ' + x.replace(/^phone pane scrolls (\d+) px$/, 'Begin needs scrolling ($1 px; SPEC wants one screen)'))];
+  for (const l of layout) console.log(`  ~ ${t.id}: ${l}`);
+  return { t, q, checks, warn, links, fontState, failed, probe, contacts, layout, sizes: { line: mainLayout.lineFont, choice: mainLayout.choiceFont, phoneTab: journalLayout.tabFont, island: journalLayout.island } };
 }
 for (const t of themes) {
   let r = null;
@@ -180,8 +268,8 @@ for (const t of themes) {
     } catch (e) { console.log(`  ${t.id}: attempt ${attempt} failed (${e.message.split('\n')[0]}); reloading`); await setup().catch(() => {}); }
   }
   if (!r) { console.log(`${t.id}: SKIPPED after 3 attempts`); continue; }
-  const { warn, failed, probe, contacts } = r; results.push(r);
-  console.log(`${t.id.padEnd(22)} fonts:${failed.length ? ' FAILED ' + failed.join(',') : ' ok'}  contrast:${warn.length ? ' ' + warn.length + ' warn' : ' ok'}  choices:${probe.choices} contacts:${contacts}`);
+  const { warn, failed, probe, contacts, layout, sizes } = r; results.push(r);
+  console.log(`${t.id.padEnd(22)} fonts:${failed.length ? ' FAILED ' + failed.join(',') : ' ok'}  contrast:${warn.length ? ' ' + warn.length + ' warn' : ' ok'}  layout:${layout.length ? ' ' + layout.length + ' note' : ' ok'}  choices:${probe.choices} contacts:${contacts}  line ${sizes.line} choice ${sizes.choice}`);
 }
 ws.close(); chrome.kill();
 try { rmSync(profile, { recursive: true, force: true }); } catch {}
@@ -189,19 +277,21 @@ try { rmSync(profile, { recursive: true, force: true }); } catch {}
 // ---------------------------------------------------------------- gallery
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const SW = ['panel', 'panel2', 'card', 'ink', 'muted', 'accent', 'amber', 'topbar', 'strip', 'line'];
-const rootBlock = (r) => `  --ink: ${r.q.ink};\n  --panel: ${r.q.panel};\n  --panel2: ${r.q.panel2};\n  --accent: ${r.q.accent};\n  --amber: ${r.q.amber};\n  --muted: ${r.q.muted};\n  --ui: ${r.t.uiStack ?? fontStack(r.t.ui, UI_FB)};\n  --serif: ${r.t.serifStack ?? fontStack(r.t.serif, SERIF_FB)};`;
+const rootBlock = (r) => (r.t.scale !== 1 || r.t.phoneScale !== 1 ? `  /* type scale ${r.t.scale}, phone ${r.t.phoneScale}: multiply the px font sizes in style.css (see scaleCssExpr in shoot.mjs) */\n` : '') + `  --ink: ${r.q.ink};\n  --panel: ${r.q.panel};\n  --panel2: ${r.q.panel2};\n  --accent: ${r.q.accent};\n  --amber: ${r.q.amber};\n  --muted: ${r.q.muted};\n  --ui: ${r.t.uiStack ?? fontStack(r.t.ui, UI_FB)};\n  --serif: ${r.t.serifStack ?? fontStack(r.t.serif, SERIF_FB)};`;
 const card = (r, i) => {
   const { t } = r;
   const fonts = `<b>Dialogue</b> ${esc(t.serifStack ? 'system: ' + t.serifStack.split(',')[0] : t.serif)} &middot; <b>UI</b> ${esc(t.uiStack ? 'system: ' + t.uiStack.split(',')[0] : t.ui)}`;
   const warn = r.warn.length ? `<p class="warn">Contrast below 4.5:1: ${r.warn.map((w) => `${esc(w.what)} ${w.ratio}:1`).join('; ')}</p>` : '';
   const ff = r.failed.length ? `<p class="warn">Font not loaded: ${esc(r.failed.join(', '))}</p>` : '';
+  const sc = t.scale !== 1 || t.phoneScale !== 1 ? `<p class="scale">Type scale <b>${t.scale}&times;</b>${t.phoneScale !== t.scale ? ` (phone ${t.phoneScale}&times;)` : ''}: dialogue ${esc(r.sizes.line)}, choices ${esc(r.sizes.choice)}, phone tabs ${esc(r.sizes.phoneTab)}</p>` : '';
+  const lay = r.layout.length ? `<p class="warn">At 1440x900: ${r.layout.map(esc).join('; ')}</p>` : '';
   return `<section class="theme" id="${t.id}">
-  <header><span class="num">${i + 1}</span><h2>${esc(t.name)}</h2><span class="mood">${esc(t.mood)}</span><code>${t.id}</code></header>
+  <header><span class="num">${i + 1}</span><h2>${esc(t.name)}</h2><span class="mood">${esc(t.mood)}</span>${t.scale !== 1 ? `<span class="mood">${t.scale}&times; text</span>` : ''}<code>${t.id}</code></header>
   <p class="fonts">${fonts} <span class="cr">ink/panel ${r.checks[0].ratio}:1 &middot; muted/panel ${r.checks[1].ratio}:1</span></p>
   <div class="sw">${SW.map((k) => `<span title="${k} ${r.q[k]}"><i style="background:${r.q[k]}"></i>${k}<br><code>${r.q[k]}</code></span>`).join('')}</div>
-  ${warn}${ff}
+  ${sc}${warn}${ff}${lay}
   <div class="pair"><a href="png/${t.id}_main.png"><img loading="lazy" src="jpg/${t.id}_main.jpg" alt="main screen"></a><a href="png/${t.id}_phone.png"><img loading="lazy" src="jpg/${t.id}_phone.jpg" alt="phone open"></a></div>
-  <p class="links">Full size: <a href="png/${t.id}_main.png">main</a> &middot; <a href="png/${t.id}_phone.png">phone (full screen)</a> &middot; <a href="png/${t.id}_phone_journal.png">phone journal</a> &middot; <a href="png/${t.id}_phone_contacts.png">phone contacts</a></p>
+  <p class="links">Full size: <a href="png/${t.id}_main.png">main</a> &middot; <a href="png/${t.id}_phone.png">phone (full screen)</a> &middot; <a href="png/${t.id}_phone_journal.png">phone journal</a> &middot; <a href="png/${t.id}_phone_contacts.png">phone contacts</a> &middot; <a href="png/${t.id}_phone_profile.png">phone opening questions</a> &middot; <a href="png/${t.id}_later.png">two clicks later</a></p>
   <details><summary>:root block for style.css</summary><pre>${esc(rootBlock(r))}</pre></details>
 </section>`;
 };
@@ -229,7 +319,7 @@ code{font:12px ui-monospace,Menlo,monospace;color:var(--mut)}
 .pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:12px}
 .pair img{width:100%;height:auto;display:block;border-radius:6px;border:1px solid var(--rule)}
 .links{font-size:13px;color:var(--mut);margin:8px 0 4px}.links a{color:inherit}
-.warn{color:#b3261e;font-weight:600;margin:4px 0}
+.warn{color:#b3261e;font-weight:600;margin:4px 0}.scale{margin:4px 0}
 @media (prefers-color-scheme:dark){.warn{color:#ff8a80}}
 pre{background:var(--bg);padding:10px;border-radius:6px;overflow-x:auto;font-size:12px}
 .phones{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:18px}
@@ -247,9 +337,10 @@ ${results.map(card).join('\n')}
 <div class="phones">${results.map(phoneCard).join('\n')}</div>
 </main></body></html>`;
 writeFileSync(join(out, 'index.html'), html);
-writeFileSync(join(out, 'results.json'), JSON.stringify(results.map((r) => ({ id: r.t.id, fonts: r.links, fontLoaded: r.fontState, failed: r.failed, contrastWarnings: r.warn, probe: r.probe, contacts: r.contacts })), null, 2));
+writeFileSync(join(out, 'results.json'), JSON.stringify(results.map((r) => ({ id: r.t.id, scale: r.t.scale, phoneScale: r.t.phoneScale, sizes: r.sizes, layoutWarnings: r.layout, fonts: r.links, fontLoaded: r.fontState, failed: r.failed, contrastWarnings: r.warn, probe: r.probe, contacts: r.contacts })), null, 2));
 console.log(`\n${results.length} themes -> ${join(out, 'index.html')}`);
 console.log(`font failures: ${results.filter((r) => r.failed.length).map((r) => r.t.id + '(' + r.failed + ')').join(' ') || 'none'}`);
 console.log(`contrast warnings: ${results.filter((r) => r.warn.length).map((r) => r.t.id).join(' ') || 'none'}`);
+console.log(`layout notes: ${results.filter((r) => r.layout.length).map((r) => r.t.id).join(' ') || 'none'}`);
 console.log(`page errors: ${errors.length}`); for (const e of errors.slice(0, 5)) console.log('  ' + e.slice(0, 200));
 process.exit(0);

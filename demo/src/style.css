@@ -5,6 +5,7 @@
   --accent: #1f6f6b;
   --amber: #d9a441;
   --muted: #5d574d;
+  --phoneFrame: var(--ink); /* phone bezel and its camera cutout */
   --ui: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
 }
@@ -252,10 +253,13 @@ button { font-family: inherit; }
 /* ---------- phone ---------- */
 .phone {
   position: absolute; left: 16px; bottom: 16px; width: 420px; height: 800px; z-index: 200; background: var(--panel);
-  border: 10px solid var(--ink); border-radius: 36px; display: flex; flex-direction: column; overflow: hidden;
+  border: 10px solid var(--phoneFrame); border-radius: 36px; display: flex; flex-direction: column; overflow: hidden;
   box-shadow: 0 12px 40px rgba(0,0,0,.45);
 }
-.ph-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px 6px; font-weight: 600; }
+/* the camera cutout ("island"): a decorative status row in the normal flow, so every pane starts below it */
+.ph-status { flex: none; height: 42px; display: flex; justify-content: center; align-items: flex-start; padding-top: 10px; pointer-events: none; }
+.ph-island { width: 90px; height: 26px; border-radius: 13px; background: var(--phoneFrame); }
+.ph-head { display: flex; justify-content: space-between; align-items: center; padding: 2px 18px 6px; font-weight: 600; }
 .ph-close { background: none; border: 0; font-size: 26px; cursor: pointer; color: var(--ink); line-height: 1; }
 .ph-tabs { display: flex; gap: 4px; padding: 0 12px; border-bottom: 1px solid #cfc7b6; }
 .ph-tab { flex: 1; padding: 10px 0; background: none; border: 0; border-bottom: 3px solid transparent; cursor: pointer; font-size: 14px; color: var(--ink); }
