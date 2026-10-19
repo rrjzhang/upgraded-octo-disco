@@ -736,6 +736,7 @@ export class Game {
       dayPhase: dayPhaseOf(this.s.day),
       scene: this.s.scene, // rows with a `scene` cell only match where they are set
       ...this.leads(), // rows with a usLead/homeLead cell only match rooms with that lead (SPEC "Leads")
+      day: this.s.day, // rows with a `day` cell only match on those days
     });
     if (!sel.row) {
       if (!quiet) console.error(`[dialogue] ${n.id}: no row matched (missing fallback?)`);

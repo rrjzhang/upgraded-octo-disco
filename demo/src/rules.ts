@@ -78,7 +78,7 @@ export function rapportMatches(cell: string, r: number): boolean {
  * `scene`: the scene the conversation happens in. A row whose `scene` cell is non-blank only matches there
  * (SPEC "Dialogue location"); with `scene` undefined, only rows with a blank `scene` cell match.
  */
-export interface Ctx extends NpcState { nationalLeader: Leader; playerLean: Lean; dayPhase: DayPhase; scene?: string; usLead?: LeadPos; homeLead?: LeadPos }
+export interface Ctx extends NpcState { nationalLeader: Leader; playerLean: Lean; dayPhase: DayPhase; scene?: string; usLead?: LeadPos; homeLead?: LeadPos; day?: number }
 
 /** Default conversations per NPC per day (SPEC "Conversation limit"). */
 export const DEFAULT_TALKS_PER_DAY = 1;
@@ -137,6 +137,7 @@ export function rowMatches(row: DialogueRow, ctx: Ctx): boolean {
   // SPEC "Leads": a row written for one lead only shows in rooms with that lead (default pro)
   if (row.usLead && !leadMatches(row.usLead, ctx.usLead ?? 'pro')) return false;
   if (row.homeLead && !leadMatches(row.homeLead, ctx.homeLead ?? 'pro')) return false;
+  if (row.day && (ctx.day === undefined || !dayMatches(row.day, ctx.day))) return false;
   for (const f of COND_FIELDS) {
     const cell = row.conds[f];
     if (cell === '') continue;

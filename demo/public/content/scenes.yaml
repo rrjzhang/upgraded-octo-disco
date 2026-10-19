@@ -364,7 +364,7 @@ scenes:
     exits: []
     hotspots: []
     slots:
-      - { id: podium, x: 0.50, y: 0.78 }   # standing behind the podium, centre; feet hidden by it in the finished background
+      - { id: podium, x: 0.41, y: 0.61 }   # on the dais, stepped out to the left of the podium (the cut-out cannot stand behind it); measured on bg_townhall_eve_A
 
   - id: street
     name: Street

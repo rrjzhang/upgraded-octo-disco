@@ -1,22 +1,14 @@
 {
  "content": "/Users/richardzhang/great_vote/demo/public/content",
- "generated": "2026-10-19T04:08:27.330Z",
+ "generated": "2026-10-19T05:53:50.841Z",
  "ok": true,
  "counts": {
   "error": 0,
-  "warning": 1,
+  "warning": 0,
   "info": 43
  },
  "maxTalks": 1,
  "diagnostics": [
-  {
-   "severity": "warning",
-   "code": "UNKNOWN_ASSET",
-   "file": "scenes.yaml",
-   "line": 356,
-   "path": "scenes[8].background",
-   "message": "background \"bg_townhall_eve\" not in assets/manifest.json"
-  },
   {
    "severity": "info",
    "code": "SLOT_OCCLUSION",
@@ -39,7 +31,7 @@
    "file": "scenes.yaml",
    "line": 180,
    "path": "scenes.park.slots.path_far",
-   "message": "in park, a figure on slot \"path\" (nearer) would cover 56% of the head band and 56% of a figure on \"path_far\"; the engine never shows both at once. Move one sideways if both should be able to appear together"
+   "message": "in park, a figure on slot \"path\" (nearer) would cover 55% of the head band and 55% of a figure on \"path_far\"; the engine never shows both at once. Move one sideways if both should be able to appear together"
   },
   {
    "severity": "info",
@@ -86173,8 +86165,8 @@
     },
     {
      "scene": "home",
-     "coverage": 0.9722222222222222,
-     "served": 420,
+     "coverage": 0.9444444444444444,
+     "served": 408,
      "noMatch": 0,
      "ties": [],
      "located": []
@@ -87932,10 +87924,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
+      "row": "MC31",
       "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "prio": 4,
+      "line": "Look who it is. I thought the library adopted you. I'm teasing. Mostly. Sit, there's soup.",
       "tie": null,
       "cost": 0
      },
@@ -87956,10 +87948,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC50",
+      "spec": 2,
+      "prio": 1,
+      "line": "Hello, 3B. You look tired. Did you eat?",
       "tie": null,
       "cost": 0
      },
@@ -87980,10 +87972,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC06p",
+      "spec": 5,
+      "prio": 4,
+      "line": "You're here every day now. Good. Did you eat?",
       "tie": null,
       "cost": 0
      },
@@ -88076,10 +88068,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
+      "row": "MC31",
       "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "prio": 4,
+      "line": "Look who it is. I thought the library adopted you. I'm teasing. Mostly. Sit, there's soup.",
       "tie": null,
       "cost": 0
      },
@@ -88100,10 +88092,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC50",
+      "spec": 2,
+      "prio": 1,
+      "line": "Hello, 3B. You look tired. Did you eat?",
       "tie": null,
       "cost": 0
      },
@@ -88124,10 +88116,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC06p",
+      "spec": 5,
+      "prio": 4,
+      "line": "You're here every day now. Good. Did you eat?",
       "tie": null,
       "cost": 0
      },
@@ -88364,10 +88356,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
+      "row": "MC31",
       "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "prio": 4,
+      "line": "Look who it is. I thought the library adopted you. I'm teasing. Mostly. Sit, there's soup.",
       "tie": null,
       "cost": 0
      },
@@ -88388,10 +88380,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC50",
+      "spec": 2,
+      "prio": 1,
+      "line": "Hello, 3B. You look tired. Did you eat?",
       "tie": null,
       "cost": 0
      },
@@ -88412,10 +88404,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC06p",
+      "spec": 5,
+      "prio": 4,
+      "line": "You're here every day now. Good. Did you eat?",
       "tie": null,
       "cost": 0
      },
@@ -88508,10 +88500,10 @@
       "cost": 1
      },
      {
-      "row": "MC104",
+      "row": "MC31",
       "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "prio": 4,
+      "line": "Look who it is. I thought the library adopted you. I'm teasing. Mostly. Sit, there's soup.",
       "tie": null,
       "cost": 0
      },
@@ -88532,10 +88524,10 @@
       "cost": 1
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC50",
+      "spec": 2,
+      "prio": 1,
+      "line": "Hello, 3B. You look tired. Did you eat?",
       "tie": null,
       "cost": 0
      },
@@ -88556,10 +88548,10 @@
       "cost": 1
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC06p",
+      "spec": 5,
+      "prio": 4,
+      "line": "You're here every day now. Good. Did you eat?",
       "tie": null,
       "cost": 0
      },
@@ -88796,34 +88788,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
-      "tie": null,
-      "cost": 0
-     },
-     {
       "row": "MC03",
       "spec": 2,
       "prio": 6,
       "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
       "tie": null,
       "cost": 0
      },
@@ -88844,10 +88812,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
       "tie": null,
       "cost": 0
      },
@@ -88940,10 +88908,18 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
       "tie": null,
       "cost": 0
      },
@@ -88964,10 +88940,18 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
       "tie": null,
       "cost": 0
      },
@@ -88988,10 +88972,18 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
       "tie": null,
       "cost": 0
      },
@@ -89228,34 +89220,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
-      "tie": null,
-      "cost": 0
-     },
-     {
       "row": "MC03",
       "spec": 2,
       "prio": 6,
       "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
       "tie": null,
       "cost": 0
      },
@@ -89276,10 +89244,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
       "tie": null,
       "cost": 0
      },
@@ -89372,10 +89340,18 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
       "tie": null,
       "cost": 0
      },
@@ -89396,10 +89372,18 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
       "tie": null,
       "cost": 0
      },
@@ -89420,10 +89404,18 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
       "tie": null,
       "cost": 0
      },
@@ -91390,10 +91382,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
+      "row": "MC07",
       "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "prio": 4,
+      "line": "I never see you at the center anymore. Busy with your library friends? I'm teasing. Mostly.",
       "tie": null,
       "cost": 0
      },
@@ -91414,10 +91406,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC33",
+      "spec": 2,
+      "prio": 3,
+      "line": "Mrs. Chen, in a tracksuit, has just finished with the tai chi group under the far trees. \"Forty minutes. My knees are complaining in two languages. Sit.\"",
       "tie": null,
       "cost": 0
      },
@@ -91438,10 +91430,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC30p",
+      "spec": 5,
+      "prio": 4,
+      "line": "Mr. Lin says you're at the center every day now. Good. Did you eat?",
       "tie": null,
       "cost": 0
      },
@@ -91534,10 +91526,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
+      "row": "MC07",
       "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "prio": 4,
+      "line": "I never see you at the center anymore. Busy with your library friends? I'm teasing. Mostly.",
       "tie": null,
       "cost": 0
      },
@@ -91558,10 +91550,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC33",
+      "spec": 2,
+      "prio": 3,
+      "line": "Mrs. Chen, in a tracksuit, has just finished with the tai chi group under the far trees. \"Forty minutes. My knees are complaining in two languages. Sit.\"",
       "tie": null,
       "cost": 0
      },
@@ -91582,10 +91574,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC30p",
+      "spec": 5,
+      "prio": 4,
+      "line": "Mr. Lin says you're at the center every day now. Good. Did you eat?",
       "tie": null,
       "cost": 0
      },
@@ -91822,10 +91814,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
+      "row": "MC07",
       "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "prio": 4,
+      "line": "I never see you at the center anymore. Busy with your library friends? I'm teasing. Mostly.",
       "tie": null,
       "cost": 0
      },
@@ -91846,10 +91838,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC33",
+      "spec": 2,
+      "prio": 3,
+      "line": "Mrs. Chen, in a tracksuit, has just finished with the tai chi group under the far trees. \"Forty minutes. My knees are complaining in two languages. Sit.\"",
       "tie": null,
       "cost": 0
      },
@@ -91870,10 +91862,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC30p",
+      "spec": 5,
+      "prio": 4,
+      "line": "Mr. Lin says you're at the center every day now. Good. Did you eat?",
       "tie": null,
       "cost": 0
      },
@@ -91966,10 +91958,10 @@
       "cost": 1
      },
      {
-      "row": "MC104",
+      "row": "MC07",
       "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "prio": 4,
+      "line": "I never see you at the center anymore. Busy with your library friends? I'm teasing. Mostly.",
       "tie": null,
       "cost": 0
      },
@@ -91990,10 +91982,10 @@
       "cost": 1
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC33",
+      "spec": 2,
+      "prio": 3,
+      "line": "Mrs. Chen, in a tracksuit, has just finished with the tai chi group under the far trees. \"Forty minutes. My knees are complaining in two languages. Sit.\"",
       "tie": null,
       "cost": 0
      },
@@ -92014,10 +92006,10 @@
       "cost": 1
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC30p",
+      "spec": 5,
+      "prio": 4,
+      "line": "Mr. Lin says you're at the center every day now. Good. Did you eat?",
       "tie": null,
       "cost": 0
      },
@@ -92254,34 +92246,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
-      "tie": null,
-      "cost": 0
-     },
-     {
       "row": "MC03",
       "spec": 2,
       "prio": 6,
       "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
       "tie": null,
       "cost": 0
      },
@@ -92302,10 +92270,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
       "tie": null,
       "cost": 0
      },
@@ -92398,10 +92366,18 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
       "tie": null,
       "cost": 0
      },
@@ -92422,10 +92398,18 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
       "tie": null,
       "cost": 0
      },
@@ -92446,10 +92430,18 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
       "tie": null,
       "cost": 0
      },
@@ -92686,34 +92678,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
-      "tie": null,
-      "cost": 0
-     },
-     {
       "row": "MC03",
       "spec": 2,
       "prio": 6,
       "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
       "tie": null,
       "cost": 0
      },
@@ -92734,10 +92702,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
       "tie": null,
       "cost": 0
      },
@@ -92830,10 +92798,18 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
       "tie": null,
       "cost": 0
      },
@@ -92854,10 +92830,18 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
       "tie": null,
       "cost": 0
      },
@@ -92878,10 +92862,18 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
       "tie": null,
       "cost": 0
      },
@@ -94848,10 +94840,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm adding up the lunch money in my head. Don't talk, I'll lose the number.",
       "tie": null,
       "cost": 0
      },
@@ -94872,10 +94864,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm adding up the lunch money in my head. Don't talk, I'll lose the number.",
       "tie": null,
       "cost": 0
      },
@@ -94896,10 +94888,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm adding up the lunch money in my head. Don't talk, I'll lose the number.",
       "tie": null,
       "cost": 0
      },
@@ -94992,10 +94984,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm adding up the lunch money in my head. Don't talk, I'll lose the number.",
       "tie": null,
       "cost": 0
      },
@@ -95016,10 +95008,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm adding up the lunch money in my head. Don't talk, I'll lose the number.",
       "tie": null,
       "cost": 0
      },
@@ -95036,30 +95028,6 @@
       "spec": 3,
       "prio": 4,
       "line": "Hello, 3B. Do you know anything about school forms?",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC02",
-      "spec": 2,
-      "prio": 2,
-      "line": "Hello, 3B. My tablet class moved to Wednesdays and nobody told me. I sat there forty minutes with the tai chi group.",
-      "tie": null,
-      "cost": null
-     },
-     {
-      "row": "MC05",
-      "spec": 3,
-      "prio": 4,
-      "line": "3B! Good news for once. Come, sit a minute.",
       "tie": null,
       "cost": 0
      },
@@ -95120,6 +95088,30 @@
       "cost": 0
      },
      {
+      "row": "MC02",
+      "spec": 2,
+      "prio": 2,
+      "line": "Hello, 3B. My tablet class moved to Wednesdays and nobody told me. I sat there forty minutes with the tai chi group.",
+      "tie": null,
+      "cost": null
+     },
+     {
+      "row": "MC05",
+      "spec": 3,
+      "prio": 4,
+      "line": "3B! Good news for once. Come, sit a minute.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm adding up the lunch money in my head. Don't talk, I'll lose the number.",
+      "tie": null,
+      "cost": 0
+     },
+     {
       "row": "MC08",
       "spec": 2,
       "prio": 8,
@@ -95280,10 +95272,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm adding up the lunch money in my head. Don't talk, I'll lose the number.",
       "tie": null,
       "cost": 0
      },
@@ -95304,10 +95296,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm adding up the lunch money in my head. Don't talk, I'll lose the number.",
       "tie": null,
       "cost": 0
      },
@@ -95328,10 +95320,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm adding up the lunch money in my head. Don't talk, I'll lose the number.",
       "tie": null,
       "cost": 0
      },
@@ -95424,10 +95416,10 @@
       "cost": 1
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm adding up the lunch money in my head. Don't talk, I'll lose the number.",
       "tie": null,
       "cost": 0
      },
@@ -95448,10 +95440,10 @@
       "cost": 1
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm adding up the lunch money in my head. Don't talk, I'll lose the number.",
       "tie": null,
       "cost": 0
      },
@@ -95472,30 +95464,6 @@
       "cost": 1
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC02",
-      "spec": 2,
-      "prio": 2,
-      "line": "Hello, 3B. My tablet class moved to Wednesdays and nobody told me. I sat there forty minutes with the tai chi group.",
-      "tie": null,
-      "cost": 1
-     },
-     {
-      "row": "MC05",
-      "spec": 3,
-      "prio": 4,
-      "line": "3B! Good news for once. Come, sit a minute.",
-      "tie": null,
-      "cost": 1
-     },
-     {
       "row": "MC10",
       "spec": 0,
       "prio": 0,
@@ -95552,434 +95520,26 @@
       "cost": 0
      },
      {
-      "row": "MC08",
+      "row": "MC02",
       "spec": 2,
-      "prio": 8,
-      "line": "Oh. Hello.",
+      "prio": 2,
+      "line": "Hello, 3B. My tablet class moved to Wednesdays and nobody told me. I sat there forty minutes with the tai chi group.",
       "tie": null,
       "cost": 1
      },
      {
-      "row": "MC08",
-      "spec": 2,
-      "prio": 8,
-      "line": "Oh. Hello.",
+      "row": "MC05",
+      "spec": 3,
+      "prio": 4,
+      "line": "3B! Good news for once. Come, sit a minute.",
       "tie": null,
       "cost": 1
      },
      {
-      "row": "MC08",
-      "spec": 2,
-      "prio": 8,
-      "line": "Oh. Hello.",
-      "tie": null,
-      "cost": 1
-     },
-     {
-      "row": "MC08",
-      "spec": 2,
-      "prio": 8,
-      "line": "Oh. Hello.",
-      "tie": null,
-      "cost": 1
-     },
-     {
-      "row": "MC08",
-      "spec": 2,
-      "prio": 8,
-      "line": "Oh. Hello.",
-      "tie": null,
-      "cost": 1
-     },
-     {
-      "row": "MC08",
-      "spec": 2,
-      "prio": 8,
-      "line": "Oh. Hello.",
-      "tie": null,
-      "cost": 1
-     },
-     {
-      "row": "MC08",
-      "spec": 2,
-      "prio": 8,
-      "line": "Oh. Hello.",
-      "tie": null,
-      "cost": 1
-     },
-     {
-      "row": "MC08",
-      "spec": 2,
-      "prio": 8,
-      "line": "Oh. Hello.",
-      "tie": null,
-      "cost": 1
-     },
-     {
-      "row": "MC08",
-      "spec": 2,
-      "prio": 8,
-      "line": "Oh. Hello.",
-      "tie": null,
-      "cost": 1
-     },
-     {
-      "row": "MC08",
-      "spec": 2,
-      "prio": 8,
-      "line": "Oh. Hello.",
-      "tie": null,
-      "cost": 1
-     },
-     {
-      "row": "MC08",
-      "spec": 2,
-      "prio": 8,
-      "line": "Oh. Hello.",
-      "tie": null,
-      "cost": 1
-     },
-     {
-      "row": "MC08",
-      "spec": 2,
-      "prio": 8,
-      "line": "Oh. Hello.",
-      "tie": null,
-      "cost": 1
-     },
-     {
-      "row": "MC08",
-      "spec": 2,
-      "prio": 8,
-      "line": "Oh. Hello.",
-      "tie": null,
-      "cost": 1
-     },
-     {
-      "row": "MC08",
-      "spec": 2,
-      "prio": 8,
-      "line": "Oh. Hello.",
-      "tie": null,
-      "cost": 1
-     },
-     {
-      "row": "MC08",
-      "spec": 2,
-      "prio": 8,
-      "line": "Oh. Hello.",
-      "tie": null,
-      "cost": 1
-     },
-     {
-      "row": "MC08",
-      "spec": 2,
-      "prio": 8,
-      "line": "Oh. Hello.",
-      "tie": null,
-      "cost": 1
-     },
-     {
-      "row": "MC08",
-      "spec": 2,
-      "prio": 8,
-      "line": "Oh. Hello.",
-      "tie": null,
-      "cost": 1
-     },
-     {
-      "row": "MC08",
-      "spec": 2,
-      "prio": 8,
-      "line": "Oh. Hello.",
-      "tie": null,
-      "cost": 1
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "row": "MC10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm adding up the lunch money in my head. Don't talk, I'll lose the number.",
       "tie": null,
       "cost": 0
      },
@@ -96144,34 +95704,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
-      "tie": null,
-      "cost": 0
-     },
-     {
       "row": "MC03",
       "spec": 2,
       "prio": 6,
       "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
       "tie": null,
       "cost": 0
      },
@@ -96192,10 +95728,10 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
       "tie": null,
       "cost": 0
      },
@@ -96288,10 +95824,18 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
       "tie": null,
       "cost": 0
      },
@@ -96312,10 +95856,18 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
       "tie": null,
       "cost": 0
      },
@@ -96336,10 +95888,450 @@
       "cost": 0
      },
      {
-      "row": "MC104",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come here a minute. You didn't hear? About Lan?",
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC08",
+      "spec": 2,
+      "prio": 8,
+      "line": "Oh. Hello.",
+      "tie": null,
+      "cost": 1
+     },
+     {
+      "row": "MC08",
+      "spec": 2,
+      "prio": 8,
+      "line": "Oh. Hello.",
+      "tie": null,
+      "cost": 1
+     },
+     {
+      "row": "MC08",
+      "spec": 2,
+      "prio": 8,
+      "line": "Oh. Hello.",
+      "tie": null,
+      "cost": 1
+     },
+     {
+      "row": "MC08",
+      "spec": 2,
+      "prio": 8,
+      "line": "Oh. Hello.",
+      "tie": null,
+      "cost": 1
+     },
+     {
+      "row": "MC08",
+      "spec": 2,
+      "prio": 8,
+      "line": "Oh. Hello.",
+      "tie": null,
+      "cost": 1
+     },
+     {
+      "row": "MC08",
+      "spec": 2,
+      "prio": 8,
+      "line": "Oh. Hello.",
+      "tie": null,
+      "cost": 1
+     },
+     {
+      "row": "MC08",
+      "spec": 2,
+      "prio": 8,
+      "line": "Oh. Hello.",
+      "tie": null,
+      "cost": 1
+     },
+     {
+      "row": "MC08",
+      "spec": 2,
+      "prio": 8,
+      "line": "Oh. Hello.",
+      "tie": null,
+      "cost": 1
+     },
+     {
+      "row": "MC08",
+      "spec": 2,
+      "prio": 8,
+      "line": "Oh. Hello.",
+      "tie": null,
+      "cost": 1
+     },
+     {
+      "row": "MC08",
+      "spec": 2,
+      "prio": 8,
+      "line": "Oh. Hello.",
+      "tie": null,
+      "cost": 1
+     },
+     {
+      "row": "MC08",
+      "spec": 2,
+      "prio": 8,
+      "line": "Oh. Hello.",
+      "tie": null,
+      "cost": 1
+     },
+     {
+      "row": "MC08",
+      "spec": 2,
+      "prio": 8,
+      "line": "Oh. Hello.",
+      "tie": null,
+      "cost": 1
+     },
+     {
+      "row": "MC08",
+      "spec": 2,
+      "prio": 8,
+      "line": "Oh. Hello.",
+      "tie": null,
+      "cost": 1
+     },
+     {
+      "row": "MC08",
+      "spec": 2,
+      "prio": 8,
+      "line": "Oh. Hello.",
+      "tie": null,
+      "cost": 1
+     },
+     {
+      "row": "MC08",
+      "spec": 2,
+      "prio": 8,
+      "line": "Oh. Hello.",
+      "tie": null,
+      "cost": 1
+     },
+     {
+      "row": "MC08",
+      "spec": 2,
+      "prio": 8,
+      "line": "Oh. Hello.",
+      "tie": null,
+      "cost": 1
+     },
+     {
+      "row": "MC08",
+      "spec": 2,
+      "prio": 8,
+      "line": "Oh. Hello.",
+      "tie": null,
+      "cost": 1
+     },
+     {
+      "row": "MC08",
+      "spec": 2,
+      "prio": 8,
+      "line": "Oh. Hello.",
+      "tie": null,
+      "cost": 1
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "MC03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
       "tie": null,
       "cost": 0
      },
@@ -96635,7 +96627,7 @@
     },
     "MC50": {
      "cost": 0,
-     "witness": "MC01/choice2 (+0) → MC09/choice3 (+0) → day 4 → MC50  [at met=yes, rapport=0, lastValence=none, nationalLeader=inclusive, playerLean=balanced, dayPhase=late, scene=center_cn]",
+     "witness": "MC01/choice2 (+0) → MC09/choice3 (+0) → day 4 → MC50  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=balanced, dayPhase=late, scene=center_cn]",
      "depth": 4
     },
     "MC51": {
@@ -96862,12 +96854,12 @@
     },
     "MC06": {
      "cost": 0,
-     "witness": "MC01/choice2 (+0) → MC09/choice3 (+0) → day 4 → MC06  [at met=yes, rapport=0, lastValence=none, nationalLeader=inclusive, playerLean=home-leaning, dayPhase=late, scene=center_cn]",
+     "witness": "MC01/choice2 (+0) → MC09/choice3 (+0) → day 4 → MC06  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=home-leaning, dayPhase=late, scene=center_cn]",
      "depth": 4
     },
     "MC30": {
      "cost": 0,
-     "witness": "MC01/choice2 (+0) → MC09/choice3 (+0) → day 4 → MC30  [at met=yes, rapport=0, lastValence=none, nationalLeader=inclusive, playerLean=home-leaning, dayPhase=late, scene=park]",
+     "witness": "MC01/choice2 (+0) → MC09/choice3 (+0) → day 4 → MC30  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=home-leaning, dayPhase=late, scene=park]",
      "depth": 4
     },
     "MC80": {
@@ -96887,12 +96879,12 @@
     },
     "MC06p": {
      "cost": 0,
-     "witness": "MC01/choice2 (+0) → MC09/choice3 (+0) → day 4 → MC06p  [at met=yes, rapport=0, lastValence=none, nationalLeader=inclusive, playerLean=home-leaning, dayPhase=late, scene=center_cn]",
+     "witness": "MC01/choice2 (+0) → MC09/choice3 (+0) → day 4 → MC06p  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=home-leaning, dayPhase=late, scene=center_cn]",
      "depth": 4
     },
     "MC30p": {
      "cost": 0,
-     "witness": "MC01/choice2 (+0) → MC09/choice3 (+0) → day 4 → MC30p  [at met=yes, rapport=0, lastValence=none, nationalLeader=inclusive, playerLean=home-leaning, dayPhase=late, scene=park]",
+     "witness": "MC01/choice2 (+0) → MC09/choice3 (+0) → day 4 → MC30p  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=home-leaning, dayPhase=late, scene=park]",
      "depth": 4
     },
     "MC80p": {
@@ -96912,12 +96904,12 @@
     },
     "MC07": {
      "cost": 0,
-     "witness": "MC01/choice2 (+0) → MC09/choice3 (+0) → day 4 → MC07  [at met=yes, rapport=0, lastValence=none, nationalLeader=inclusive, playerLean=us-leaning, dayPhase=late, scene=park]",
+     "witness": "MC01/choice2 (+0) → MC09/choice3 (+0) → day 4 → MC07  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=us-leaning, dayPhase=late, scene=park]",
      "depth": 4
     },
     "MC31": {
      "cost": 0,
-     "witness": "MC01/choice2 (+0) → MC09/choice3 (+0) → day 4 → MC31  [at met=yes, rapport=0, lastValence=none, nationalLeader=inclusive, playerLean=us-leaning, dayPhase=late, scene=center_cn]",
+     "witness": "MC01/choice2 (+0) → MC09/choice3 (+0) → day 4 → MC31  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=us-leaning, dayPhase=late, scene=center_cn]",
      "depth": 4
     },
     "MC85": {
@@ -97005,7 +96997,7 @@
     "MC29": 0,
     "MC34": 0,
     "MC28": 0,
-    "MC50": 16,
+    "MC50": 32,
     "MC51": 0,
     "MC52": 0,
     "MC54": 0,
@@ -97019,7 +97011,7 @@
     "MC12": 0,
     "MC13": 0,
     "MC14": 0,
-    "MC33": 112,
+    "MC33": 128,
     "MC60": 0,
     "MC61": 0,
     "MC62": 0,
@@ -97030,7 +97022,7 @@
     "MC94": 24,
     "MC95": 0,
     "MC96": 0,
-    "MC03": 720,
+    "MC03": 864,
     "MC18": 0,
     "MC19": 0,
     "MC12b": 0,
@@ -97048,18 +97040,18 @@
     "MC75": 0,
     "MC76": 0,
     "MC77": 0,
-    "MC06": 8,
-    "MC30": 8,
+    "MC06": 16,
+    "MC30": 16,
     "MC80": 0,
     "MC81": 0,
     "MC82": 0,
-    "MC06p": 8,
-    "MC30p": 8,
+    "MC06p": 16,
+    "MC30p": 16,
     "MC80p": 0,
     "MC81p": 0,
     "MC82p": 0,
-    "MC07": 16,
-    "MC31": 16,
+    "MC07": 32,
+    "MC31": 32,
     "MC85": 0,
     "MC86": 0,
     "MC87": 0,
@@ -97073,7 +97065,7 @@
     "MC105": 0,
     "MC106": 0,
     "MC107": 0,
-    "MC10": 48
+    "MC10": 96
    },
    "cells": [
     {
@@ -98821,10 +98813,10 @@
      "cost": 0
     },
     {
-     "row": "MC104",
+     "row": "MC31",
      "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
+     "prio": 4,
+     "line": "Look who it is. I thought the library adopted you. I'm teasing. Mostly. Sit, there's soup.",
      "tie": null,
      "cost": 0
     },
@@ -98845,10 +98837,10 @@
      "cost": 0
     },
     {
-     "row": "MC104",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
+     "row": "MC50",
+     "spec": 2,
+     "prio": 1,
+     "line": "Hello, 3B. You look tired. Did you eat?",
      "tie": null,
      "cost": 0
     },
@@ -98869,10 +98861,10 @@
      "cost": 0
     },
     {
-     "row": "MC104",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
+     "row": "MC06p",
+     "spec": 5,
+     "prio": 4,
+     "line": "You're here every day now. Good. Did you eat?",
      "tie": null,
      "cost": 0
     },
@@ -98965,10 +98957,10 @@
      "cost": 0
     },
     {
-     "row": "MC104",
+     "row": "MC31",
      "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
+     "prio": 4,
+     "line": "Look who it is. I thought the library adopted you. I'm teasing. Mostly. Sit, there's soup.",
      "tie": null,
      "cost": 0
     },
@@ -98989,10 +98981,10 @@
      "cost": 0
     },
     {
-     "row": "MC104",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
+     "row": "MC50",
+     "spec": 2,
+     "prio": 1,
+     "line": "Hello, 3B. You look tired. Did you eat?",
      "tie": null,
      "cost": 0
     },
@@ -99013,10 +99005,10 @@
      "cost": 0
     },
     {
-     "row": "MC104",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
+     "row": "MC06p",
+     "spec": 5,
+     "prio": 4,
+     "line": "You're here every day now. Good. Did you eat?",
      "tie": null,
      "cost": 0
     },
@@ -99253,10 +99245,10 @@
      "cost": 0
     },
     {
-     "row": "MC104",
+     "row": "MC31",
      "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
+     "prio": 4,
+     "line": "Look who it is. I thought the library adopted you. I'm teasing. Mostly. Sit, there's soup.",
      "tie": null,
      "cost": 0
     },
@@ -99277,10 +99269,10 @@
      "cost": 0
     },
     {
-     "row": "MC104",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
+     "row": "MC50",
+     "spec": 2,
+     "prio": 1,
+     "line": "Hello, 3B. You look tired. Did you eat?",
      "tie": null,
      "cost": 0
     },
@@ -99301,10 +99293,10 @@
      "cost": 0
     },
     {
-     "row": "MC104",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
+     "row": "MC06p",
+     "spec": 5,
+     "prio": 4,
+     "line": "You're here every day now. Good. Did you eat?",
      "tie": null,
      "cost": 0
     },
@@ -99397,10 +99389,10 @@
      "cost": 1
     },
     {
-     "row": "MC104",
+     "row": "MC31",
      "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
+     "prio": 4,
+     "line": "Look who it is. I thought the library adopted you. I'm teasing. Mostly. Sit, there's soup.",
      "tie": null,
      "cost": 0
     },
@@ -99421,10 +99413,10 @@
      "cost": 1
     },
     {
-     "row": "MC104",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
+     "row": "MC50",
+     "spec": 2,
+     "prio": 1,
+     "line": "Hello, 3B. You look tired. Did you eat?",
      "tie": null,
      "cost": 0
     },
@@ -99445,10 +99437,10 @@
      "cost": 1
     },
     {
-     "row": "MC104",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
+     "row": "MC06p",
+     "spec": 5,
+     "prio": 4,
+     "line": "You're here every day now. Good. Did you eat?",
      "tie": null,
      "cost": 0
     },
@@ -99685,34 +99677,10 @@
      "cost": 0
     },
     {
-     "row": "MC104",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
-     "tie": null,
-     "cost": 0
-    },
-    {
      "row": "MC03",
      "spec": 2,
      "prio": 6,
      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-     "tie": null,
-     "cost": 0
-    },
-    {
-     "row": "MC03",
-     "spec": 2,
-     "prio": 6,
-     "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-     "tie": null,
-     "cost": 0
-    },
-    {
-     "row": "MC104",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
      "tie": null,
      "cost": 0
     },
@@ -99733,10 +99701,10 @@
      "cost": 0
     },
     {
-     "row": "MC104",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
+     "row": "MC03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
      "tie": null,
      "cost": 0
     },
@@ -99829,10 +99797,18 @@
      "cost": 0
     },
     {
-     "row": "MC104",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
+     "row": "MC03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+     "tie": null,
+     "cost": 0
+    },
+    {
+     "row": "MC03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
      "tie": null,
      "cost": 0
     },
@@ -99853,10 +99829,18 @@
      "cost": 0
     },
     {
-     "row": "MC104",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
+     "row": "MC03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+     "tie": null,
+     "cost": 0
+    },
+    {
+     "row": "MC03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
      "tie": null,
      "cost": 0
     },
@@ -99877,10 +99861,18 @@
      "cost": 0
     },
     {
-     "row": "MC104",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
+     "row": "MC03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+     "tie": null,
+     "cost": 0
+    },
+    {
+     "row": "MC03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
      "tie": null,
      "cost": 0
     },
@@ -100117,34 +100109,10 @@
      "cost": 0
     },
     {
-     "row": "MC104",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
-     "tie": null,
-     "cost": 0
-    },
-    {
      "row": "MC03",
      "spec": 2,
      "prio": 6,
      "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-     "tie": null,
-     "cost": 0
-    },
-    {
-     "row": "MC03",
-     "spec": 2,
-     "prio": 6,
-     "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
-     "tie": null,
-     "cost": 0
-    },
-    {
-     "row": "MC104",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
      "tie": null,
      "cost": 0
     },
@@ -100165,10 +100133,10 @@
      "cost": 0
     },
     {
-     "row": "MC104",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
+     "row": "MC03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
      "tie": null,
      "cost": 0
     },
@@ -100261,10 +100229,18 @@
      "cost": 0
     },
     {
-     "row": "MC104",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
+     "row": "MC03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+     "tie": null,
+     "cost": 0
+    },
+    {
+     "row": "MC03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
      "tie": null,
      "cost": 0
     },
@@ -100285,10 +100261,18 @@
      "cost": 0
     },
     {
-     "row": "MC104",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
+     "row": "MC03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+     "tie": null,
+     "cost": 0
+    },
+    {
+     "row": "MC03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
      "tie": null,
      "cost": 0
     },
@@ -100309,10 +100293,18 @@
      "cost": 0
     },
     {
-     "row": "MC104",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come here a minute. You didn't hear? About Lan?",
+     "row": "MC03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
+     "tie": null,
+     "cost": 0
+    },
+    {
+     "row": "MC03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good. Are you busy Thursday? I need to ask you something about Kevin's school.",
      "tie": null,
      "cost": 0
     },
@@ -161788,16 +161780,16 @@
    "sheet": "dialogue/mx_neighbor.csv",
    "rowCount": 54,
    "fallback": "LR10",
-   "coverage": 0.9907407407407407,
-   "served": 428,
+   "coverage": 0.9814814814814815,
+   "served": 424,
    "noMatch": 0,
    "ties": [],
    "neverWins": [],
    "scenes": [
     {
      "scene": "center_mx",
-     "coverage": 0.9907407407407407,
-     "served": 428,
+     "coverage": 0.9814814814814815,
+     "served": 424,
      "noMatch": 0,
      "ties": [],
      "located": []
@@ -161814,8 +161806,8 @@
     },
     {
      "scene": "home",
-     "coverage": 0.9907407407407407,
-     "served": 428,
+     "coverage": 0.9814814814814815,
+     "served": 424,
      "noMatch": 0,
      "ties": [],
      "located": []
@@ -163573,10 +163565,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR07",
+      "spec": 3,
+      "prio": 4,
+      "line": "3B. I haven't seen you at the hall in a while.",
       "tie": null,
       "cost": 0
      },
@@ -163597,10 +163589,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm counting cans. Forty-one beans, nine tomato. Somebody gave us cranberry sauce in October.",
       "tie": null,
       "cost": 0
      },
@@ -163621,10 +163613,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
+      "row": "LR06",
       "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "prio": 4,
+      "line": "Every time I'm at the hall, you're there. Good.",
       "tie": null,
       "cost": 0
      },
@@ -163717,10 +163709,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR07",
+      "spec": 3,
+      "prio": 4,
+      "line": "3B. I haven't seen you at the hall in a while.",
       "tie": null,
       "cost": 0
      },
@@ -163741,10 +163733,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm counting cans. Forty-one beans, nine tomato. Somebody gave us cranberry sauce in October.",
       "tie": null,
       "cost": 0
      },
@@ -163765,10 +163757,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
+      "row": "LR06",
       "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "prio": 4,
+      "line": "Every time I'm at the hall, you're there. Good.",
       "tie": null,
       "cost": 0
      },
@@ -164005,10 +163997,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR07",
+      "spec": 3,
+      "prio": 4,
+      "line": "3B. I haven't seen you at the hall in a while.",
       "tie": null,
       "cost": 0
      },
@@ -164029,10 +164021,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm counting cans. Forty-one beans, nine tomato. Somebody gave us cranberry sauce in October.",
       "tie": null,
       "cost": 0
      },
@@ -164053,10 +164045,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
+      "row": "LR06",
       "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "prio": 4,
+      "line": "Every time I'm at the hall, you're there. Good.",
       "tie": null,
       "cost": 0
      },
@@ -164149,10 +164141,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR07",
+      "spec": 3,
+      "prio": 4,
+      "line": "3B. I haven't seen you at the hall in a while.",
       "tie": null,
       "cost": 0
      },
@@ -164173,10 +164165,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm counting cans. Forty-one beans, nine tomato. Somebody gave us cranberry sauce in October.",
       "tie": null,
       "cost": 0
      },
@@ -164197,10 +164189,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
+      "row": "LR06",
       "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "prio": 4,
+      "line": "Every time I'm at the hall, you're there. Good.",
       "tie": null,
       "cost": 0
      },
@@ -164437,34 +164429,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
-      "tie": null,
-      "cost": 0
-     },
-     {
       "row": "LR03",
       "spec": 2,
       "prio": 6,
       "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LR03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
       "tie": null,
       "cost": 0
      },
@@ -164485,10 +164453,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -164581,10 +164549,18 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -164605,10 +164581,18 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -164629,10 +164613,18 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -164869,34 +164861,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
-      "tie": null,
-      "cost": 0
-     },
-     {
       "row": "LR03",
       "spec": 2,
       "prio": 6,
       "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LR03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
       "tie": null,
       "cost": 0
      },
@@ -164917,10 +164885,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -165013,10 +164981,18 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -165037,10 +165013,18 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -165061,10 +165045,18 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -167031,10 +167023,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR07",
+      "spec": 3,
+      "prio": 4,
+      "line": "3B. I haven't seen you at the hall in a while.",
       "tie": null,
       "cost": 0
      },
@@ -167055,10 +167047,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR31",
+      "spec": 2,
+      "prio": 2,
+      "line": "3B! Sit, sit. I have twenty minutes for lunch and then back to work.",
       "tie": null,
       "cost": 0
      },
@@ -167079,10 +167071,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
+      "row": "LR06",
       "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "prio": 4,
+      "line": "Every time I'm at the hall, you're there. Good.",
       "tie": null,
       "cost": 0
      },
@@ -167175,10 +167167,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR07",
+      "spec": 3,
+      "prio": 4,
+      "line": "3B. I haven't seen you at the hall in a while.",
       "tie": null,
       "cost": 0
      },
@@ -167199,10 +167191,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR31",
+      "spec": 2,
+      "prio": 2,
+      "line": "3B! Sit, sit. I have twenty minutes for lunch and then back to work.",
       "tie": null,
       "cost": 0
      },
@@ -167223,10 +167215,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
+      "row": "LR06",
       "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "prio": 4,
+      "line": "Every time I'm at the hall, you're there. Good.",
       "tie": null,
       "cost": 0
      },
@@ -167463,10 +167455,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR07",
+      "spec": 3,
+      "prio": 4,
+      "line": "3B. I haven't seen you at the hall in a while.",
       "tie": null,
       "cost": 0
      },
@@ -167487,10 +167479,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR31",
+      "spec": 2,
+      "prio": 2,
+      "line": "3B! Sit, sit. I have twenty minutes for lunch and then back to work.",
       "tie": null,
       "cost": 0
      },
@@ -167511,10 +167503,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
+      "row": "LR06",
       "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "prio": 4,
+      "line": "Every time I'm at the hall, you're there. Good.",
       "tie": null,
       "cost": 0
      },
@@ -167607,10 +167599,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR07",
+      "spec": 3,
+      "prio": 4,
+      "line": "3B. I haven't seen you at the hall in a while.",
       "tie": null,
       "cost": 0
      },
@@ -167631,10 +167623,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR31",
+      "spec": 2,
+      "prio": 2,
+      "line": "3B! Sit, sit. I have twenty minutes for lunch and then back to work.",
       "tie": null,
       "cost": 0
      },
@@ -167655,10 +167647,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
+      "row": "LR06",
       "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "prio": 4,
+      "line": "Every time I'm at the hall, you're there. Good.",
       "tie": null,
       "cost": 0
      },
@@ -167895,34 +167887,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
-      "tie": null,
-      "cost": 0
-     },
-     {
       "row": "LR03",
       "spec": 2,
       "prio": 6,
       "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LR03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
       "tie": null,
       "cost": 0
      },
@@ -167943,10 +167911,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -168039,10 +168007,18 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -168063,10 +168039,18 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -168087,10 +168071,18 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -168327,34 +168319,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
-      "tie": null,
-      "cost": 0
-     },
-     {
       "row": "LR03",
       "spec": 2,
       "prio": 6,
       "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LR03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
       "tie": null,
       "cost": 0
      },
@@ -168375,10 +168343,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -168471,10 +168439,18 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -168495,10 +168471,18 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -168519,10 +168503,18 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -170489,10 +170481,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR07",
+      "spec": 3,
+      "prio": 4,
+      "line": "3B. I haven't seen you at the hall in a while.",
       "tie": null,
       "cost": 0
      },
@@ -170513,10 +170505,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm counting cans. Forty-one beans, nine tomato. Somebody gave us cranberry sauce in October.",
       "tie": null,
       "cost": 0
      },
@@ -170537,10 +170529,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
+      "row": "LR06",
       "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "prio": 4,
+      "line": "Every time I'm at the hall, you're there. Good.",
       "tie": null,
       "cost": 0
      },
@@ -170633,10 +170625,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR07",
+      "spec": 3,
+      "prio": 4,
+      "line": "3B. I haven't seen you at the hall in a while.",
       "tie": null,
       "cost": 0
      },
@@ -170657,10 +170649,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm counting cans. Forty-one beans, nine tomato. Somebody gave us cranberry sauce in October.",
       "tie": null,
       "cost": 0
      },
@@ -170681,10 +170673,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
+      "row": "LR06",
       "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "prio": 4,
+      "line": "Every time I'm at the hall, you're there. Good.",
       "tie": null,
       "cost": 0
      },
@@ -170921,10 +170913,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR07",
+      "spec": 3,
+      "prio": 4,
+      "line": "3B. I haven't seen you at the hall in a while.",
       "tie": null,
       "cost": 0
      },
@@ -170945,10 +170937,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm counting cans. Forty-one beans, nine tomato. Somebody gave us cranberry sauce in October.",
       "tie": null,
       "cost": 0
      },
@@ -170969,10 +170961,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
+      "row": "LR06",
       "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "prio": 4,
+      "line": "Every time I'm at the hall, you're there. Good.",
       "tie": null,
       "cost": 0
      },
@@ -171065,10 +171057,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR07",
+      "spec": 3,
+      "prio": 4,
+      "line": "3B. I haven't seen you at the hall in a while.",
       "tie": null,
       "cost": 0
      },
@@ -171089,10 +171081,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm counting cans. Forty-one beans, nine tomato. Somebody gave us cranberry sauce in October.",
       "tie": null,
       "cost": 0
      },
@@ -171113,10 +171105,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
+      "row": "LR06",
       "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "prio": 4,
+      "line": "Every time I'm at the hall, you're there. Good.",
       "tie": null,
       "cost": 0
      },
@@ -171353,34 +171345,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
-      "tie": null,
-      "cost": 0
-     },
-     {
       "row": "LR03",
       "spec": 2,
       "prio": 6,
       "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LR03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
       "tie": null,
       "cost": 0
      },
@@ -171401,10 +171369,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -171497,10 +171465,18 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -171521,10 +171497,18 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -171545,10 +171529,18 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -171785,34 +171777,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
-      "tie": null,
-      "cost": 0
-     },
-     {
       "row": "LR03",
       "spec": 2,
       "prio": 6,
       "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LR03",
-      "spec": 2,
-      "prio": 6,
-      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
       "tie": null,
       "cost": 0
      },
@@ -171833,10 +171801,10 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -171929,10 +171897,18 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -171953,10 +171929,18 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -171977,10 +171961,18 @@
       "cost": 0
      },
      {
-      "row": "LR50",
-      "spec": 4,
-      "prio": 7,
-      "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LR03",
+      "spec": 2,
+      "prio": 6,
+      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
       "tie": null,
       "cost": 0
      },
@@ -172416,12 +172408,12 @@
     },
     "LR06": {
      "cost": 0,
-     "witness": "LR01/choice2 (+0) → LR09/choice3 (+0) → day 4 → LR06  [at met=yes, rapport=0, lastValence=none, nationalLeader=inclusive, playerLean=home-leaning, dayPhase=late, scene=center_mx]",
+     "witness": "LR01/choice2 (+0) → LR09/choice3 (+0) → day 4 → LR06  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=home-leaning, dayPhase=late, scene=center_mx]",
      "depth": 4
     },
     "LR48": {
      "cost": 0,
-     "witness": "LR01/choice2 (+0) → LR09/choice3 (+0) → day 4 → LR48  [at met=yes, rapport=0, lastValence=none, nationalLeader=inclusive, playerLean=home-leaning, dayPhase=late, scene=center_mx]",
+     "witness": "LR01/choice2 (+0) → LR09/choice3 (+0) → day 4 → LR48  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=home-leaning, dayPhase=late, scene=center_mx]",
      "depth": 4
     },
     "LR49": {
@@ -172446,7 +172438,7 @@
     },
     "LR07": {
      "cost": 0,
-     "witness": "LR01/choice2 (+0) → LR09/choice3 (+0) → day 4 → LR07  [at met=yes, rapport=0, lastValence=none, nationalLeader=inclusive, playerLean=us-leaning, dayPhase=late, scene=center_mx]",
+     "witness": "LR01/choice2 (+0) → LR09/choice3 (+0) → day 4 → LR07  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=us-leaning, dayPhase=late, scene=center_mx]",
      "depth": 4
     },
     "LR39": {
@@ -172476,7 +172468,7 @@
     },
     "LR10": {
      "cost": 0,
-     "witness": "LR01/choice2 (+0) → LR09/choice3 (+0) → day 4 → LR10  [at met=yes, rapport=0, lastValence=none, nationalLeader=inclusive, playerLean=balanced, dayPhase=late, scene=center_mx]",
+     "witness": "LR01/choice2 (+0) → LR09/choice3 (+0) → day 4 → LR10  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=balanced, dayPhase=late, scene=center_mx]",
      "depth": 1
     }
    },
@@ -172498,11 +172490,11 @@
     "LR14": 0,
     "LR15": 0,
     "LR16": 0,
-    "LR31": 112,
+    "LR31": 128,
     "LR32": 0,
     "LR33": 0,
     "LR34": 0,
-    "LR03": 720,
+    "LR03": 864,
     "LR17": 0,
     "LR12": 0,
     "LR18": 0,
@@ -172522,19 +172514,19 @@
     "LR28": 0,
     "LR29": 0,
     "LR35": 0,
-    "LR06": 24,
-    "LR48": 24,
+    "LR06": 48,
+    "LR48": 48,
     "LR49": 0,
     "LR36": 0,
     "LR37": 0,
     "LR38": 0,
-    "LR07": 48,
+    "LR07": 96,
     "LR39": 0,
     "LR40": 0,
     "LR41": 0,
     "LR08": 864,
     "LR42": 0,
-    "LR10": 32
+    "LR10": 64
    },
    "cells": [
     {
@@ -174282,10 +174274,10 @@
      "cost": 0
     },
     {
-     "row": "LR50",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+     "row": "LR07",
+     "spec": 3,
+     "prio": 4,
+     "line": "3B. I haven't seen you at the hall in a while.",
      "tie": null,
      "cost": 0
     },
@@ -174306,10 +174298,10 @@
      "cost": 0
     },
     {
-     "row": "LR50",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+     "row": "LR10",
+     "spec": 0,
+     "prio": 0,
+     "line": "Not now, I'm counting cans. Forty-one beans, nine tomato. Somebody gave us cranberry sauce in October.",
      "tie": null,
      "cost": 0
     },
@@ -174330,10 +174322,10 @@
      "cost": 0
     },
     {
-     "row": "LR50",
+     "row": "LR06",
      "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+     "prio": 4,
+     "line": "Every time I'm at the hall, you're there. Good.",
      "tie": null,
      "cost": 0
     },
@@ -174426,10 +174418,10 @@
      "cost": 0
     },
     {
-     "row": "LR50",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+     "row": "LR07",
+     "spec": 3,
+     "prio": 4,
+     "line": "3B. I haven't seen you at the hall in a while.",
      "tie": null,
      "cost": 0
     },
@@ -174450,10 +174442,10 @@
      "cost": 0
     },
     {
-     "row": "LR50",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+     "row": "LR10",
+     "spec": 0,
+     "prio": 0,
+     "line": "Not now, I'm counting cans. Forty-one beans, nine tomato. Somebody gave us cranberry sauce in October.",
      "tie": null,
      "cost": 0
     },
@@ -174474,10 +174466,10 @@
      "cost": 0
     },
     {
-     "row": "LR50",
+     "row": "LR06",
      "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+     "prio": 4,
+     "line": "Every time I'm at the hall, you're there. Good.",
      "tie": null,
      "cost": 0
     },
@@ -174714,10 +174706,10 @@
      "cost": 0
     },
     {
-     "row": "LR50",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+     "row": "LR07",
+     "spec": 3,
+     "prio": 4,
+     "line": "3B. I haven't seen you at the hall in a while.",
      "tie": null,
      "cost": 0
     },
@@ -174738,10 +174730,10 @@
      "cost": 0
     },
     {
-     "row": "LR50",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+     "row": "LR10",
+     "spec": 0,
+     "prio": 0,
+     "line": "Not now, I'm counting cans. Forty-one beans, nine tomato. Somebody gave us cranberry sauce in October.",
      "tie": null,
      "cost": 0
     },
@@ -174762,10 +174754,10 @@
      "cost": 0
     },
     {
-     "row": "LR50",
+     "row": "LR06",
      "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+     "prio": 4,
+     "line": "Every time I'm at the hall, you're there. Good.",
      "tie": null,
      "cost": 0
     },
@@ -174858,10 +174850,10 @@
      "cost": 0
     },
     {
-     "row": "LR50",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+     "row": "LR07",
+     "spec": 3,
+     "prio": 4,
+     "line": "3B. I haven't seen you at the hall in a while.",
      "tie": null,
      "cost": 0
     },
@@ -174882,10 +174874,10 @@
      "cost": 0
     },
     {
-     "row": "LR50",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+     "row": "LR10",
+     "spec": 0,
+     "prio": 0,
+     "line": "Not now, I'm counting cans. Forty-one beans, nine tomato. Somebody gave us cranberry sauce in October.",
      "tie": null,
      "cost": 0
     },
@@ -174906,10 +174898,10 @@
      "cost": 0
     },
     {
-     "row": "LR50",
+     "row": "LR06",
      "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+     "prio": 4,
+     "line": "Every time I'm at the hall, you're there. Good.",
      "tie": null,
      "cost": 0
     },
@@ -175146,34 +175138,10 @@
      "cost": 0
     },
     {
-     "row": "LR50",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
-     "tie": null,
-     "cost": 0
-    },
-    {
      "row": "LR03",
      "spec": 2,
      "prio": 6,
      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
-     "tie": null,
-     "cost": 0
-    },
-    {
-     "row": "LR03",
-     "spec": 2,
-     "prio": 6,
-     "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
-     "tie": null,
-     "cost": 0
-    },
-    {
-     "row": "LR50",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
      "tie": null,
      "cost": 0
     },
@@ -175194,10 +175162,10 @@
      "cost": 0
     },
     {
-     "row": "LR50",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+     "row": "LR03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
      "tie": null,
      "cost": 0
     },
@@ -175290,10 +175258,18 @@
      "cost": 0
     },
     {
-     "row": "LR50",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+     "row": "LR03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+     "tie": null,
+     "cost": 0
+    },
+    {
+     "row": "LR03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
      "tie": null,
      "cost": 0
     },
@@ -175314,10 +175290,18 @@
      "cost": 0
     },
     {
-     "row": "LR50",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+     "row": "LR03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+     "tie": null,
+     "cost": 0
+    },
+    {
+     "row": "LR03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
      "tie": null,
      "cost": 0
     },
@@ -175338,10 +175322,18 @@
      "cost": 0
     },
     {
-     "row": "LR50",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+     "row": "LR03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+     "tie": null,
+     "cost": 0
+    },
+    {
+     "row": "LR03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
      "tie": null,
      "cost": 0
     },
@@ -175578,34 +175570,10 @@
      "cost": 0
     },
     {
-     "row": "LR50",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
-     "tie": null,
-     "cost": 0
-    },
-    {
      "row": "LR03",
      "spec": 2,
      "prio": 6,
      "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
-     "tie": null,
-     "cost": 0
-    },
-    {
-     "row": "LR03",
-     "spec": 2,
-     "prio": 6,
-     "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
-     "tie": null,
-     "cost": 0
-    },
-    {
-     "row": "LR50",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
      "tie": null,
      "cost": 0
     },
@@ -175626,10 +175594,10 @@
      "cost": 0
     },
     {
-     "row": "LR50",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+     "row": "LR03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
      "tie": null,
      "cost": 0
     },
@@ -175722,10 +175690,18 @@
      "cost": 0
     },
     {
-     "row": "LR50",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+     "row": "LR03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+     "tie": null,
+     "cost": 0
+    },
+    {
+     "row": "LR03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
      "tie": null,
      "cost": 0
     },
@@ -175746,10 +175722,18 @@
      "cost": 0
     },
     {
-     "row": "LR50",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+     "row": "LR03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+     "tie": null,
+     "cost": 0
+    },
+    {
+     "row": "LR03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
      "tie": null,
      "cost": 0
     },
@@ -175770,10 +175754,18 @@
      "cost": 0
     },
     {
-     "row": "LR50",
-     "spec": 4,
-     "prio": 7,
-     "line": "3B. Come in a minute. You heard about Rodrigo? Rodrigo Salas, from the eight o'clock Mass. $ They stopped him at the checkpoint by the Fifth Street bridge, on his way to the warehouse. He didn't come home.",
+     "row": "LR03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
+     "tie": null,
+     "cost": 0
+    },
+    {
+     "row": "LR03",
+     "spec": 2,
+     "prio": 6,
+     "line": "3B, good, you're here. Can I ask you something? It's about Daniel's college.",
      "tie": null,
      "cost": 0
     },
@@ -222932,16 +222924,16 @@
    "sheet": "dialogue/in_neighbor.csv",
    "rowCount": 71,
    "fallback": "LN10",
-   "coverage": 0.9907407407407407,
-   "served": 428,
+   "coverage": 0.9814814814814815,
+   "served": 424,
    "noMatch": 0,
    "ties": [],
    "neverWins": [],
    "scenes": [
     {
      "scene": "center_in",
-     "coverage": 0.9907407407407407,
-     "served": 428,
+     "coverage": 0.9814814814814815,
+     "served": 424,
      "noMatch": 0,
      "ties": [],
      "located": []
@@ -222959,8 +222951,8 @@
     },
     {
      "scene": "home",
-     "coverage": 0.9907407407407407,
-     "served": 428,
+     "coverage": 0.9814814814814815,
+     "served": 424,
      "noMatch": 0,
      "ties": [],
      "located": []
@@ -224718,10 +224710,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN07",
+      "spec": 3,
+      "prio": 4,
+      "line": "Hello. I haven't seen you at the hall for a while.",
       "tie": null,
       "cost": 0
      },
@@ -224742,10 +224734,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm writing down who borrowed which box. Six boxes out. Four people.",
       "tie": null,
       "cost": 0
      },
@@ -224766,10 +224758,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
+      "row": "LN66",
       "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "prio": 4,
+      "line": "Hello. You're at the hall again. That's three evenings this week.",
       "tie": null,
       "cost": 0
      },
@@ -224862,10 +224854,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN07",
+      "spec": 3,
+      "prio": 4,
+      "line": "Hello. I haven't seen you at the hall for a while.",
       "tie": null,
       "cost": 0
      },
@@ -224886,10 +224878,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm writing down who borrowed which box. Six boxes out. Four people.",
       "tie": null,
       "cost": 0
      },
@@ -224910,10 +224902,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
+      "row": "LN66",
       "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "prio": 4,
+      "line": "Hello. You're at the hall again. That's three evenings this week.",
       "tie": null,
       "cost": 0
      },
@@ -225150,10 +225142,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN07",
+      "spec": 3,
+      "prio": 4,
+      "line": "Hello. I haven't seen you at the hall for a while.",
       "tie": null,
       "cost": 0
      },
@@ -225174,10 +225166,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm writing down who borrowed which box. Six boxes out. Four people.",
       "tie": null,
       "cost": 0
      },
@@ -225198,10 +225190,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
+      "row": "LN66",
       "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "prio": 4,
+      "line": "Hello. You're at the hall again. That's three evenings this week.",
       "tie": null,
       "cost": 0
      },
@@ -225294,10 +225286,10 @@
       "cost": 1
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN07",
+      "spec": 3,
+      "prio": 4,
+      "line": "Hello. I haven't seen you at the hall for a while.",
       "tie": null,
       "cost": 1
      },
@@ -225318,10 +225310,10 @@
       "cost": 1
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm writing down who borrowed which box. Six boxes out. Four people.",
       "tie": null,
       "cost": 1
      },
@@ -225342,10 +225334,10 @@
       "cost": 1
      },
      {
-      "row": "LN73",
+      "row": "LN66",
       "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "prio": 4,
+      "line": "Hello. You're at the hall again. That's three evenings this week.",
       "tie": null,
       "cost": 1
      },
@@ -225582,34 +225574,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
-      "tie": null,
-      "cost": 0
-     },
-     {
       "row": "LN03",
       "spec": 2,
       "prio": 6,
       "line": "Oh, good, it's you. Are you busy Saturday morning?",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LN03",
-      "spec": 2,
-      "prio": 6,
-      "line": "Oh, good, it's you. Are you busy Saturday morning?",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
       "tie": null,
       "cost": 0
      },
@@ -225630,10 +225598,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -225726,10 +225694,18 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -225750,10 +225726,18 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -225774,10 +225758,18 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -226014,34 +226006,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
-      "tie": null,
-      "cost": 0
-     },
-     {
       "row": "LN03",
       "spec": 2,
       "prio": 6,
       "line": "Oh, good, it's you. Are you busy Saturday morning?",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LN03",
-      "spec": 2,
-      "prio": 6,
-      "line": "Oh, good, it's you. Are you busy Saturday morning?",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
       "tie": null,
       "cost": 0
      },
@@ -226062,10 +226030,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -226158,10 +226126,18 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -226182,10 +226158,18 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -226206,10 +226190,18 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -228176,10 +228168,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN07",
+      "spec": 3,
+      "prio": 4,
+      "line": "Hello. I haven't seen you at the hall for a while.",
       "tie": null,
       "cost": 0
      },
@@ -228200,10 +228192,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN31",
+      "spec": 2,
+      "prio": 2,
+      "line": "Oh, hello. I'm doing my walk. Doctor's orders, not mine.",
       "tie": null,
       "cost": 0
      },
@@ -228224,10 +228216,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
+      "row": "LN66",
       "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "prio": 4,
+      "line": "Hello. You're at the hall again. That's three evenings this week.",
       "tie": null,
       "cost": 0
      },
@@ -228320,10 +228312,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN07",
+      "spec": 3,
+      "prio": 4,
+      "line": "Hello. I haven't seen you at the hall for a while.",
       "tie": null,
       "cost": 0
      },
@@ -228344,10 +228336,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN31",
+      "spec": 2,
+      "prio": 2,
+      "line": "Oh, hello. I'm doing my walk. Doctor's orders, not mine.",
       "tie": null,
       "cost": 0
      },
@@ -228368,10 +228360,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
+      "row": "LN66",
       "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "prio": 4,
+      "line": "Hello. You're at the hall again. That's three evenings this week.",
       "tie": null,
       "cost": 0
      },
@@ -228608,10 +228600,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN07",
+      "spec": 3,
+      "prio": 4,
+      "line": "Hello. I haven't seen you at the hall for a while.",
       "tie": null,
       "cost": 0
      },
@@ -228632,10 +228624,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN31",
+      "spec": 2,
+      "prio": 2,
+      "line": "Oh, hello. I'm doing my walk. Doctor's orders, not mine.",
       "tie": null,
       "cost": 0
      },
@@ -228656,10 +228648,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
+      "row": "LN66",
       "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "prio": 4,
+      "line": "Hello. You're at the hall again. That's three evenings this week.",
       "tie": null,
       "cost": 0
      },
@@ -228752,10 +228744,10 @@
       "cost": 1
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN07",
+      "spec": 3,
+      "prio": 4,
+      "line": "Hello. I haven't seen you at the hall for a while.",
       "tie": null,
       "cost": 1
      },
@@ -228776,10 +228768,10 @@
       "cost": 1
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN31",
+      "spec": 2,
+      "prio": 2,
+      "line": "Oh, hello. I'm doing my walk. Doctor's orders, not mine.",
       "tie": null,
       "cost": 1
      },
@@ -228800,10 +228792,10 @@
       "cost": 1
      },
      {
-      "row": "LN73",
+      "row": "LN66",
       "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "prio": 4,
+      "line": "Hello. You're at the hall again. That's three evenings this week.",
       "tie": null,
       "cost": 1
      },
@@ -229040,34 +229032,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
-      "tie": null,
-      "cost": 0
-     },
-     {
       "row": "LN03",
       "spec": 2,
       "prio": 6,
       "line": "Oh, good, it's you. Are you busy Saturday morning?",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LN03",
-      "spec": 2,
-      "prio": 6,
-      "line": "Oh, good, it's you. Are you busy Saturday morning?",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
       "tie": null,
       "cost": 0
      },
@@ -229088,10 +229056,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -229184,10 +229152,18 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -229208,10 +229184,18 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -229232,10 +229216,18 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -229472,34 +229464,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
-      "tie": null,
-      "cost": 0
-     },
-     {
       "row": "LN03",
       "spec": 2,
       "prio": 6,
       "line": "Oh, good, it's you. Are you busy Saturday morning?",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LN03",
-      "spec": 2,
-      "prio": 6,
-      "line": "Oh, good, it's you. Are you busy Saturday morning?",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
       "tie": null,
       "cost": 0
      },
@@ -229520,10 +229488,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -229616,10 +229584,18 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -229640,10 +229616,18 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -229664,10 +229648,18 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -231634,10 +231626,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN07",
+      "spec": 3,
+      "prio": 4,
+      "line": "Hello. I haven't seen you at the hall for a while.",
       "tie": null,
       "cost": 0
      },
@@ -231658,10 +231650,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm writing down who borrowed which box. Six boxes out. Four people.",
       "tie": null,
       "cost": 0
      },
@@ -231682,10 +231674,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
+      "row": "LN66",
       "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "prio": 4,
+      "line": "Hello. You're at the hall again. That's three evenings this week.",
       "tie": null,
       "cost": 0
      },
@@ -231778,10 +231770,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN07",
+      "spec": 3,
+      "prio": 4,
+      "line": "Hello. I haven't seen you at the hall for a while.",
       "tie": null,
       "cost": 0
      },
@@ -231802,10 +231794,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm writing down who borrowed which box. Six boxes out. Four people.",
       "tie": null,
       "cost": 0
      },
@@ -231826,10 +231818,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
+      "row": "LN66",
       "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "prio": 4,
+      "line": "Hello. You're at the hall again. That's three evenings this week.",
       "tie": null,
       "cost": 0
      },
@@ -232066,10 +232058,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN07",
+      "spec": 3,
+      "prio": 4,
+      "line": "Hello. I haven't seen you at the hall for a while.",
       "tie": null,
       "cost": 0
      },
@@ -232090,10 +232082,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm writing down who borrowed which box. Six boxes out. Four people.",
       "tie": null,
       "cost": 0
      },
@@ -232114,10 +232106,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
+      "row": "LN66",
       "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "prio": 4,
+      "line": "Hello. You're at the hall again. That's three evenings this week.",
       "tie": null,
       "cost": 0
      },
@@ -232210,10 +232202,10 @@
       "cost": 1
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN07",
+      "spec": 3,
+      "prio": 4,
+      "line": "Hello. I haven't seen you at the hall for a while.",
       "tie": null,
       "cost": 1
      },
@@ -232234,10 +232226,10 @@
       "cost": 1
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN10",
+      "spec": 0,
+      "prio": 0,
+      "line": "Not now, I'm writing down who borrowed which box. Six boxes out. Four people.",
       "tie": null,
       "cost": 1
      },
@@ -232258,10 +232250,10 @@
       "cost": 1
      },
      {
-      "row": "LN73",
+      "row": "LN66",
       "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "prio": 4,
+      "line": "Hello. You're at the hall again. That's three evenings this week.",
       "tie": null,
       "cost": 1
      },
@@ -232498,34 +232490,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
-      "tie": null,
-      "cost": 0
-     },
-     {
       "row": "LN03",
       "spec": 2,
       "prio": 6,
       "line": "Oh, good, it's you. Are you busy Saturday morning?",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LN03",
-      "spec": 2,
-      "prio": 6,
-      "line": "Oh, good, it's you. Are you busy Saturday morning?",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
       "tie": null,
       "cost": 0
      },
@@ -232546,10 +232514,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -232642,10 +232610,18 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -232666,10 +232642,18 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -232690,10 +232674,18 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -232930,34 +232922,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
-      "tie": null,
-      "cost": 0
-     },
-     {
       "row": "LN03",
       "spec": 2,
       "prio": 6,
       "line": "Oh, good, it's you. Are you busy Saturday morning?",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LN03",
-      "spec": 2,
-      "prio": 6,
-      "line": "Oh, good, it's you. Are you busy Saturday morning?",
-      "tie": null,
-      "cost": 0
-     },
-     {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
       "tie": null,
       "cost": 0
      },
@@ -232978,10 +232946,10 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -233074,10 +233042,18 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -233098,10 +233074,18 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -233122,10 +233106,18 @@
       "cost": 0
      },
      {
-      "row": "LN73",
-      "spec": 4,
-      "prio": 7,
-      "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
+      "tie": null,
+      "cost": 0
+     },
+     {
+      "row": "LN03",
+      "spec": 2,
+      "prio": 6,
+      "line": "Oh, good, it's you. Are you busy Saturday morning?",
       "tie": null,
       "cost": 0
      },
@@ -233631,7 +233623,7 @@
     },
     "LN06": {
      "cost": 0,
-     "witness": "LN01/choice2 (+0) → LN09/choice3 (+0) → day 4 → LN06  [at met=yes, rapport=0, lastValence=none, nationalLeader=inclusive, playerLean=home-leaning, dayPhase=late, scene=center_in]",
+     "witness": "LN01/choice2 (+0) → LN09/choice3 (+0) → day 4 → LN06  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=home-leaning, dayPhase=late, scene=center_in]",
      "depth": 4
     },
     "LN49": {
@@ -233656,7 +233648,7 @@
     },
     "LN66": {
      "cost": 0,
-     "witness": "LN01/choice2 (+0) → LN09/choice3 (+0) → day 4 → LN66  [at met=yes, rapport=0, lastValence=none, nationalLeader=inclusive, playerLean=home-leaning, dayPhase=late, scene=center_in]",
+     "witness": "LN01/choice2 (+0) → LN09/choice3 (+0) → day 4 → LN66  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=home-leaning, dayPhase=late, scene=center_in]",
      "depth": 4
     },
     "LN67": {
@@ -233671,7 +233663,7 @@
     },
     "LN07": {
      "cost": 0,
-     "witness": "LN01/choice2 (+0) → LN09/choice3 (+0) → day 4 → LN07  [at met=yes, rapport=0, lastValence=none, nationalLeader=inclusive, playerLean=us-leaning, dayPhase=late, scene=center_in]",
+     "witness": "LN01/choice2 (+0) → LN09/choice3 (+0) → day 4 → LN07  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=us-leaning, dayPhase=late, scene=center_in]",
      "depth": 4
     },
     "LN53": {
@@ -233706,7 +233698,7 @@
     },
     "LN10": {
      "cost": 0,
-     "witness": "LN01/choice2 (+0) → LN09/choice3 (+0) → day 4 → LN10  [at met=yes, rapport=0, lastValence=none, nationalLeader=inclusive, playerLean=balanced, dayPhase=late, scene=center_in]",
+     "witness": "LN01/choice2 (+0) → LN09/choice3 (+0) → day 4 → LN10  [at met=yes, rapport=0, lastValence=none, nationalLeader=enforcement, playerLean=balanced, dayPhase=late, scene=center_in]",
      "depth": 1
     }
    },
@@ -233737,12 +233729,12 @@
     "LN63": 0,
     "LN64": 0,
     "LN65": 0,
-    "LN31": 112,
+    "LN31": 128,
     "LN32": 0,
     "LN33": 0,
     "LN34": 0,
     "LN35": 0,
-    "LN03": 720,
+    "LN03": 864,
     "LN36": 0,
     "LN12": 0,
     "LN13": 0,
@@ -233766,22 +233758,22 @@
     "LN46": 0,
     "LN47": 0,
     "LN48": 0,
-    "LN06": 24,
+    "LN06": 48,
     "LN49": 0,
     "LN50": 0,
     "LN51": 0,
     "LN52": 0,
-    "LN66": 24,
+    "LN66": 48,
     "LN67": 0,
     "LN68": 0,
-    "LN07": 48,
+    "LN07": 96,
     "LN53": 0,
     "LN54": 0,
     "LN55": 0,
     "LN56": 0,
     "LN08": 864,
     "LN57": 0,
-    "LN10": 32
+    "LN10": 64
    },
    "cells": [
     {
@@ -235529,10 +235521,10 @@
      "cost": 0
     },
     {
-     "row": "LN73",
-     "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+     "row": "LN07",
+     "spec": 3,
+     "prio": 4,
+     "line": "Hello. I haven't seen you at the hall for a while.",
      "tie": null,
      "cost": 0
     },
@@ -235553,10 +235545,10 @@
      "cost": 0
     },
     {
-     "row": "LN73",
-     "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+     "row": "LN10",
+     "spec": 0,
+     "prio": 0,
+     "line": "Not now, I'm writing down who borrowed which box. Six boxes out. Four people.",
      "tie": null,
      "cost": 0
     },
@@ -235577,10 +235569,10 @@
      "cost": 0
     },
     {
-     "row": "LN73",
+     "row": "LN66",
      "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+     "prio": 4,
+     "line": "Hello. You're at the hall again. That's three evenings this week.",
      "tie": null,
      "cost": 0
     },
@@ -235673,10 +235665,10 @@
      "cost": 0
     },
     {
-     "row": "LN73",
-     "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+     "row": "LN07",
+     "spec": 3,
+     "prio": 4,
+     "line": "Hello. I haven't seen you at the hall for a while.",
      "tie": null,
      "cost": 0
     },
@@ -235697,10 +235689,10 @@
      "cost": 0
     },
     {
-     "row": "LN73",
-     "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+     "row": "LN10",
+     "spec": 0,
+     "prio": 0,
+     "line": "Not now, I'm writing down who borrowed which box. Six boxes out. Four people.",
      "tie": null,
      "cost": 0
     },
@@ -235721,10 +235713,10 @@
      "cost": 0
     },
     {
-     "row": "LN73",
+     "row": "LN66",
      "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+     "prio": 4,
+     "line": "Hello. You're at the hall again. That's three evenings this week.",
      "tie": null,
      "cost": 0
     },
@@ -235961,10 +235953,10 @@
      "cost": 0
     },
     {
-     "row": "LN73",
-     "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+     "row": "LN07",
+     "spec": 3,
+     "prio": 4,
+     "line": "Hello. I haven't seen you at the hall for a while.",
      "tie": null,
      "cost": 0
     },
@@ -235985,10 +235977,10 @@
      "cost": 0
     },
     {
-     "row": "LN73",
-     "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+     "row": "LN10",
+     "spec": 0,
+     "prio": 0,
+     "line": "Not now, I'm writing down who borrowed which box. Six boxes out. Four people.",
      "tie": null,
      "cost": 0
     },
@@ -236009,10 +236001,10 @@
      "cost": 0
     },
     {
-     "row": "LN73",
+     "row": "LN66",
      "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+     "prio": 4,
+     "line": "Hello. You're at the hall again. That's three evenings this week.",
      "tie": null,
      "cost": 0
     },
@@ -236105,10 +236097,10 @@
      "cost": 1
     },
     {
-     "row": "LN73",
-     "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+     "row": "LN07",
+     "spec": 3,
+     "prio": 4,
+     "line": "Hello. I haven't seen you at the hall for a while.",
      "tie": null,
      "cost": 1
     },
@@ -236129,10 +236121,10 @@
      "cost": 1
     },
     {
-     "row": "LN73",
-     "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+     "row": "LN10",
+     "spec": 0,
+     "prio": 0,
+     "line": "Not now, I'm writing down who borrowed which box. Six boxes out. Four people.",
      "tie": null,
      "cost": 1
     },
@@ -236153,10 +236145,10 @@
      "cost": 1
     },
     {
-     "row": "LN73",
+     "row": "LN66",
      "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+     "prio": 4,
+     "line": "Hello. You're at the hall again. That's three evenings this week.",
      "tie": null,
      "cost": 1
     },
@@ -236393,34 +236385,10 @@
      "cost": 0
     },
     {
-     "row": "LN73",
-     "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
-     "tie": null,
-     "cost": 0
-    },
-    {
      "row": "LN03",
      "spec": 2,
      "prio": 6,
      "line": "Oh, good, it's you. Are you busy Saturday morning?",
-     "tie": null,
-     "cost": 0
-    },
-    {
-     "row": "LN03",
-     "spec": 2,
-     "prio": 6,
-     "line": "Oh, good, it's you. Are you busy Saturday morning?",
-     "tie": null,
-     "cost": 0
-    },
-    {
-     "row": "LN73",
-     "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
      "tie": null,
      "cost": 0
     },
@@ -236441,10 +236409,10 @@
      "cost": 0
     },
     {
-     "row": "LN73",
-     "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+     "row": "LN03",
+     "spec": 2,
+     "prio": 6,
+     "line": "Oh, good, it's you. Are you busy Saturday morning?",
      "tie": null,
      "cost": 0
     },
@@ -236537,10 +236505,18 @@
      "cost": 0
     },
     {
-     "row": "LN73",
-     "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+     "row": "LN03",
+     "spec": 2,
+     "prio": 6,
+     "line": "Oh, good, it's you. Are you busy Saturday morning?",
+     "tie": null,
+     "cost": 0
+    },
+    {
+     "row": "LN03",
+     "spec": 2,
+     "prio": 6,
+     "line": "Oh, good, it's you. Are you busy Saturday morning?",
      "tie": null,
      "cost": 0
     },
@@ -236561,10 +236537,18 @@
      "cost": 0
     },
     {
-     "row": "LN73",
-     "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+     "row": "LN03",
+     "spec": 2,
+     "prio": 6,
+     "line": "Oh, good, it's you. Are you busy Saturday morning?",
+     "tie": null,
+     "cost": 0
+    },
+    {
+     "row": "LN03",
+     "spec": 2,
+     "prio": 6,
+     "line": "Oh, good, it's you. Are you busy Saturday morning?",
      "tie": null,
      "cost": 0
     },
@@ -236585,10 +236569,18 @@
      "cost": 0
     },
     {
-     "row": "LN73",
-     "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+     "row": "LN03",
+     "spec": 2,
+     "prio": 6,
+     "line": "Oh, good, it's you. Are you busy Saturday morning?",
+     "tie": null,
+     "cost": 0
+    },
+    {
+     "row": "LN03",
+     "spec": 2,
+     "prio": 6,
+     "line": "Oh, good, it's you. Are you busy Saturday morning?",
      "tie": null,
      "cost": 0
     },
@@ -236825,34 +236817,10 @@
      "cost": 0
     },
     {
-     "row": "LN73",
-     "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
-     "tie": null,
-     "cost": 0
-    },
-    {
      "row": "LN03",
      "spec": 2,
      "prio": 6,
      "line": "Oh, good, it's you. Are you busy Saturday morning?",
-     "tie": null,
-     "cost": 0
-    },
-    {
-     "row": "LN03",
-     "spec": 2,
-     "prio": 6,
-     "line": "Oh, good, it's you. Are you busy Saturday morning?",
-     "tie": null,
-     "cost": 0
-    },
-    {
-     "row": "LN73",
-     "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
      "tie": null,
      "cost": 0
     },
@@ -236873,10 +236841,10 @@
      "cost": 0
     },
     {
-     "row": "LN73",
-     "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+     "row": "LN03",
+     "spec": 2,
+     "prio": 6,
+     "line": "Oh, good, it's you. Are you busy Saturday morning?",
      "tie": null,
      "cost": 0
     },
@@ -236969,10 +236937,18 @@
      "cost": 0
     },
     {
-     "row": "LN73",
-     "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+     "row": "LN03",
+     "spec": 2,
+     "prio": 6,
+     "line": "Oh, good, it's you. Are you busy Saturday morning?",
+     "tie": null,
+     "cost": 0
+    },
+    {
+     "row": "LN03",
+     "spec": 2,
+     "prio": 6,
+     "line": "Oh, good, it's you. Are you busy Saturday morning?",
      "tie": null,
      "cost": 0
     },
@@ -236993,10 +236969,18 @@
      "cost": 0
     },
     {
-     "row": "LN73",
-     "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+     "row": "LN03",
+     "spec": 2,
+     "prio": 6,
+     "line": "Oh, good, it's you. Are you busy Saturday morning?",
+     "tie": null,
+     "cost": 0
+    },
+    {
+     "row": "LN03",
+     "spec": 2,
+     "prio": 6,
+     "line": "Oh, good, it's you. Are you busy Saturday morning?",
      "tie": null,
      "cost": 0
     },
@@ -237017,10 +237001,18 @@
      "cost": 0
     },
     {
-     "row": "LN73",
-     "spec": 4,
-     "prio": 7,
-     "line": "Oh. It's you. Sit down a minute. Have you heard about Sameer?",
+     "row": "LN03",
+     "spec": 2,
+     "prio": 6,
+     "line": "Oh, good, it's you. Are you busy Saturday morning?",
+     "tie": null,
+     "cost": 0
+    },
+    {
+     "row": "LN03",
+     "spec": 2,
+     "prio": 6,
+     "line": "Oh, good, it's you. Are you busy Saturday morning?",
      "tie": null,
      "cost": 0
     },

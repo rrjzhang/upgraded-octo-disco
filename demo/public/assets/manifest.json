@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-19T03:56:44.743Z",
+  "generated": "2026-10-19T05:50:09.478Z",
   "source": "image_generation/out (_A set)",
   "backgrounds": {
     "bg_home_day": {
@@ -36,6 +36,13 @@
       "h": 1024,
       "lighting": "warm_indoor",
       "source": "bg_center_in_day_A"
+    },
+    "bg_townhall_eve": {
+      "file": "bg/bg_townhall_eve.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "warm_indoor",
+      "source": "bg_townhall_eve_A"
     },
     "bg_library_day": {
       "file": "bg/bg_library_day.jpg",
@@ -184,13 +191,22 @@
       }
     },
     "us_super": {
-      "neutral": "portrait/placeholder_neutral.png",
+      "neutral": "portrait/us_super_neutral.png",
       "warm": null,
-      "guarded": null,
-      "worried": null,
-      "placeholder": true,
+      "guarded": "portrait/us_super_guarded.png",
+      "worried": "portrait/us_super_worried.png",
+      "placeholder": false,
       "fromReference": false,
-      "sources": []
+      "sources": [
+        "ch_us_super_neutral_A",
+        "ch_us_super_guarded_A",
+        "ch_us_super_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 767522,
+        "guarded": 770312,
+        "worried": 711106
+      }
     },
     "us_leader_int": {
       "neutral": "portrait/us_leader_int_neutral.png",
@@ -722,6 +738,14 @@
       "placeholder": false,
       "source": "ch_us_stranger_b_fig_stand_A"
     },
+    "ch_us_super_fig_stand": {
+      "file": "figure/ch_us_super_fig_stand.png",
+      "w": 277,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_us_super_fig_stand_A"
+    },
     "ch_us_leader_int_fig_stand": {
       "file": "figure/ch_us_leader_int_fig_stand.png",
       "w": 205,
@@ -910,13 +934,6 @@
       "w": 300,
       "h": 700,
       "seated": true,
-      "placeholder": true
-    },
-    "ch_us_super_fig_stand": {
-      "file": "figure/placeholder_stand.png",
-      "w": 260,
-      "h": 700,
-      "seated": false,
       "placeholder": true
     }
   },

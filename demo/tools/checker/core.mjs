@@ -14,7 +14,9 @@ export const EVENT_OPTIONAL = ['portrait', 'medium', 'pack', 'day', 'usLead', 'h
 export const NEWS_OPTIONAL = ['figure', 'pack'];
 // optional dialogue columns, placed after dayPhase: `scene` (SPEC 2026-10-18 "Dialogue location": blank = anywhere, else scene
 // ids joined by |), then `usLead` and `homeLead` (SPEC 2026-10-19 "Leads": blank = any room, else pro|anti)
-export const DIALOGUE_OPTIONAL = ['scene', 'usLead', 'homeLead'];
+export const DIALOGUE_OPTIONAL = ['scene', 'usLead', 'homeLead', 'day'];
+/** a dialogue/event `day` cell: `4`, `2-3` or `4+` over the demo days 1..5 -> the set of days, or null when blank/invalid */
+export const dayCell = (cell) => { const m = /^([1-5])(?:-([1-5])|(\+))?$/.exec(String(cell ?? '').trim()); if (!m) return null; const lo = +m[1], hi = m[3] ? 5 : m[2] ? +m[2] : lo; return new Set(Array.from({ length: Math.max(0, hi - lo + 1) }, (_, i) => lo + i)); };
 // SPEC "Leads": which of a side's two leaders is first among equals in a room; a dialogue/event cell names one (events allow a|b)
 export const LEAD_POS = ['pro', 'anti'];
 export const LEAD_COMBOS = [['pro', 'pro'], ['pro', 'anti'], ['anti', 'pro'], ['anti', 'anti']];
@@ -656,6 +658,7 @@ function validateDialogue(files, npcId, diag, eventIds, scenes, npcScenes, npc =
   const afterOf = (cands) => header.indexOf(cands.find(c => header.includes(c))) + 1;
   if (header.includes('usLead') && header.indexOf('usLead') !== afterOf(['scene', 'dayPhase'])) diag.warn('COLUMN_ORDER', rel, { line: 1, column: 'usLead' }, 'the optional usLead column belongs right after scene (or dayPhase)');
   if (header.includes('homeLead') && header.indexOf('homeLead') !== afterOf(['usLead', 'scene', 'dayPhase'])) diag.warn('COLUMN_ORDER', rel, { line: 1, column: 'homeLead' }, 'the optional homeLead column belongs right after usLead (or scene)');
+  if (header.includes('day') && header.indexOf('day') !== afterOf(['homeLead', 'usLead', 'scene', 'dayPhase'])) diag.warn('COLUMN_ORDER', rel, { line: 1, column: 'day' }, 'the optional day column belongs right after homeLead (or scene)');
   const allowedEmotions = npc && Array.isArray(npc.emotions) ? npc.emotions : null;
   const parsed = [];
   const ids = new Set();
@@ -695,6 +698,13 @@ function validateDialogue(files, npcId, diag, eventIds, scenes, npcScenes, npc =
       if (v && !LEAD_POS.includes(v)) { diag.error('BAD_VALUE', rel, loc(col), `"${v}"; expected pro, anti or blank`); return ''; } // reported; the row is analysed as if blank
       return v;
     });
+    // SPEC "Leads": optional `day` cell (`4`, `2-3`, `4+`): the row shows only on those days; it must agree with any dayPhase cell
+    let days = null;
+    if (r.day) {
+      days = dayCell(r.day);
+      if (!days) diag.error('BAD_VALUE', rel, loc('day'), `"${r.day}"; expected a day 1..5, a range like 2-3, 4+ or blank`);
+      else if (cond[5] && [...days].some(d => !cond[5].has(DAY_PHASE[d - 1]))) { diag.error('DAY_PHASE_MISMATCH', rel, loc('day'), `day ${r.day} never falls in dayPhase ${r.dayPhase} (days 1-2 early, 3 mid, 4-5 late), so the row can never be selected`); r.__dayMismatch = true; }
+    }
     if (!r.line) diag.error('SCHEMA', rel, loc('line'), 'missing line');
     else checkBeats(r.line, diag, rel, loc('line'));
     const choices = [];
@@ -708,8 +718,8 @@ function validateDialogue(files, npcId, diag, eventIds, scenes, npcScenes, npc =
     for (const k of [2, 3]) if (r[`choice${k}`] && !r[`choice${k - 1}`]) diag.warn('SCHEMA', rel, loc(`choice${k}`), `choice${k} given but choice${k - 1} is blank`);
     // a non-blank scene adds 1 to specificity (SPEC "Dialogue location"), so a located row beats the same row anywhere
     const sceneSet = located.length ? new Set(located) : null;
-    const specificity = cond.filter(Boolean).length + (sceneSet ? 1 : 0) + leads.filter(Boolean).length;
-    parsed.push({ id: r.id, line: r.__line, text: r.line, cond, scenes: sceneSet, leads, offScene, priority, specificity, choices, bad, raw: r });
+    const specificity = cond.filter(Boolean).length + (sceneSet ? 1 : 0) + leads.filter(Boolean).length + (days ? 1 : 0);
+    parsed.push({ id: r.id, line: r.__line, text: r.line, cond, scenes: sceneSet, leads, days, offScene, dayMismatch: !!r.__dayMismatch, priority, specificity, choices, bad, raw: r });
   }
   // next targets
   for (const row of parsed) for (const ch of row.choices) {
@@ -735,21 +745,23 @@ export function checkBeats(line, diag, rel, at) {
 }
 
 // ---------------------------------------------------------------- completeness
-function rowMatches(row, v, scene, lead = LEAD_COMBOS[0]) {
+function rowMatches(row, v, scene, lead = LEAD_COMBOS[0], day = null) {
   if (row.scenes && !row.scenes.has(scene)) return false;
+  // SPEC "Leads": a row with a `day` cell only matches on those days (day null = the any-day grid, where such rows never match)
+  if (row.days && (day === null || !row.days.has(day))) return false;
   // SPEC "Leads": a row with a usLead/homeLead cell only matches rooms with that lead
   if (row.leads && ((row.leads[0] && row.leads[0] !== lead[0]) || (row.leads[1] && row.leads[1] !== lead[1]))) return false;
   for (let i = 0; i < 6; i++) if (row.cond[i] && !row.cond[i].has(v[i])) return false;
   return true;
 }
 /** Winning row per cell for one scene (scene null = "anywhere": only rows with a blank scene cell match) and one lead combination. */
-function winnersFor(usable, scene, lead = LEAD_COMBOS[0]) {
+function winnersFor(usable, scene, lead = LEAD_COMBOS[0], day = null) {
   const winners = new Array(NCELLS);
   for (let c = 0; c < NCELLS; c++) {
     const v = cellVector(c);
     let best = [];
     for (const r of usable) {
-      if (!rowMatches(r, v, scene, lead)) continue;
+      if (!rowMatches(r, v, scene, lead, day)) continue;
       if (!best.length || r.priority > best[0].priority || (r.priority === best[0].priority && r.specificity > best[0].specificity)) best = [r];
       else if (r.priority === best[0].priority && r.specificity === best[0].specificity) best.push(r);
     }
@@ -775,7 +787,10 @@ function analyseCompleteness(sheet, diag, scenes) {
   const perScene = [];
   const byScene = new Map(); // scene -> winners in a pro/pro room (the baseline the reports show)
   const byLead = new Map();  // leadKey(scene, [us, home]) -> winners (SPEC "Leads": every room must be served, ties anywhere are errors)
+  // leadKey -> [, day1..day5 winners]: the grid on a given day, where rows with a `day` cell take the cells of that day's phase
+  const byLeadDay = new Map();
   const hasLeadRows = usable.some(r => r.leads && (r.leads[0] || r.leads[1]));
+  const hasDayRows = usable.some(r => r.days);
   const combos = hasLeadRows ? LEAD_COMBOS : [LEAD_COMBOS[0]];
   for (const sc of scope) {
     let noMatch = 0, served = NCELLS;
@@ -797,10 +812,31 @@ function analyseCompleteness(sheet, diag, scenes) {
         if (w.row !== fallback) sv++;
       }
       noMatch = Math.max(noMatch, nm); served = Math.min(served, sv);
+      if (hasDayRows) {
+        const tables = [null];
+        for (let d = 1; d <= DEMO_DAYS; d++) {
+          const wd = winnersFor(usable, sc, lead, d);
+          const table = winners.slice();
+          for (let c = 0; c < NCELLS; c++) {
+            if (cellVector(c)[5] !== DAY_PHASE[d - 1]) continue;
+            table[c] = wd[c];
+            const w = wd[c];
+            if (!w) continue;
+            if (!winners[c] || w.row !== winners[c].row) winCount.set(w.row.id, winCount.get(w.row.id) + 1);
+            if (w.tie) {
+              const key = w.tie.map(r => r.id).join('|');
+              if (!local.has(key)) local.set(key, { rows: w.tie, cells: [], lead, day: d });
+              local.get(key).cells.push(c);
+            }
+          }
+          tables[d] = table;
+        }
+        byLeadDay.set(leadKey(sc, lead), tables);
+      }
     }
     if (!hasLeadRows) for (const lead of LEAD_COMBOS.slice(1)) byLead.set(leadKey(sc, lead), byScene.get(sc));
     for (const [key, t] of local) {
-      if (!ties.has(key)) ties.set(key, { rows: t.rows, cells: t.cells.length, example: t.cells[0], lead: t.lead, scenes: [] });
+      if (!ties.has(key)) ties.set(key, { rows: t.rows, cells: t.cells.length, example: t.cells[0], lead: t.lead, day: t.day, scenes: [] });
       const g = ties.get(key);
       g.cells = Math.max(g.cells, t.cells.length);
       g.scenes.push(sc);
@@ -811,7 +847,7 @@ function analyseCompleteness(sheet, diag, scenes) {
   const where = (list) => sheet.located && list[0] != null ? ` in ${list.length === scope.length && scope.length > 1 ? 'every scene' : `scene ${list.join(', ')}`}` : '';
   for (const t of ties.values()) {
     diag.error('TIE', rel, { line: t.rows[0].line, row: t.rows.map(r => r.id).join(',') },
-      `rows ${t.rows.map(r => r.id).join(', ')} tie (priority ${t.rows[0].priority}, specificity ${t.rows[0].specificity}) in ${t.cells} cell(s)${where(t.scenes)}, e.g. ${cellLabel(t.example)}${hasLeadRows ? `, usLead=${t.lead[0]}, homeLead=${t.lead[1]}` : ''}`, { cells: t.cells, scenes: t.scenes.filter(x => x != null) });
+      `rows ${t.rows.map(r => r.id).join(', ')} tie (priority ${t.rows[0].priority}, specificity ${t.rows[0].specificity}) in ${t.cells} cell(s)${where(t.scenes)}, e.g. ${cellLabel(t.example)}${hasLeadRows ? `, usLead=${t.lead[0]}, homeLead=${t.lead[1]}` : ''}${t.day ? `, day ${t.day}` : ''}`, { cells: t.cells, scenes: t.scenes.filter(x => x != null) });
   }
   const worst = perScene.reduce((a, b) => (b.noMatch > a.noMatch ? b : a), perScene[0]);
   if (worst.noMatch) diag.error('NO_MATCH', rel, {}, `${worst.noMatch} of ${NCELLS} cells match no row at all${where([worst.scene])}`);
@@ -822,20 +858,20 @@ function analyseCompleteness(sheet, diag, scenes) {
     if (winCount.get(r.id) > 0) continue;
     if (nextTargets.has(r.id)) continue;
     neverWins.push(r.id);
-    if (r.offScene) continue; // already reported as SCENE_NOT_APPEARED
+    if (r.offScene || r.dayMismatch) continue; // already reported as SCENE_NOT_APPEARED / DAY_PHASE_MISMATCH
     // find who shadows it (in a scene the row can match)
-    let anyCell = -1, anyScene = null, anyLead = LEAD_COMBOS[0];
+    let anyCell = -1, anyScene = null, anyLead = LEAD_COMBOS[0], anyDay = null;
     for (const sc of scope) {
-      for (const lead of combos) for (let c = 0; c < NCELLS && anyCell < 0; c++) if (rowMatches(r, cellVector(c), sc, lead)) { anyCell = c; anyScene = sc; anyLead = lead; }
+      for (const lead of combos) for (const dd of (r.days ? [...r.days] : [null])) for (let c = 0; c < NCELLS && anyCell < 0; c++) if (rowMatches(r, cellVector(c), sc, lead, dd)) { anyCell = c; anyScene = sc; anyLead = lead; anyDay = dd; }
       if (anyCell >= 0) break;
     }
-    const w = anyCell >= 0 ? byLead.get(leadKey(anyScene, anyLead))[anyCell] : null;
+    const w = anyCell >= 0 ? (anyDay ? byLeadDay.get(leadKey(anyScene, anyLead))[anyDay] : byLead.get(leadKey(anyScene, anyLead)))[anyCell] : null;
     diag.warn('NEVER_WINS', rel, { line: r.line, row: r.id }, anyCell < 0 ? (r.scenes ? 'row matches no cell in any scene this NPC appears in' : 'row matches no cell') : `row never wins any cell (shadowed; e.g. ${w ? w.row.id : '?'} wins at ${cellLabel(anyCell)}${where([anyScene])})`);
   }
   // headline numbers: the weakest scene (a sheet is only as complete as its least-covered scene)
   const minScene = perScene.reduce((a, b) => (b.coverage < a.coverage ? b : a), perScene[0]);
   return {
-    winners: byScene.get(minScene.scene), byScene, byLead, scope, perScene, fallback,
+    winners: byScene.get(minScene.scene), byScene, byLead, byLeadDay, scope, perScene, fallback,
     coverage: minScene.coverage, served: minScene.served, noMatch: worst.noMatch,
     ties: [...ties.values()].map(t => ({ rows: t.rows.map(r => r.id), cells: t.cells, scenes: t.scenes.filter(x => x != null) })),
     neverWins, winCount: Object.fromEntries(winCount), nextTargets,
@@ -879,6 +915,11 @@ export function rowDepth(rows, row, cache = new Map()) {
  *    `next` stay in the same conversation, and events do not count as conversations.
  * Talking happens in any of `talkScenes`; the row shown is the winner in that scene (scene filter).
  */
+/** The winner grids of a scene in a view: the any-day grid and, where the sheet has `day` rows, one per day. */
+const tablesOf = (v, sc) => [v.byScene.get(sc), ...((v.byDay && v.byDay.get(sc)) || []).filter(Boolean)];
+/** The grid in force on 0-based day `d` (the day's own grid where `day` rows exist, else the any-day grid). */
+const tableOn = (v, sc, d) => (v.byDay && v.byDay.get(sc) && v.byDay.get(sc)[d + 1]) || v.byScene.get(sc);
+
 function searchNpc(npc, sheet, comp, myEvents, inviteBit, startMask, talkScenes, limit) {
   const rowById = new Map(sheet.rows.map(r => [r.id, r]));
   const limited = limit != null;
@@ -914,14 +955,16 @@ function searchNpc(npc, sheet, comp, myEvents, inviteBit, startMask, talkScenes,
         if (talkScenes.length && (!limited || used < limit)) {
           const seenRows = new Set();
           for (const sc of talkScenes) {
-            const winners = comp.byScene.get(sc);
-            for (let w = 0; w < NWORLD; w++) {
-              if (limited && w % 3 !== DAY_PHASE[day]) continue; // the day fixes dayPhase
-              const win = winners[s * NWORLD + w];
-              if (!win || seenRows.has(win.row.id)) continue;
-              seenRows.add(win.row.id);
-              // starting is free; the opening row is turn 1 (its options' charges follow optionCharge)
-              choiceEdges(s, m, win.row, 1, day, limited ? used + 1 : 0, out);
+            // limited: the grid of the day the search is on; free: every day's grid (the day is not tracked)
+            for (const winners of (limited ? [tableOn(comp, sc, day)] : tablesOf(comp, sc))) {
+              for (let w = 0; w < NWORLD; w++) {
+                if (limited && w % 3 !== DAY_PHASE[day]) continue; // the day fixes dayPhase
+                const win = winners[s * NWORLD + w];
+                if (!win || seenRows.has(win.row.id)) continue;
+                seenRows.add(win.row.id);
+                // starting is free; the opening row is turn 1 (its options' charges follow optionCharge)
+                choiceEdges(s, m, win.row, 1, day, limited ? used + 1 : 0, out);
+              }
             }
           }
         }
@@ -964,10 +1007,11 @@ function searchNpc(npc, sheet, comp, myEvents, inviteBit, startMask, talkScenes,
     if (r.bad) continue;
     let best = Infinity, bestCell = -1, bestScene = null, via = null;
     for (const sc of talkScenes) {
-      const winners = comp.byScene.get(sc);
-      for (let c = 0; c < NCELLS; c++) {
-        const w = winners[c];
-        if (w && w.row === r && cellCost[c] < best) { best = cellCost[c]; bestCell = c; bestScene = sc; }
+      for (const winners of tablesOf(comp, sc)) {
+        for (let c = 0; c < NCELLS; c++) {
+          const w = winners[c];
+          if (w && w.row === r && cellCost[c] < best) { best = cellCost[c]; bestCell = c; bestScene = sc; }
+        }
       }
     }
     if (showCost.has(r.id) && showCost.get(r.id) < best) { best = showCost.get(r.id); via = showKey.get(r.id); bestCell = -1; }
@@ -998,10 +1042,13 @@ function analyseReachability(npc, sheet, comp, events, invitedExternally, diag, 
   const seenView = new Set();
   for (const lead of LEAD_COMBOS) {
     const byScene = new Map(talkScenes.map(sc => [sc, comp.byLead?.get(leadKey(sc, lead)) ?? comp.byScene.get(sc)]));
-    const sig = talkScenes.map(sc => byScene.get(sc).map(w => (w ? w.row.id : '')).join(',')).join(';');
+    // per-day grids where the sheet has `day` rows (SPEC "Leads"): the search picks the grid of the day it is on
+    const byDay = new Map(talkScenes.map(sc => [sc, comp.byLeadDay?.get(leadKey(sc, lead)) ?? null]));
+    const ids = (tbl) => (tbl ? tbl.map(w => (w ? w.row.id : '')).join(',') : '');
+    const sig = talkScenes.map(sc => ids(byScene.get(sc)) + '#' + (byDay.get(sc) ? byDay.get(sc).slice(1).map(ids).join('/') : '')).join(';');
     if (seenView.has(sig)) continue;
     seenView.add(sig);
-    views.push({ ...comp, byScene });
+    views.push({ ...comp, byScene, byDay });
   }
   const merge = (runs) => {
     const out = { cellCost: runs[0].cellCost.slice(), rows: {}, reachableStates: 0 };
@@ -1025,7 +1072,7 @@ function analyseReachability(npc, sheet, comp, events, invitedExternally, diag, 
       ...(a.cost !== b.cost ? { costNoLimit: a.cost, witnessNoLimit: a.witness } : {}),
     };
     if (!canTalk || comp.neverWins.includes(r.id)) continue; // never-win rows are reported once, as NEVER_WINS
-    const talkWins = views.some(v => talkScenes.some(sc => v.byScene.get(sc).some(w => w && w.row === r))) || comp.nextTargets.has(r.id);
+    const talkWins = views.some(v => talkScenes.some(sc => tablesOf(v, sc).some(tbl => tbl.some(w => w && w.row === r)))) || comp.nextTargets.has(r.id);
     if (a.cost == null && !talkWins) {
       // it only wins in scenes where this NPC is met through events (e.g. a visit at home): no conversation starts there
       const only = comp.scope.filter(sc => sc != null && !talkScenes.includes(sc) && comp.byScene.get(sc).some(w => w && w.row === r));

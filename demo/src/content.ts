@@ -27,7 +27,7 @@ export const EVENT_COLUMNS = [
 export const NEWS_COLUMNS = ['id', 'channel', 'nationalLeader', 'dayMin', 'valence', 'headline', 'body'];
 /** Optional dialogue columns, placed after dayPhase: `scene` (SPEC "Dialogue location": blank = anywhere, else scene ids
  *  joined by `|`), then `usLead` and `homeLead` (SPEC "Leads": blank = any room, else pro|anti). */
-export const DIALOGUE_OPTIONAL_COLUMNS = ['scene', 'usLead', 'homeLead'];
+export const DIALOGUE_OPTIONAL_COLUMNS = ['scene', 'usLead', 'homeLead', 'day'];
 /** Optional columns (SPEC "Cast", "Packs", "Leads"): blank or absent = unchanged behaviour. */
 export const EVENT_OPTIONAL_COLUMNS = ['portrait', 'medium', 'pack', 'day', 'usLead', 'homeLead'];
 /** content/townhall/<npcId>.csv (SPEC "Town hall") */
@@ -368,6 +368,9 @@ function parseDialogue(r: Reporter, npcId: string, file: string, text: string, s
       specificity++;
     }
     if (sceneIds) for (const sc of scenes) if (!sceneIds.has(sc)) r.error(file, `${where}: scene "${sc}" is not a scene id in scenes.yaml`);
+    // optional `day` cell (same grammar as events): the row only shows on those days; more specific than the same row any day
+    const day = row.day ?? '';
+    if (day) { const e = validateDay(day); if (e) r.error(file, `${where}: ${e}`); specificity++; }
     const emotion = (row.emotion || 'neutral') as Emotion;
     if (!EMOTIONS.includes(emotion)) r.error(file, `${where}: unknown emotion "${row.emotion}"`);
     if (row.priority && !Number.isFinite(Number(row.priority))) r.error(file, `${where}: priority "${row.priority}" is not a number`);
@@ -379,7 +382,7 @@ function parseDialogue(r: Reporter, npcId: string, file: string, text: string, s
       });
     for (const c of choices) for (const e of validateEffects(c.effect)) r.error(file, `${where}: ${e}`);
     out.push({
-      id: row.id, npc: npcId, conds, scene: scenes.join('|'), scenes, usLead, homeLead, specificity, rowNum,
+      id: row.id, npc: npcId, conds, scene: scenes.join('|'), scenes, usLead, homeLead, day, specificity, rowNum,
       priority: num(row.priority, 0),
       emotion: EMOTIONS.includes(emotion) ? emotion : 'neutral',
       line: row.line ?? '',

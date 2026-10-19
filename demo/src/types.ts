@@ -135,6 +135,8 @@ export interface DialogueRow {
   /** optional `usLead` / `homeLead` columns: '' = any room, else pro|anti (SPEC "Leads"); each adds 1 to specificity */
   usLead: string;
   homeLead: string;
+  /** optional `day` column: '' = any day, else `4`, `2-3` or `4+` (SPEC "Leads": the day-4 story does not repeat on day 5); adds 1 to specificity */
+  day: string;
   /** optional `scene` column: raw cell ('' = anywhere) and its `|`-separated scene ids */
   scene: string;
   scenes: string[];

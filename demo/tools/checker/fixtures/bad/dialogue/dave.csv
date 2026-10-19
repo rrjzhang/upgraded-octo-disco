@@ -1,3 +1,4 @@
-id,met,rapport,lastValence,nationalLeader,playerLean,dayPhase,usLead,homeLead,priority,emotion,line,choice1,effect1,next1,choice2,effect2,next2,choice3,effect3,next3
-D1,no,,,,,,maybe,,0,neutral,MISSING FALLBACK sheet.,Hi,met yes,,,,,,,
-D2,yes,,,,,,,,0,neutral,Hello again.,Bye,,,,,,,,
+id,met,rapport,lastValence,nationalLeader,playerLean,dayPhase,usLead,homeLead,day,priority,emotion,line,choice1,effect1,next1,choice2,effect2,next2,choice3,effect3,next3
+D1,no,,,,,,maybe,,,0,neutral,MISSING FALLBACK sheet.,Hi,met yes,,,,,,,
+D2,yes,,,,,,,,,0,neutral,Hello again.,Bye,,,,,,,,
+D3,yes,,,,,early,,,4,0,neutral,Day 4 in early phase: impossible.,Bye,,,,,,,,
