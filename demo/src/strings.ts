@@ -70,4 +70,15 @@ export const DEFAULT_STRINGS: Record<string, string> = {
   'ui.via.message': 'Message from {name}',
   'ui.talkedToday': 'Talked already today',
   'ui.via.door': '{name} at the door',
+  // SPEC "Town hall" (day 5)
+  'ui.townhall.inSession': 'The town hall is in session',
+  'ui.townhall.rate': 'How did that land with you?',
+  'ui.townhall.boo': 'Boo',
+  'ui.townhall.cheer': 'Cheer',
+  'ui.townhall.board': 'Pick a question. You can come back to each one until you sit down.',
+  'ui.townhall.answered': 'answered',
+  'ui.townhall.sit': 'Sit down',
+  'ui.townhall.sitLocked': '{n} question(s) still to answer',
+  'ui.townhall.back': 'Back to the questions',
+  'ui.townhall.noLines': '{name} speaks for a few minutes. (No town hall lines written yet.)',
 };

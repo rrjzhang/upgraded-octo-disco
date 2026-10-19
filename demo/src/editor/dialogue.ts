@@ -206,7 +206,12 @@ export class DialogueTab {
         ...COND.slice(2).map((c, di) => h('label', { class: 'cf' }, h('span', { text: COND_LABEL[c] }), condCell(c, di + 2))),
         // SPEC "Dialogue location": blank = anywhere, else scene ids joined by |
         h('label', { class: 'cf cf-scene', title: 'Scene: blank = anywhere; one scene id, or several joined by |' }, h('span', { text: 'scene' }),
-          h('input', { ...at('scene'), class: 'scene-in', value: r.scene ?? '', list: `scene-hints-${this.npc}`, placeholder: 'anywhere', 'aria-label': `${r.id} scene` })))),
+          h('input', { ...at('scene'), class: 'scene-in', value: r.scene ?? '', list: `scene-hints-${this.npc}`, placeholder: 'anywhere', 'aria-label': `${r.id} scene` })),
+        // SPEC "Leads": blank = any room, else only rooms where that side's pro- or anti-integration leader leads
+        h('label', { class: 'cf', title: 'usLead: blank = any room; pro or anti = only rooms where that US leader is first among equals' }, h('span', { text: 'usLead' }),
+          selectEl(['pro', 'anti'], r.usLead ?? '', { ...at('usLead'), 'aria-label': `${r.id} usLead` })),
+        h('label', { class: 'cf', title: 'homeLead: blank = any room; pro or anti = only rooms where that heritage leader is first among equals' }, h('span', { text: 'homeLead' }),
+          selectEl(['pro', 'anti'], r.homeLead ?? '', { ...at('homeLead'), 'aria-label': `${r.id} homeLead` })))),
       h('td', { class: 'wide' }, h('textarea', { ...at('line'), rows: 3, 'aria-label': `${r.id} line` }, r.line ?? '')),
       h('td', { class: 'wide' }, choices),
       h('td', { class: 'acts' },

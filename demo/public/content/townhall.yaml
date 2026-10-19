@@ -1,0 +1,60 @@
+# SPEC "Town hall" (added 2026-10-19): the day-5 closing sequence. The moderator's words and the topic board.
+# Placeholders: {usLead} {homeLead} {usLeadFull} {homeLeadFull} {playerName} {homeCenter} and the other pack words;
+# `{speaker}` only in `introduce`. `$` splits a text into beats shown one at a time, `_words_` is a stage direction.
+# Each topic option is coded with the stance it stands for (integration | assimilation | separation | neutral); the
+# codes are logged, never shown. The researchers will revise this list; for the demo it only has to read like a
+# plausible governor's campaign town hall with barely disguised research answers.
+moderator:
+  name: "Moderator"
+  open: >-
+    Good evening, and thank you for coming out on a weeknight. The governor sends her regrets; the campaign has
+    her upstate, so I'll keep the chair warm. $ Two people from this neighbourhood asked to speak first about what
+    the town needs from the next governor. Then we open the floor. Please let people finish.
+  introduce: "Next up, {speaker}. Two minutes, then a question from me."
+  rate: "How did that land with you?"
+  callUp: >-
+    We have time for the floor. {playerName}, you've had your hand up a while. Pick any of the questions on the
+    board and tell us where you stand. Come back to as many as you like.
+  close: >-
+    That's all we have time for. The governor's office will get the recording. Thank you all, and get home safe.
+topics:
+  - id: center_funding
+    title: "The community center's funding"
+    prompt: "{homeCenter} applied for a state community grant. Should the state fund centers that serve mainly one community?"
+    options:
+      - { text: "Yes, if they also open their doors to the whole neighbourhood for some of their programs.", stance: integration }
+      - { text: "Fund things everyone uses, like the library. Centers for one group should stand on their own.", stance: assimilation }
+      - { text: "Yes. A community that looks after its own saves the state money and should be left to do it.", stance: separation }
+      - { text: "I don't know enough about the grant to say.", stance: neutral }
+  - id: language
+    title: "Languages at the clinic and city hall"
+    prompt: "The state is deciding whether clinics and city offices must offer interpreters and forms in other languages."
+    options:
+      - { text: "Yes. People should be served in a language they understand while they learn English.", stance: integration }
+      - { text: "English only. Offer free classes instead; services in other languages slow everyone's learning.", stance: assimilation }
+      - { text: "Each community should run its own clinic hours in its own language rather than rely on the state.", stance: separation }
+      - { text: "Leave it to each clinic and office to decide.", stance: neutral }
+  - id: federal
+    title: "The federal policy and this town"
+    prompt: "How should the town respond to what is coming from Washington on immigration?"
+    options:
+      - { text: "Stand together publicly, as one town, and make sure every resident knows their rights.", stance: integration }
+      - { text: "Cooperate. People who follow the rules have nothing to fear, and the town should say so.", stance: assimilation }
+      - { text: "Each community should organise its own support and keep its own counsel.", stance: separation }
+      - { text: "It is a federal matter; the town should stay out of it.", stance: neutral }
+  - id: schools
+    title: "Heritage language in schools"
+    prompt: "Should the public schools offer heritage-language classes and after-school culture programs?"
+    options:
+      - { text: "Yes, open to every child, so kids grow up at ease in more than one culture.", stance: integration }
+      - { text: "School time is for English and the core subjects. Culture belongs at home and on weekends.", stance: assimilation }
+      - { text: "Yes, run by each community for its own children, in its own space.", stance: separation }
+      - { text: "Let the parents' council decide school by school.", stance: neutral }
+  - id: belonging
+    title: "Who counts as local"
+    prompt: "Last question. Who should have a say in how this neighbourhood is run?"
+    options:
+      - { text: "Everyone who lives here, in whatever language they bring, and we are better for the mix.", stance: integration }
+      - { text: "Everyone who lives here and makes the effort to become part of the town as it is.", stance: assimilation }
+      - { text: "People should have the most say over their own community's affairs, and leave others to theirs.", stance: separation }
+      - { text: "I'd rather listen tonight than decide.", stance: neutral }

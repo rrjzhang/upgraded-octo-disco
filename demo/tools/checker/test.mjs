@@ -21,6 +21,13 @@ const t = (name, fn) => { try { fn(); console.log(`ok   ${name}`); } catch (e) {
 const good = run('good');
 t('good: exit 0', () => assert.equal(good.code, 0, good.stderr));
 t('good: no errors or warnings', () => assert.deepEqual(good.result.diagnostics.filter(d => d.severity !== 'info'), []));
+t('good: leads: B12 (usLead anti) wins cells only in anti rooms, is reachable, and ties with nobody (SPEC "Leads")', () => {
+  const b = good.result.npcs.find(n => n.id === 'bob');
+  assert.ok(b.winCount.B12 > 0, `B12 wins ${b.winCount.B12}`);
+  assert.ok(b.rows.B12.cost != null, 'B12 reachable');
+  assert.equal(good.full.npcs.find(n => n.id === 'bob').cells.filter(c => c.row === 'B12').length, 0, 'baseline (pro/pro) grid never shows B12');
+  assert.equal(good.result.diagnostics.filter(d => d.code === 'TIE').length, 0);
+});
 t('good: both NPCs analysed with coverage > 0', () => {
   assert.deepEqual(good.result.npcs.map(n => n.id), ['alice', 'bob']);
   for (const n of good.result.npcs) assert.ok(n.coverage > 0 && n.coverage < 1, `${n.id} coverage ${n.coverage}`);
@@ -81,7 +88,11 @@ t('bad: C4 beats: unknown [angry] tag and an empty beat are BAD_VALUE, five beat
 t('bad: dave has no fallback', () => assert.equal(find('MISSING_FALLBACK', 'dialogue/dave.csv').length, 1));
 t('bad: nothing else is reported', () => {
   const codes = bad.result.diagnostics.filter(d => d.severity !== 'info').map(d => d.code).sort();
-  assert.deepEqual(codes, ['BAD_VALUE', 'BAD_VALUE', 'BAD_VALUE', 'BEATS', 'DANGLING_NEXT', 'MISSING_FALLBACK', 'NEVER_WINS', 'TIE', 'UNKNOWN_EFFECT', 'UNREACHABLE']);
+  assert.deepEqual(codes, ['BAD_VALUE', 'BAD_VALUE', 'BAD_VALUE', 'BAD_VALUE', 'BAD_VALUE', 'BEATS', 'DANGLING_NEXT', 'MISSING_FALLBACK', 'NEVER_WINS', 'TIE', 'UNKNOWN_EFFECT', 'UNREACHABLE']);
+});
+t('bad: leads: usLead "maybe" on D1 and day "9" on E1 are BAD_VALUE (SPEC "Leads")', () => {
+  const d = find('BAD_VALUE', 'dialogue/dave.csv', 'D1'); assert.equal(d.length, 1); assert.equal(d[0].column, 'usLead');
+  const e = find('BAD_VALUE', 'events.csv', 'E1'); assert.equal(e.length, 1); assert.equal(e[0].column, 'day');
 });
 t('bad: C3 (tie partner) is still reachable via C5/choice1', () => {
   const c = bad.result.npcs.find(n => n.id === 'carol');

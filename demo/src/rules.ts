@@ -1,6 +1,6 @@
 /** Pure game rules: conditions, row selection, effects, lean, phases. */
-import type { CondField, DialogueRow, DayPhase, EventRow, GameState, Lean, Leader, NpcState, Phase } from './types';
-import { COND_FIELDS } from './types';
+import type { CondField, DialogueRow, DayPhase, EventRow, GameState, Lean, Leader, LeadPos, NpcState, Phase } from './types';
+import { COND_FIELDS, LEAD_POS } from './types';
 import { clamp } from './util';
 
 export const DAY_ACTIONS = 8;
@@ -51,6 +51,21 @@ export function validateCond(field: CondField, value: string): string | null {
   return allowed && !allowed.includes(value) ? `bad ${field} "${value}" (allowed: ${allowed.join('|')})` : null;
 }
 
+/** A `day` cell on an event (SPEC "Leads"): blank = any day, `4`, `2-3` or `3+` over the demo days 1..5. */
+export function validateDay(value: string): string | null {
+  if (value === '') return null;
+  return /^[1-5]$|^[1-5]-[1-5]$|^[1-5]\+$/.test(value) ? null : `bad day "${value}" (use a day 1..5, a range like 2-3, or 4+)`;
+}
+export const dayMatches = (cell: string, day: number): boolean => cell === '' || rapportMatches(cell, day);
+
+/** A lead cell (dialogue `usLead`/`homeLead`, or an event's with `|` alternatives): blank = any room. */
+export function validateLead(value: string): string | null {
+  if (value === '') return null;
+  const bad = value.split('|').map((x) => x.trim()).filter((x) => !(LEAD_POS as readonly string[]).includes(x));
+  return bad.length ? `bad lead condition "${value}" (use pro, anti, or pro|anti)` : null;
+}
+export const leadMatches = (cell: string, pos: LeadPos): boolean => cell === '' || cell.split('|').map((x) => x.trim()).includes(pos);
+
 export function rapportMatches(cell: string, r: number): boolean {
   let m: RegExpExecArray | null;
   if ((m = /^(\d)$/.exec(cell))) return r === +m[1];
@@ -63,7 +78,7 @@ export function rapportMatches(cell: string, r: number): boolean {
  * `scene`: the scene the conversation happens in. A row whose `scene` cell is non-blank only matches there
  * (SPEC "Dialogue location"); with `scene` undefined, only rows with a blank `scene` cell match.
  */
-export interface Ctx extends NpcState { nationalLeader: Leader; playerLean: Lean; dayPhase: DayPhase; scene?: string }
+export interface Ctx extends NpcState { nationalLeader: Leader; playerLean: Lean; dayPhase: DayPhase; scene?: string; usLead?: LeadPos; homeLead?: LeadPos }
 
 /** Default conversations per NPC per day (SPEC "Conversation limit"). */
 export const DEFAULT_TALKS_PER_DAY = 1;
@@ -119,6 +134,9 @@ export function sceneList(cell: string): string[] {
 
 export function rowMatches(row: DialogueRow, ctx: Ctx): boolean {
   if (row.scenes?.length && (ctx.scene === undefined || !row.scenes.includes(ctx.scene))) return false;
+  // SPEC "Leads": a row written for one lead only shows in rooms with that lead (default pro)
+  if (row.usLead && !leadMatches(row.usLead, ctx.usLead ?? 'pro')) return false;
+  if (row.homeLead && !leadMatches(row.homeLead, ctx.homeLead ?? 'pro')) return false;
   for (const f of COND_FIELDS) {
     const cell = row.conds[f];
     if (cell === '') continue;
@@ -183,7 +201,8 @@ export function validateEffects(s: string): string[] {
 export type Delta = Record<string, [unknown, unknown]>;
 
 /** Applies an effect string in order. NPC tokens target `npcId` (ignored with a warning when null). */
-export function applyEffects(state: GameState, npcId: string | null, effect: string, why: string): Delta {
+/** `maxRapport`: the NPC's cap (SPEC "Leads": a hostile NPC never passes 1); default 3. */
+export function applyEffects(state: GameState, npcId: string | null, effect: string, why: string, maxRapport = 3): Delta {
   const delta: Delta = {};
   const { tokens, errors } = parseEffects(effect);
   for (const e of errors) console.error(`[effects] ${why}: ${e}`);
@@ -200,7 +219,7 @@ export function applyEffects(state: GameState, npcId: string | null, effect: str
       }
       if (t.k === 'met') { note(`${npcId}.met`, ns.met, t.v); ns.met = t.v; }
       if (t.k === 'rapport') {
-        const nv = clamp(t.rel ? ns.rapport + t.v : t.v, 0, 3);
+        const nv = clamp(t.rel ? ns.rapport + t.v : t.v, 0, Math.min(3, maxRapport));
         note(`${npcId}.rapport`, ns.rapport, nv);
         ns.rapport = nv;
       }
@@ -249,6 +268,10 @@ export interface EventCtx {
   leader: Leader;
   npcs: GameState['npcs'];
   requirePresence: boolean;
+  /** SPEC "Leads": the room's leads and today's day, for the optional `usLead`/`homeLead`/`day` cells */
+  usLead?: LeadPos;
+  homeLead?: LeadPos;
+  day?: number;
   /** whether `npc` has an appearance (figure, painted or talk zone) in `scene`; an event there from someone who never appears is a visit or a call */
   canAppear?: (npc: string, scene: string) => boolean;
 }
@@ -265,5 +288,8 @@ export function eventMatches(ev: EventRow, c: EventCtx): boolean {
   // events allow `a|b` alternatives in these two cells
   if (ev.playerLean && !ev.playerLean.split('|').map((x) => x.trim()).includes(c.lean)) return false;
   if (ev.nationalLeader && !ev.nationalLeader.split('|').map((x) => x.trim()).includes(c.leader)) return false;
+  if (ev.day && c.day !== undefined && !dayMatches(ev.day, c.day)) return false;
+  if (ev.usLead && !leadMatches(ev.usLead, c.usLead ?? 'pro')) return false;
+  if (ev.homeLead && !leadMatches(ev.homeLead, c.homeLead ?? 'pro')) return false;
   return true;
 }

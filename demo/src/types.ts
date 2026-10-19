@@ -1,5 +1,8 @@
 export type Community = 'home' | 'us' | 'neutral';
 export type Leader = 'enforcement' | 'inclusive';
+/** SPEC "Leads": which of a side's two leaders is first among equals in this room (pro- or anti-integration). */
+export type LeadPos = 'pro' | 'anti';
+export const LEAD_POS: readonly LeadPos[] = ['pro', 'anti'];
 export type Lean = 'us-leaning' | 'balanced' | 'home-leaning';
 export type DayPhase = 'early' | 'mid' | 'late';
 export type Phase = 'morning' | 'afternoon' | 'evening';
@@ -74,6 +77,8 @@ export interface Scene {
   cameraHeight: number;
   /** Cut-out figures present at once (SPEC "How many people at once"); absent = the room's maxPresent, else 3. */
   maxPresent?: number;
+  /** not a place the player walks to: entered by the engine only (the town hall) */
+  hidden?: boolean;
 }
 
 /** `figure`: asset id used in this scene instead of the NPC's default figure (blank = default). */
@@ -95,6 +100,14 @@ export interface Npc {
   initial: NpcState;
   /** Writer-facing character profile (SPEC "Profiles"), exactly as written in npcs.yaml; the engine never uses it. */
   profile?: NpcProfile;
+  /** SPEC "Leads": this NPC is one of the side's two leaders (pro- or anti-integration); the room picks which one leads. */
+  lead?: LeadPos;
+  /** how other people refer to them in a line ("Mr. Guo", "Ruth"); {usLead}/{homeLead} use it, falling back to `name` */
+  called?: string;
+  /** rapport can never rise above this (default 3); a hostile NPC carries 1 */
+  maxRapport: number;
+  /** emotions this NPC's rows may use (default all four); a never-warm NPC lists three */
+  emotions?: Emotion[];
 }
 
 /** SPEC "Character profiles": camelCase keys as in npcs.yaml; unknown keys are kept (the checker warns on them). */
@@ -119,6 +132,9 @@ export interface DialogueRow {
   id: string;
   npc: string;
   conds: Record<CondField, string>;
+  /** optional `usLead` / `homeLead` columns: '' = any room, else pro|anti (SPEC "Leads"); each adds 1 to specificity */
+  usLead: string;
+  homeLead: string;
   /** optional `scene` column: raw cell ('' = anywhere) and its `|`-separated scene ids */
   scene: string;
   scenes: string[];
@@ -155,6 +171,11 @@ export interface EventRow {
   medium: string;
   /** SPEC "Packs": culture pack this row is for; '' = every pack (a variant in its id group replaces it for that pack) */
   pack: CultureId | '';
+  /** optional `day` cell: '' = any day, else a day 1..5, a range `2-3` or `4+` (SPEC "Leads": forced and day-4 events) */
+  day: string;
+  /** optional lead conditions, `|` alternatives allowed: '' = any room, else pro|anti */
+  usLead: string;
+  homeLead: string;
 }
 
 export interface NewsRow {
@@ -233,6 +254,8 @@ export interface Content {
   manifest: Manifest;
   strings: Record<string, string>;
   profile: Profile;
+  /** SPEC "Town hall": moderator text, topics and the per-lead speeches and reactions */
+  townhall: Townhall;
   assetUrl: (file: string) => string;
   errors: string[];
   /** cast id -> display name and role (content/cast.yaml, falling back to the manifest) */
@@ -246,6 +269,9 @@ export interface RoomConfig {
   code: string;
   password: string;
   nationalLeader: Leader;
+  /** SPEC "Leads": which US local leader and which heritage leader is first among equals (default pro). */
+  usLead?: LeadPos;
+  homeLead?: LeadPos;
   seed: number;
   rosterPicks: Record<string, string>;
   created: string;
@@ -321,6 +347,57 @@ export interface GameState {
   /** SPEC "TV once a day": the day the TV was opened; it cannot be opened again that day and the room screens go black */
   tvWatchedDay?: number;
   surveyDay?: number; // day whose end-of-day survey is open; a reload reopens it instead of dropping it
+  /** SPEC "Town hall": the day-5 closing sequence in progress or done; absent until bed on the last day */
+  townhall?: TownhallState;
   finished: boolean;
   started: string;
+}
+
+// ---- SPEC "Town hall" (added 2026-10-19): the day-5 closing sequence
+export type Stance = 'none' | 'integration' | 'assimilation' | 'separation';
+/** a player option at the town hall is coded with one of these; `neutral` = declines to take a side */
+export type TopicStance = 'integration' | 'assimilation' | 'separation' | 'neutral';
+export const TOPIC_STANCES: readonly TopicStance[] = ['integration', 'assimilation', 'separation', 'neutral'];
+export interface TopicOption { text: string; stance: TopicStance }
+export interface Topic { id: string; title: string; prompt: string; options: TopicOption[] }
+export interface Moderator {
+  name: string;
+  /** opening words ($ beats allowed, {usLead}/{homeLead} filled) */
+  open: string;
+  /** before each speaker; {speaker} = that leader's name */
+  introduce: string;
+  /** the label above the 1..7 scale after each speech block */
+  rate: string;
+  /** the player is called up, before the topic list */
+  callUp: string;
+  /** after the leaders' reactions */
+  close: string;
+}
+/** one row of content/townhall/<npcId>.csv */
+export interface TownhallRow {
+  id: string;
+  speaker: string;
+  kind: 'speech' | 'reaction';
+  nationalLeader: string;
+  /** speech: 1-based block number (rated after each); reaction: 0 */
+  block: number;
+  /** reaction: the player's dominant stance this answers ('' = fallback); speech: '' */
+  stance: string;
+  emotion: Emotion;
+  text: string;
+  rowNum: number;
+}
+export interface Townhall { moderator: Moderator; topics: Topic[]; rows: Map<string, TownhallRow[]> }
+export type TownhallStage = 'intro' | 'introduce' | 'speech' | 'rate' | 'callUp' | 'board' | 'topic' | 'reaction' | 'close' | 'done';
+export interface TownhallState {
+  stage: TownhallStage;
+  /** the two leads in speaking order (random per room) */
+  order: string[];
+  speaker: number;
+  block: number;
+  beat: number;
+  ratings: { speaker: string; block: number; value: number }[];
+  answers: Record<string, { option: number; stance: TopicStance }>;
+  topic?: string;
+  reaction: number;
 }

@@ -51,3 +51,7 @@ steps where they happened, and the most frequent engine notes. `summary.json` ha
 then the raw click trace, then the failures and notes for that seed.
 
 Exit code 1 when any seed failed, so it can gate a CI job once there is one.
+
+## Town hall (2026-10-19)
+
+On the last day, bed leads into the town hall (SPEC "Town hall"): its rating buttons, topic board and options are ordinary `.right .choice` buttons, so the walker rates speeches, answers topics and sits down like any other choice; the `townhall` log lines appear in the transcript. The "dialogue with no enabled choice" invariant does not apply to the town hall panel (the board has "Sit down" disabled until every topic is answered, by design).

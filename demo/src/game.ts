@@ -1,7 +1,9 @@
 /** The game runtime: state transitions + plain-DOM rendering of the 1440x900 stage. */
 import type {
   Content, CultureId, DialogueRow, Questionnaire, Emotion, EventRow, GameState, Hotspot, ModuleId, NewsRow, Npc, Prop, Scene, Screen, Slot,
+  LeadPos, TownhallRow, TownhallState, TopicStance,
 } from './types';
+import { TOPIC_STANCES } from './types';
 import {
   DAY_ACTIONS, DEFAULT_TALKS_PER_DAY, DEMO_DAYS, FEATURES, applyEffects, dayPhaseOf, eventMatches, leanOf, optionCharge, phaseOf, selectRow,
   DEFAULT_MAX_PRESENT, figureRect, figuresClash, type FigRect,
@@ -9,7 +11,7 @@ import {
 } from './rules';
 import { appendLog, debugEnabled, getRoom, readLog, saveState } from './store';
 import {
-  assetEntry, dialogueCsvFromRows, effectivePack, figureHeight, isSeatedFigure, liveSource, overrideForWrite, overrideIds, parseDialogueQuiet,
+  assetEntry, dialogueCsvFromRows, effectivePack, figureHeight, isSeatedFigure, leadNpc, liveSource, overrideForWrite, overrideIds, parseDialogueQuiet,
   patchDialogueRow, packVars, questionnaireProblems, rowInPack, sceneInPack, storeOverride,
 } from './content';
 import { SILHOUETTE_BUST, appUrl, downloadText, h, isDev, params, seeded, silhouetteFigure, subst } from './util';
@@ -28,7 +30,8 @@ type Panel =
   | { kind: 'dialogue'; npc: string; row: DialogueRow; tie: string[]; beat?: number }
   | { kind: 'event'; ev: EventRow; beat?: number }
   | { kind: 'text'; title?: string; text: string; rule?: string; figure?: string }
-  | { kind: 'bed'; hs: string }; // going to bed with actions left: confirm first
+  | { kind: 'bed'; hs: string } // going to bed with actions left: confirm first
+  | { kind: 'townhall' }; // SPEC "Town hall": the day-5 closing sequence; what is shown comes from state.townhall
 
 // slot null = the NPC is painted into the background (scene.painted); no figure is drawn and a `talk` hotspot stands for them.
 // figure = the appearance's own figure asset (blank = the NPC's default).
@@ -150,6 +153,8 @@ export class Game {
       if (!open && !resumeRow && this.queue.length) this.nextQueued();
       else this.render();
     }
+    // SPEC "Town hall": a reload in the middle of the town hall comes back to the same step
+    if (this.townhallActive()) { this.phoneOpen = false; this.panel = { kind: 'townhall' }; this.render(); }
     // The survey window lives only in the DOM; a page reload (dev-server HMR, F5, crash) used to drop it silently
     // and leave the player at home on the same day. The open survey is persisted, so it comes back.
     if (this.s.surveyDay === this.s.day) this.endDay();
@@ -171,7 +176,7 @@ export class Game {
     s.invites = [];
     const rng = seeded(s.config.seed, 'day_start', s.day);
     const ctx = this.eventCtx('home', false);
-    for (const ev of this.c.events) {
+    for (const ev of this.eventOrder()) {
       if (ev.trigger !== 'day_start' || s.fired.includes(ev.id)) continue;
       if (!this.eventInPack(ev) || !eventMatches(ev, ctx)) continue;
       if (rng() < ev.chance) {
@@ -213,11 +218,17 @@ export class Game {
     const leader = this.c.npcById.get(`nat_${this.s.config.nationalLeader}`);
     // SPEC "Packs": strings `pack.<pack>.<name>` become {name} for players of that pack ({homeCenter}, {chessRival}, ...)
     // and `pack.<pack>|<dim>=<value>.<name>` variant words chosen by the profile answers (SPEC "Profile questions and variant words")
+    // SPEC "Leads": {usLead}/{homeLead} = how people refer to the room's first-among-equals on each side; *Full = full name
+    const us = this.leadOf('us'), home = this.leadOf('home');
     return {
       ...packVars(this.c.strings, this.s.player.pack, this.s.player.variant),
       homeCulture: CULTURE_NAMES[this.s.player.pack] ?? 'Chinese',
       playerName: this.s.player.name || 'you',
       leaderName: leader?.name ?? 'the President',
+      usLead: us?.called ?? us?.name ?? 'the council member',
+      homeLead: home?.called ?? home?.name ?? 'the association chair',
+      usLeadFull: us?.name ?? 'the council member',
+      homeLeadFull: home?.name ?? 'the association chair',
     };
   }
 
@@ -226,7 +237,7 @@ export class Game {
   }
 
   private tired(): boolean {
-    return this.s.actions <= 0 && this.s.scene !== 'home' && this.scene.background !== 'none';
+    return this.s.actions <= 0 && this.s.scene !== 'home' && this.scene.background !== 'none' && !this.townhallActive();
   }
 
   /** "1 action" / "2 actions", for aria-label and title. */
@@ -297,6 +308,12 @@ export class Game {
   presentIn(sceneId: string, dev = true): Presence[] {
     const sc = this.c.sceneById.get(sceneId);
     if (!sc) return [];
+    // SPEC "Town hall": the hidden scene holds only the person at the podium
+    if (sc.hidden) {
+      const sp = this.townhallSpeaker();
+      const slot = sc.slots.find((x) => x.id === 'podium') ?? sc.slots[0];
+      return sp && slot ? [{ npc: sp, slot }] : [];
+    }
     const out: Presence[] = [];
     if (this.paintedActive(sc)) for (const id of sc.painted!.npcs) out.push({ npc: this.c.npcById.get(id)!, slot: null });
     const cands: { npc: Npc; slot: Slot; roll: number; figure?: string }[] = [];
@@ -341,6 +358,8 @@ export class Game {
       leader: this.s.config.nationalLeader,
       npcs: this.s.npcs,
       requirePresence,
+      ...this.leads(),
+      day: this.s.day,
       canAppear: (npc: string, scene: string) => this.canAppear(npc, scene),
     };
   }
@@ -488,7 +507,7 @@ export class Game {
   /** Applies effects and accounts any `actions -N` as spending in the current scene. */
   private effects(npcId: string | null, effect: string, why: string): Delta {
     const before = this.s.actions;
-    const d = applyEffects(this.s, npcId, effect, why);
+    const d = applyEffects(this.s, npcId, effect, why, npcId ? this.c.npcById.get(npcId)?.maxRapport ?? 3 : 3);
     if (this.s.actions < before) this.s.spent[this.scene.community] += before - this.s.actions;
     return d;
   }
@@ -528,7 +547,7 @@ export class Game {
     const n = (this.s.entries[key] = (this.s.entries[key] ?? 0) + 1);
     const rng = seeded(this.s.config.seed, 'enter', this.s.day, sceneId, n);
     const ctx = this.eventCtx(sceneId, true);
-    for (const ev of this.c.events) {
+    for (const ev of this.eventOrder()) {
       if (ev.trigger !== 'enter' || this.s.fired.includes(ev.id)) continue;
       if (!this.eventInPack(ev) || !eventMatches(ev, ctx)) continue;
       if (rng() < ev.chance) {
@@ -615,7 +634,7 @@ export class Game {
    * forbids it, as it forbids every interaction there. A conversation already open can be finished at 0 actions.
    */
   private canTalk(): boolean {
-    return !this.tired();
+    return !this.tired() && !this.townhallActive();
   }
 
   /**
@@ -716,6 +735,7 @@ export class Game {
       playerLean: leanOf(this.s.spent),
       dayPhase: dayPhaseOf(this.s.day),
       scene: this.s.scene, // rows with a `scene` cell only match where they are set
+      ...this.leads(), // rows with a usLead/homeLead cell only match rooms with that lead (SPEC "Leads")
     });
     if (!sel.row) {
       if (!quiet) console.error(`[dialogue] ${n.id}: no row matched (missing fallback?)`);
@@ -1056,6 +1076,9 @@ export class Game {
 
   endDay(): void {
     if (this.win?.module === 'survey' || this.surveyLoading) return; // already open: re-opening would reload the frame and wipe answers
+    // SPEC "Town hall": on the last day, bed leads into the town hall; the survey follows once it is over
+    if (this.s.day >= DEMO_DAYS && !this.s.townhall) return this.startTownhall();
+    if (this.townhallActive()) return;
     this.endConvo('day_end');
     this.phoneOpen = false;
     this.s.surveyDay = this.s.day;
@@ -1530,7 +1553,8 @@ export class Game {
       const speaking = (this.panel.kind === 'dialogue' && this.panel.npc === npc.id) || (this.panel.kind === 'event' && this.panel.ev.npc === npc.id);
       // SPEC "Conversation limit semantics": still standing there, simply non-interactive (no outline, no label)
       const talked = this.talkedOut(npc.id) && !speaking;
-      const talkLabel = talked ? this.talkedAria(npc) : this.talkLabel(npc);
+      // SPEC "Town hall": the person at the podium is not someone to talk to
+      const talkLabel = sc.hidden ? npc.name : talked ? this.talkedAria(npc) : this.talkLabel(npc);
       // starting a conversation is free (SPEC "Pay when you stay"): no cost dot; the paid turn shows its dot on the choice
       const btn = h('button', {
         class: `figure${speaking ? ' speaking' : ''}${fig.seated ? ' seated' : ''}${talked ? ' talked' : ''}`, 'data-fk': `npc:${npc.id}`,
@@ -1596,7 +1620,7 @@ export class Game {
     const exits = h('div', { class: 'exits' });
     // SPEC "Conversation end": the exits are locked while a conversation is on screen (every row has a leave option);
     // and while the opening questions are on the phone
-    const locked = this.panel.kind === 'dialogue' || !!this.s.player.profilePending;
+    const locked = this.panel.kind === 'dialogue' || !!this.s.player.profilePending || this.townhallActive();
     const why = (blocked: boolean) => (blocked ? this.str('ui.tired') : locked ? this.str('ui.inConversation') : null);
     for (const ex of this.exitsOf(sc)) {
       const blocked = this.moveBlocked(ex.to);
@@ -1610,13 +1634,14 @@ export class Game {
         h('span', { class: 'arrow', 'aria-hidden': 'true', text: '→' }), ex.label));
     }
     // out of actions away from home: home stays one click away even when no exit here leads there
-    if (this.s.actions <= 0 && sc.id !== 'home' && !this.exitsOf(sc).some((ex) => ex.to === 'home')) {
+    if (this.s.actions <= 0 && sc.id !== 'home' && !this.townhallActive() && !this.exitsOf(sc).some((ex) => ex.to === 'home')) {
       exits.append(h('button', { class: `exit${locked ? ' locked' : ''}`, 'data-fk': 'exit:home', disabled: locked, title: why(false), onclick: () => this.moveTo('home') },
         h('span', { class: 'arrow', 'aria-hidden': 'true', text: '→' }), this.str('ui.goHome')));
     }
     this.strip.replaceChildren(
       h('button', {
         class: `phone-btn${this.ringing() ? ' ringing' : ''}`, 'data-fk': 'phone', 'aria-expanded': String(this.phoneOpen),
+        disabled: this.townhallActive(), title: this.townhallActive() ? this.str('ui.townhall.inSession') : null,
         'aria-label': this.ringing() ? `${this.str('ui.phone')}: ${this.str('ui.ringing')}` : null,
         onclick: () => {
           this.phoneOpen = !this.phoneOpen;
@@ -1661,6 +1686,7 @@ export class Game {
     if (p.kind === 'dialogue') { npc = this.c.npcById.get(p.npc); emotion = this.beatsOf(p.row.line, p.beat).cur.emotion ?? p.row.emotion; }
     if (p.kind === 'event' && p.ev.npc) { npc = this.c.npcById.get(p.ev.npc); emotion = this.beatsOf(p.ev.text, p.beat).cur.emotion ?? p.ev.emotion; }
     if (p.kind === 'idle' && p.ended) { npc = this.c.npcById.get(p.ended.npc); emotion = p.ended.emotion; }
+    if (p.kind === 'townhall') { const sp = this.townhallSpoken(); npc = sp?.npc; emotion = sp?.emotion ?? 'neutral'; }
 
     const portrait = h('div', { class: 'portrait' });
     if (p.kind === 'idle' && p.ended) portrait.classList.add('ended');
@@ -1747,6 +1773,8 @@ export class Game {
         }
       }
       status = `event ${p.ev.id} · ${p.ev.trigger}${p.ev.npc ? ` · ${p.ev.npc}` : ''}${p.ev.portrait ? ` · cast ${p.ev.portrait}` : ''}${p.ev.medium ? ` · medium ${p.ev.medium}` : ''}`;
+    } else if (p.kind === 'townhall') {
+      status = this.renderTownhall(portrait, body, choices);
     } else if (p.kind === 'bed') {
       body.append(h('p', { class: 'line', text: this.str('ui.bed.prompt', { actions: this.costWords(this.s.actions) }) }));
       const pick = (n: 1 | 2 | 3) => {
@@ -1805,7 +1833,7 @@ export class Game {
 
   /** Out of actions and the day not over: the end-of-day call is waiting to be answered. */
   private ringing(): boolean {
-    return this.s.actions <= 0 && !this.s.finished && !this.win;
+    return this.s.actions <= 0 && !this.s.finished && !this.win && !this.townhallActive();
   }
 
   private renderPhone(): void {
@@ -1942,6 +1970,240 @@ export class Game {
     overlay.querySelector<HTMLButtonElement>('#export')?.focus();
   }
 
+  // ------------------------------------------------------------------ SPEC "Leads" and "Town hall" (added 2026-10-19)
+  /** The room's first-among-equals on each side (default pro). */
+  private leads(): { usLead: LeadPos; homeLead: LeadPos } {
+    return { usLead: this.s.config.usLead ?? 'pro', homeLead: this.s.config.homeLead ?? 'pro' };
+  }
+
+  /** The NPC who leads a side in this room (undefined when the content has no such leader). */
+  private leadOf(side: 'us' | 'home'): Npc | undefined {
+    const { usLead, homeLead } = this.leads();
+    return leadNpc(this.c, this.s.player.pack, side, side === 'us' ? usLead : homeLead);
+  }
+
+  /** Event rows in roll order: forced rows (chance 1) first, then the rest in file order, so a forced overheard line is never skipped behind a random one. */
+  private eventOrder(): EventRow[] {
+    return [...this.c.events].sort((a, b) => (b.chance >= 1 ? 1 : 0) - (a.chance >= 1 ? 1 : 0));
+  }
+
+  private townhallActive(): boolean {
+    const th = this.s.townhall;
+    return !!th && th.stage !== 'done';
+  }
+
+  /** The leader at the podium: the current speaker during introduce/speech/rate, the reacting lead during reactions. */
+  private townhallSpeaker(): Npc | undefined {
+    const th = this.s.townhall;
+    if (!th || th.stage === 'done') return undefined;
+    const id = ['introduce', 'speech', 'rate'].includes(th.stage) ? th.order[th.speaker] : th.stage === 'reaction' ? th.order[th.reaction] : undefined;
+    return id ? this.c.npcById.get(id) : undefined;
+  }
+
+  /** The leader whose words are on the right panel, with the bust for the beat shown (speech and reaction stages only). */
+  private townhallSpoken(): { npc: Npc; emotion: Emotion } | undefined {
+    const th = this.s.townhall;
+    if (!th || !['speech', 'rate', 'reaction'].includes(th.stage)) return undefined;
+    const npc = this.townhallSpeaker();
+    if (!npc) return undefined;
+    const row = th.stage === 'reaction' ? this.thReaction(npc.id) : this.thSpeech(npc.id, th.block);
+    if (!row) return { npc, emotion: 'neutral' };
+    const emotion = th.stage === 'rate' ? this.beatsOf(row.text, 1e9).cur.emotion ?? row.emotion : this.beatsOf(row.text, th.beat).cur.emotion ?? row.emotion;
+    return { npc, emotion };
+  }
+
+  private thRows(npcId: string): TownhallRow[] {
+    return this.c.townhall.rows.get(npcId) ?? [];
+  }
+
+  /** Speech block `block` of a lead for this room's president: a row naming the president beats a blank one. */
+  private thSpeech(npcId: string, block: number): TownhallRow | null {
+    const L = this.s.config.nationalLeader;
+    const rows = this.thRows(npcId).filter((r) => r.kind === 'speech' && r.block === block && (!r.nationalLeader || r.nationalLeader === L));
+    rows.sort((a, b) => (b.nationalLeader ? 1 : 0) - (a.nationalLeader ? 1 : 0));
+    return rows[0] ?? null;
+  }
+
+  /** How many speech blocks a lead has under this president (at least 1: a lead with no sheet still "speaks", as a stand-in line). */
+  private thBlocks(npcId: string): number {
+    let n = 0;
+    while (n < 4 && this.thSpeech(npcId, n + 1)) n++;
+    return Math.max(1, n);
+  }
+
+  /** The lead's reaction to the player's dominant stance: a row for that stance (president-specific first), else the fallback. */
+  private thReaction(npcId: string): TownhallRow | null {
+    const L = this.s.config.nationalLeader;
+    const { dominant } = this.thTally();
+    const rows = this.thRows(npcId).filter((r) => r.kind === 'reaction' && (!r.nationalLeader || r.nationalLeader === L));
+    const score = (r: TownhallRow) => (r.stance === dominant ? 2 : r.stance === '' ? 0 : -9) + (r.nationalLeader ? 1 : 0);
+    rows.sort((a, b) => score(b) - score(a));
+    return rows.length && score(rows[0]) >= 0 ? rows[0] : null;
+  }
+
+  /** Stances chosen on the topic board: counts and the dominant one (`mixed` when the top two tie). */
+  private thTally(): { counts: Record<TopicStance, number>; dominant: TopicStance | 'mixed' } {
+    const counts = Object.fromEntries(TOPIC_STANCES.map((s) => [s, 0])) as Record<TopicStance, number>;
+    for (const a of Object.values(this.s.townhall?.answers ?? {})) counts[a.stance]++;
+    const sorted = [...TOPIC_STANCES].sort((a, b) => counts[b] - counts[a]);
+    const dominant = counts[sorted[0]] > 0 && counts[sorted[0]] > counts[sorted[1]] ? sorted[0] : 'mixed';
+    return { counts, dominant };
+  }
+
+  /** Bed on the last day: the town hall opens instead of the survey (SPEC "Town hall"). */
+  private startTownhall(): void {
+    this.endConvo('day_end');
+    this.phoneOpen = false;
+    const us = this.leadOf('us'), home = this.leadOf('home');
+    const order = [us?.id, home?.id].filter((x): x is string => !!x);
+    if (seeded(this.s.config.seed, 'townhall', this.s.room)() < 0.5) order.reverse();
+    this.s.townhall = { stage: 'intro', order, speaker: 0, block: 1, beat: 0, ratings: [], answers: {}, reaction: 0 };
+    const sc = this.c.scenes.find((x) => x.hidden);
+    if (sc) this.s.scene = sc.id;
+    this.panel = { kind: 'townhall' };
+    appendLog(this.s, { type: 'townhall', op: 'start', order, ...this.leads(), president: this.s.config.nationalLeader });
+    this.save();
+    this.render();
+  }
+
+  private thSet(patch: Partial<TownhallState>): void {
+    this.s.townhall = { ...this.s.townhall!, beat: 0, ...patch };
+    this.save();
+    this.render();
+  }
+
+  /** Continue at the end of a town hall text: the next step of the sequence. */
+  private thAdvance(): void {
+    const th = this.s.townhall!;
+    switch (th.stage) {
+      case 'intro': return this.thSet({ stage: th.order.length ? 'introduce' : 'callUp', speaker: 0, block: 1 });
+      case 'introduce': return this.thSet({ stage: 'speech', block: 1 });
+      case 'speech': return this.thSet({ stage: 'rate' });
+      case 'callUp': return this.thSet({ stage: 'board' });
+      case 'reaction': {
+        const next = th.reaction + 1;
+        return next < th.order.length ? this.thSet({ stage: 'reaction', reaction: next }) : this.thSet({ stage: 'close' });
+      }
+      case 'close': {
+        appendLog(this.s, { type: 'townhall', op: 'end', ratings: th.ratings, answers: th.answers, ...this.thTally() });
+        this.s.townhall = { ...th, stage: 'done' };
+        this.panel = { kind: 'idle' };
+        this.save();
+        return this.endDay();
+      }
+      default: return;
+    }
+  }
+
+  /** The 1..7 rating of the speech block just heard (1 boo .. 7 cheer); then the next block, the next speaker, or the floor. */
+  private thRate(value: number): void {
+    const th = this.s.townhall!;
+    if (th.stage !== 'rate') return;
+    const speaker = th.order[th.speaker];
+    th.ratings.push({ speaker, block: th.block, value });
+    appendLog(this.s, { type: 'townhall', op: 'rating', target: speaker, block: th.block, value });
+    if (th.block < this.thBlocks(speaker)) return this.thSet({ stage: 'speech', block: th.block + 1 });
+    const next = th.speaker + 1;
+    if (next < th.order.length) return this.thSet({ stage: 'introduce', speaker: next, block: 1 });
+    this.thSet({ stage: 'callUp' });
+  }
+
+  private thAnswer(topicId: string, option: number): void {
+    const th = this.s.townhall!;
+    const topic = this.c.townhall.topics.find((t) => t.id === topicId);
+    const opt = topic?.options[option];
+    if (!topic || !opt) return;
+    th.answers[topicId] = { option, stance: opt.stance };
+    appendLog(this.s, { type: 'townhall', op: 'answer', target: topicId, choice: option + 1, stance: opt.stance, text: opt.text });
+    this.thSet({ stage: 'board', topic: undefined });
+  }
+
+  private thSit(): void {
+    const th = this.s.townhall!;
+    if (this.c.townhall.topics.some((t) => !th.answers[t.id])) return;
+    appendLog(this.s, { type: 'townhall', op: 'summary', ...this.thTally(), answers: th.answers });
+    this.thSet({ stage: th.order.length ? 'reaction' : 'close', reaction: 0 });
+  }
+
+  /** The right panel during the town hall. Returns the dev status line. */
+  private renderTownhall(portrait: HTMLElement, body: HTMLElement, choices: HTMLElement): string {
+    const th = this.s.townhall!;
+    const md = this.c.townhall.moderator;
+    const speaker = this.townhallSpeaker();
+    const moderatorSays = (text: string, vars: Record<string, string> = {}) => {
+      portrait.classList.add('moderator');
+      portrait.append(h('span', { class: 'who', text: md.name }));
+      const filled = text.replace(/\{(speaker)\}/g, (m, k) => (k in vars ? vars[k] : m));
+      this.thBeats(filled, body, choices);
+    };
+    const cont = (fk: string, label = this.str('ui.continue')) => h('button', { class: 'choice', 'data-fk': fk, onclick: () => this.thAdvance(), text: label });
+    switch (th.stage) {
+      case 'intro': moderatorSays(md.open); break;
+      case 'introduce': moderatorSays(md.introduce, { speaker: speaker?.name ?? '' }); break;
+      case 'speech': {
+        const row = speaker ? this.thSpeech(speaker.id, th.block) : null;
+        this.thBeats(row?.text ?? this.str('ui.townhall.noLines', { name: speaker?.name ?? '' }), body, choices);
+        break;
+      }
+      case 'rate': {
+        body.append(h('p', { class: 'line stage', text: this.str('ui.townhall.rate') }));
+        const scale = h('div', { class: 'scale7', role: 'group', 'aria-label': this.str('ui.townhall.rate') });
+        for (let v = 1; v <= 7; v++) {
+          const end = v === 1 ? this.str('ui.townhall.boo') : v === 7 ? this.str('ui.townhall.cheer') : '';
+          scale.append(h('button', { class: 'choice rate', 'data-fk': `th:rate:${v}`, 'aria-label': `${v} of 7${end ? `, ${end}` : ''}`, onclick: () => this.thRate(v), text: String(v) }));
+        }
+        choices.append(scale, h('div', { class: 'scale7-ends', 'aria-hidden': 'true' }, h('span', { text: this.str('ui.townhall.boo') }), h('span', { text: this.str('ui.townhall.cheer') })));
+        break;
+      }
+      case 'callUp': moderatorSays(md.callUp); break;
+      case 'board': {
+        portrait.classList.add('moderator');
+        portrait.append(h('span', { class: 'who', text: md.name }));
+        body.append(h('p', { class: 'line', text: this.str('ui.townhall.board') }));
+        const topics = this.c.townhall.topics;
+        topics.forEach((t, i) => {
+          const done = !!th.answers[t.id];
+          choices.append(h('button', { class: `choice topic${done ? ' done' : ''}`, 'data-fk': `th:topic:${t.id}`, onclick: () => this.thSet({ stage: 'topic', topic: t.id }), 'aria-label': `${t.title}${done ? ` (${this.str('ui.townhall.answered')})` : ''}` },
+            h('span', { class: 'topic-mark', 'aria-hidden': 'true', text: done ? '✓' : String(i + 1) }), t.title));
+        });
+        const left = topics.filter((t) => !th.answers[t.id]).length;
+        choices.append(h('button', { class: 'choice sit', 'data-fk': 'th:sit', disabled: left > 0, title: left ? this.str('ui.townhall.sitLocked', { n: left }) : null, onclick: () => this.thSit(), text: this.str('ui.townhall.sit') }));
+        break;
+      }
+      case 'topic': {
+        const t = this.c.townhall.topics.find((x) => x.id === th.topic);
+        if (!t) { this.thSet({ stage: 'board', topic: undefined }); return 'townhall'; }
+        portrait.classList.add('moderator');
+        portrait.append(h('span', { class: 'who', text: md.name }));
+        body.append(h('h3', { class: 'text-title', text: t.title }), ...this.speech(t.prompt));
+        const cur = th.answers[t.id];
+        t.options.forEach((o, i) => choices.append(h('button', { class: `choice${cur?.option === i ? ' picked' : ''}`, 'data-fk': `th:opt:${i}`, 'aria-pressed': cur ? String(cur.option === i) : null, onclick: () => this.thAnswer(t.id, i), text: this.t(o.text) })));
+        choices.append(h('button', { class: 'choice dev-back', 'data-fk': 'th:back', onclick: () => this.thSet({ stage: 'board', topic: undefined }), text: `◂ ${this.str('ui.townhall.back')}` }));
+        break;
+      }
+      case 'reaction': {
+        const row = speaker ? this.thReaction(speaker.id) : null;
+        this.thBeats(row?.text ?? this.str('ui.townhall.noLines', { name: speaker?.name ?? '' }), body, choices);
+        break;
+      }
+      case 'close': moderatorSays(md.close); break;
+      default: choices.append(cont('th:cont'));
+    }
+    return `townhall ${th.stage} · speaker ${th.order[th.speaker] ?? '-'} · block ${th.block}${th.stage === 'reaction' ? ` · reacting ${th.order[th.reaction]}` : ''} · ${this.thTally().dominant}`;
+  }
+
+  /** A town hall text as beats: the triangle between beats, Continue after the last one. */
+  private thBeats(text: string, body: HTMLElement, choices: HTMLElement): void {
+    const th = this.s.townhall!;
+    const bt = this.beatsOf(text, th.beat);
+    body.append(...this.speech(bt.cur.text));
+    if (!bt.last) {
+      choices.append(h('button', { class: 'choice next', 'data-fk': 'ch:next', 'aria-label': this.str('ui.next'), title: this.str('ui.next'), onclick: () => this.thSet({ beat: bt.at + 1 }), }, h('span', { class: 'tri', 'aria-hidden': 'true', text: '▾' })));
+    } else {
+      choices.append(h('button', { class: 'choice', 'data-fk': 'th:cont', onclick: () => this.thAdvance(), text: this.str('ui.continue') }));
+    }
+  }
+
   // ------------------------------------------------------------------ dev
   devApi() {
     return {
@@ -2018,6 +2280,10 @@ export class Game {
         return { start: 0, turn: this.s.convo?.turns ?? 1, stayPaid: !!this.s.convo?.stayPaid, options: p.row.choices.map((_, i) => this.optionCharge(p.row, i).charge) };
       },
       endDay: () => this.endDay(),
+      /** SPEC "Town hall": the state of the closing sequence, or start it now (dev) */
+      townhall: () => this.s.townhall,
+      startTownhall: () => this.startTownhall(),
+      leads: () => ({ ...this.leads(), us: this.leadOf('us')?.id, home: this.leadOf('home')?.id }),
     };
   }
 }

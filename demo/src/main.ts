@@ -3,7 +3,7 @@ import './style.css';
 import { effectivePack, getSource, loadContent } from './content';
 import { Game } from './game';
 import { appendLog, getRoom, loadState, logKey, newState, saveRoom, saveState, stateKey, type RoomRecord } from './store';
-import type { Content, CultureId, Leader, PlayerInfo } from './types';
+import type { Content, CultureId, Leader, LeadPos, PlayerInfo, RoomConfig } from './types';
 import { h, isDev, isFixtures, isoNow, params } from './util';
 
 const app = document.getElementById('app')!;
@@ -117,12 +117,16 @@ async function main(): Promise<void> {
       history.replaceState(null, '', u);
     }
     const leader: Leader = params.get('leader') === 'inclusive' ? 'inclusive' : 'enforcement';
+    // SPEC "Leads": &uslead=pro|anti and &homelead=pro|anti pick the first-among-equals on each side (default pro)
+    const usLead: LeadPos = params.get('uslead') === 'anti' ? 'anti' : 'pro';
+    const homeLead: LeadPos = params.get('homelead') === 'anti' ? 'anti' : 'pro';
     let room = getRoom(code);
-    if (!room || room.config.nationalLeader !== leader) {
-      room = { code, password: 'dev', config: { code, password: 'dev', nationalLeader: leader, seed: 1234, rosterPicks: {}, created: isoNow(), note: 'dev room' } };
+    const stale = (c: RoomConfig) => c.nationalLeader !== leader || (c.usLead ?? 'pro') !== usLead || (c.homeLead ?? 'pro') !== homeLead;
+    if (!room || stale(room.config)) {
+      room = { code, password: 'dev', config: { code, password: 'dev', nationalLeader: leader, usLead, homeLead, seed: 1234, rosterPicks: {}, created: isoNow(), note: 'dev room' } };
       saveRoom(room);
       const st = loadState(code);
-      if (st && st.config.nationalLeader !== leader) { st.config = room.config; saveState(st); }
+      if (st && stale(st.config)) { st.config = room.config; saveState(st); }
     }
     // &culture=cn|mx|in skips the opening questions (&region=, &faith= set the variant); &profile=1 asks them
     const culture = (['cn', 'mx', 'in'].includes(params.get('culture') ?? '') ? params.get('culture') : 'cn') as CultureId;

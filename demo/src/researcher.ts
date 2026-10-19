@@ -3,7 +3,7 @@ import './style.css';
 import { load as loadYaml } from 'js-yaml';
 import { getSource } from './content';
 import { getSettings, listRooms, loadState, readLog, saveRoom, saveSettings, getRoom, type RoomRecord } from './store';
-import type { Leader, Npc, RoomConfig } from './types';
+import type { Leader, LeadPos, Npc, RoomConfig } from './types';
 import { appUrl, downloadText, h, isFixtures, isoNow } from './util';
 
 const app = document.getElementById('app')!;
@@ -46,6 +46,9 @@ async function main(): Promise<void> {
   catch (e) { console.error('[researcher] content/npcs.yaml:', e); }
 
   const leader = h('select', { id: 'leader' }, h('option', { value: 'enforcement', text: 'enforcement' }), h('option', { value: 'inclusive', text: 'inclusive' }));
+  // SPEC "Leads": which local leader is first among equals on each side (the other still exists in the town)
+  const leadSel = (id: string) => h('select', { id }, h('option', { value: 'pro', text: 'pro-integration' }), h('option', { value: 'anti', text: 'anti-integration' }));
+  const usLead = leadSel('uslead'), homeLead = leadSel('homelead');
   const seed = h('input', { id: 'seed', type: 'number', min: 0, step: 1 });
   const note = h('input', { id: 'note', type: 'text', placeholder: 'optional, e.g. session or participant group' });
   // SPEC "Conversation limit": conversations a participant may have with each person per day
@@ -86,6 +89,8 @@ async function main(): Promise<void> {
   }));
   const randomize = () => {
     leader.value = pick<Leader>(['enforcement', 'inclusive']);
+    usLead.value = pick<LeadPos>(['pro', 'anti']);
+    homeLead.value = pick<LeadPos>(['pro', 'anti']);
     seed.value = String(rnd(1_000_000));
     for (const npc of Object.keys(picks)) {
       const r = pickRows.querySelector<HTMLInputElement>(`input[name="pick_${npc}"][value="random"]`);
@@ -124,6 +129,8 @@ async function main(): Promise<void> {
     h('p', { class: 'muted', text: 'Values are randomized; every field can be edited before creating.' + (isFixtures ? ' (fixtures manifest)' : '') }),
     h('div', { class: 'grid2' },
       h('label', { for: 'leader', text: 'National leader condition' }), leader,
+      h('label', { for: 'uslead', text: 'US local leader who leads (first among equals)' }), usLead,
+      h('label', { for: 'homelead', text: 'Heritage community leader who leads' }), homeLead,
       h('label', { for: 'seed', text: 'Event seed' }), seed,
       h('label', { for: 'note', text: 'Note' }), note,
       h('label', { for: 'talks', text: 'Conversations per person per day' }),
@@ -151,6 +158,8 @@ async function main(): Promise<void> {
     const config: RoomConfig = {
       code, password,
       nationalLeader: leader.value as Leader,
+      usLead: usLead.value as LeadPos,
+      homeLead: homeLead.value as LeadPos,
       seed: Math.floor(Number(seed.value) || 0),
       rosterPicks: readPicks(),
       created: isoNow(),

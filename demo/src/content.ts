@@ -3,11 +3,11 @@ import { load as loadYaml } from 'js-yaml';
 import Papa from 'papaparse';
 import type {
   Content, DialogueRow, Emotion, EventRow, Manifest, NewsRow, Npc, Questionnaire, Scene, Slot, Hotspot, CondField, Screen,
-  CastInfo, OverrideInfo, CultureId, Prop, Profile, ProfileOption, ProfileQuestion,
+  CastInfo, OverrideInfo, CultureId, Prop, Profile, ProfileOption, ProfileQuestion, LeadPos, Townhall, TownhallRow, Topic, TopicOption, TopicStance, Moderator,
 } from './types';
-import { COND_FIELDS } from './types';
+import { COND_FIELDS, LEAD_POS, TOPIC_STANCES } from './types';
 import { DEFAULT_STRINGS } from './strings';
-import { validateEffects, validateCond, sceneList, EMOTIONS as EMOTION_LIST } from './rules';
+import { validateEffects, validateCond, validateDay, validateLead, sceneList, EMOTIONS as EMOTION_LIST } from './rules';
 import { appUrl } from './util';
 
 export interface Source {
@@ -25,10 +25,13 @@ export const EVENT_COLUMNS = [
   'nationalLeader', 'chance', 'cost', 'emotion', 'text', 'choice1', 'effect1', 'choice2', 'effect2',
 ];
 export const NEWS_COLUMNS = ['id', 'channel', 'nationalLeader', 'dayMin', 'valence', 'headline', 'body'];
-/** Optional dialogue column (SPEC "Dialogue location"), placed after dayPhase: blank = anywhere, else scene ids joined by `|`. */
-export const DIALOGUE_OPTIONAL_COLUMNS = ['scene'];
-/** Optional columns (SPEC "Cast"): a cast id; blank or absent = unchanged behaviour. */
-export const EVENT_OPTIONAL_COLUMNS = ['portrait', 'medium', 'pack'];
+/** Optional dialogue columns, placed after dayPhase: `scene` (SPEC "Dialogue location": blank = anywhere, else scene ids
+ *  joined by `|`), then `usLead` and `homeLead` (SPEC "Leads": blank = any room, else pro|anti). */
+export const DIALOGUE_OPTIONAL_COLUMNS = ['scene', 'usLead', 'homeLead'];
+/** Optional columns (SPEC "Cast", "Packs", "Leads"): blank or absent = unchanged behaviour. */
+export const EVENT_OPTIONAL_COLUMNS = ['portrait', 'medium', 'pack', 'day', 'usLead', 'homeLead'];
+/** content/townhall/<npcId>.csv (SPEC "Town hall") */
+export const TOWNHALL_COLUMNS = ['id', 'kind', 'nationalLeader', 'block', 'stance', 'emotion', 'text'];
 export const NEWS_OPTIONAL_COLUMNS = ['figure', 'pack'];
 /** localStorage key of the researcher's text override (written by /editor.html). */
 export const OVERRIDE_KEY = 'gv:override:v1';
@@ -180,6 +183,7 @@ function parseScenes(r: Reporter, file: string, text: string): Scene[] {
       props: (Array.isArray(s.props) ? s.props : [])
         .filter((p: any, j: number) => (p?.asset ? true : (r.error(file, `${where} prop #${j + 1}: missing asset`), false)))
         .map((p: any, j: number) => ({ asset: str(p.asset), x: num(p.x, 0), y: num(p.y, 0), w: num(p.w, 0.1), ...parsePropQuad(r, file, `${where} prop #${j + 1}`, p) })),
+      ...(s.hidden === true ? { hidden: true } : {}),
       horizon: typeof s.horizon === 'number' && s.horizon > 0 && s.horizon < 1 ? s.horizon : DEFAULT_HORIZON,
       cameraHeight: typeof s.cameraHeight === 'number' && s.cameraHeight > 0 ? s.cameraHeight : DEFAULT_CAMERA_HEIGHT,
       ...(Number.isInteger(s.maxPresent) && s.maxPresent > 0 ? { maxPresent: s.maxPresent } : {}),
@@ -301,6 +305,13 @@ function parseNpcs(r: Reporter, file: string, text: string, scenes: Map<string, 
     }).map((a: any) => ({ scene: str(a.scene), slot: str(a.slot), chance: num(a.chance, 1), figure: str(a.figure) || undefined }));
     const stance = str(n.stance, 'none') || 'none';
     if (!(STANCES as readonly string[]).includes(stance)) r.error(file, `${where}: bad stance "${stance}" (${STANCES.join(' | ')})`);
+    // SPEC "Leads": pro|anti marks one of a side's two leaders; `called` is how others name them in a line
+    const lead = str(n.lead);
+    if (lead && !(LEAD_POS as readonly string[]).includes(lead)) r.error(file, `${where}: bad lead "${lead}" (pro | anti)`);
+    const maxRapport = n.maxRapport === undefined ? 3 : num(n.maxRapport, 3);
+    if (!(Number.isInteger(maxRapport) && maxRapport >= 0 && maxRapport <= 3)) r.error(file, `${where}: maxRapport must be 0..3`);
+    const emotions = Array.isArray(n.emotions) ? n.emotions.map((x: unknown) => str(x)) : undefined;
+    if (emotions) for (const e of emotions) if (!EMOTIONS.includes(e as Emotion)) r.error(file, `${where}: emotions: unknown "${e}"`);
     out.push({
       id: str(n.id),
       name: str(n.name, n.id),
@@ -308,6 +319,10 @@ function parseNpcs(r: Reporter, file: string, text: string, scenes: Map<string, 
       community: str(n.community),
       role: str(n.role),
       stance,
+      ...(lead ? { lead: lead as LeadPos } : {}),
+      ...(str(n.called) ? { called: str(n.called) } : {}),
+      maxRapport: Number.isInteger(maxRapport) ? Math.max(0, Math.min(3, maxRapport)) : 3,
+      ...(emotions ? { emotions: emotions.filter((e: string) => EMOTIONS.includes(e as Emotion)) as Emotion[] } : {}),
       portrait: str(n.portrait, `ch_${n.id}`),
       figure: n.figure ? str(n.figure) : undefined,
       seated: n.seated === true,
@@ -344,6 +359,14 @@ function parseDialogue(r: Reporter, npcId: string, file: string, text: string, s
     const sceneCell = row.scene ?? '';
     const scenes = sceneList(sceneCell);
     if (scenes.length) specificity++; // a located row is more specific than the same row anywhere
+    // SPEC "Leads": a row for one lead only (pro|anti) is more specific than the same row in any room
+    const usLead = row.usLead ?? '', homeLead = row.homeLead ?? '';
+    for (const [k, v] of [['usLead', usLead], ['homeLead', homeLead]] as const) {
+      if (v === '') continue;
+      if (v.includes('|')) r.error(file, `${where}: ${k} "${v}": one of pro|anti (no alternatives in dialogue)`);
+      else { const e = validateLead(v); if (e) r.error(file, `${where}: ${k}: ${e}`); }
+      specificity++;
+    }
     if (sceneIds) for (const sc of scenes) if (!sceneIds.has(sc)) r.error(file, `${where}: scene "${sc}" is not a scene id in scenes.yaml`);
     const emotion = (row.emotion || 'neutral') as Emotion;
     if (!EMOTIONS.includes(emotion)) r.error(file, `${where}: unknown emotion "${row.emotion}"`);
@@ -356,7 +379,7 @@ function parseDialogue(r: Reporter, npcId: string, file: string, text: string, s
       });
     for (const c of choices) for (const e of validateEffects(c.effect)) r.error(file, `${where}: ${e}`);
     out.push({
-      id: row.id, npc: npcId, conds, scene: scenes.join('|'), scenes, specificity, rowNum,
+      id: row.id, npc: npcId, conds, scene: scenes.join('|'), scenes, usLead, homeLead, specificity, rowNum,
       priority: num(row.priority, 0),
       emotion: EMOTIONS.includes(emotion) ? emotion : 'neutral',
       line: row.line ?? '',
@@ -369,7 +392,7 @@ function parseDialogue(r: Reporter, npcId: string, file: string, text: string, s
     ids.add(row.id);
   }
   for (const row of out) for (const c of row.choices) if (c.next && !ids.has(c.next)) r.error(file, `row ${row.rowNum} (${row.id}): next "${c.next}" not found in sheet`);
-  if (!out.some((x) => x.specificity === 0)) r.error(file, 'no fallback row (all six condition cells and scene blank)');
+  if (!out.some((x) => x.specificity === 0)) r.error(file, 'no fallback row (all six condition cells, scene and the lead cells blank)');
   return out;
 }
 
@@ -391,6 +414,9 @@ function parseEvents(r: Reporter, file: string, text: string, scenes: Map<string
     }
     const emotion = (row.emotion || 'neutral') as Emotion;
     if (!EMOTIONS.includes(emotion)) r.error(file, `${where}: unknown emotion "${row.emotion}"`);
+    // SPEC "Leads": optional day and lead cells
+    const day = row.day ?? '', usLead = row.usLead ?? '', homeLead = row.homeLead ?? '';
+    for (const e of [validateDay(day), validateLead(usLead), validateLead(homeLead)]) if (e) r.error(file, `${where}: ${e}`);
     const choices = [1, 2].map((k) => ({ text: row[`choice${k}`] ?? '', effect: row[`effect${k}`] ?? '' })).filter((c) => c.text);
     for (const c of choices) for (const e of validateEffects(c.effect)) r.error(file, `${where}: ${e}`);
     out.push({
@@ -401,6 +427,7 @@ function parseEvents(r: Reporter, file: string, text: string, scenes: Map<string
       chance: num(row.chance, 1), cost: num(row.cost, 0),
       emotion: EMOTIONS.includes(emotion) ? emotion : 'neutral',
       text: row.text, choices, rowNum, portrait: row.portrait ?? '', medium: (row.medium ?? '').trim(), pack: rowPack(r, file, where, row.pack),
+      day, usLead, homeLead,
     });
   });
   const ids = new Set(out.map((e) => e.id));
@@ -656,6 +683,7 @@ export async function loadContent(src: Source, opts: LoadOptions = {}): Promise<
     src.text('content/profile.yaml'),
   ]);
   const profile = parseProfile(r, 'content/profile.yaml', profileText);
+  const townhallText = await src.text('content/townhall.yaml');
 
   const SCENES = 'content/scenes.yaml', NPCS = 'content/npcs.yaml', EVENTS = 'content/events.csv', NEWS = 'content/news.csv';
   const scenes = tryOverride('scenes', SCENES, ov?.scenes, parseScenes)
@@ -690,6 +718,16 @@ export async function loadContent(src: Source, opts: LoadOptions = {}): Promise<
       dialogue.set(n.id, parseDialogue(r, n.id, file, t, sceneIds));
     }),
   );
+
+  // SPEC "Town hall": one speech/reaction sheet per lead
+  const thRows = new Map<string, TownhallRow[]>();
+  await Promise.all(npcs.filter((n) => n.lead).map(async (n) => {
+    const file = `content/townhall/${n.id}.csv`;
+    const t = await src.text(file);
+    if (t === null) { r.warn(file, 'no town hall sheet for this lead (the moderator reads a stand-in)'); thRows.set(n.id, []); return; }
+    thRows.set(n.id, parseTownhallRows(r, n.id, file, t));
+  }));
+  const townhall = parseTownhall(r, 'content/townhall.yaml', townhallText, thRows);
 
   const events = tryOverride('events', EVENTS, ov?.events, (q, f, t) => parseEvents(q, f, t, sceneById, npcById))
     ?? (eventsText ? parseEvents(r, EVENTS, eventsText, sceneById, npcById) : (ov?.events !== undefined && r.error(EVENTS, 'file missing or unreadable'), []));
@@ -762,7 +800,7 @@ export async function loadContent(src: Source, opts: LoadOptions = {}): Promise<
   }
 
   return {
-    source: src.kind, scenes, sceneById, npcs, npcById, dialogue, events, news, eod, manifest, strings, profile,
+    source: src.kind, scenes, sceneById, npcs, npcById, dialogue, events, news, eod, manifest, strings, profile, townhall,
     assetUrl: src.assetUrl, errors: r.errors, cast, override: info, imageOverrides: images,
   };
 }
@@ -881,4 +919,95 @@ export function rowInPack(row: { id: string; pack?: string }, rows: readonly { i
 
 export function sceneInPack(sc: Pick<Scene, 'pack'> | undefined, pack: string): boolean {
   return !!sc && (!sc.pack || sc.pack === pack);
+}
+
+// ---------------------------------------------------------------- SPEC "Leads" and "Town hall" (added 2026-10-19)
+
+/** The NPC who leads a side in this room: `side` us (shared roster) or home (the player's pack); `pos` from the room config. */
+export function leadNpc(c: Pick<Content, 'npcs'>, pack: CultureId, side: 'us' | 'home', pos: LeadPos): Npc | undefined {
+  return c.npcs.find((n) => n.lead === pos && (side === 'us' ? n.pack === 'shared' : n.pack === pack));
+}
+
+/** The built-in moderator and topics (content/townhall.yaml absent or broken, fixtures): enough to run the sequence. */
+export const DEFAULT_TOWNHALL: Townhall = {
+  moderator: {
+    name: 'Moderator',
+    open: 'Thank you all for coming. Two members of the community have asked to speak, and then we will hear from the floor.',
+    introduce: 'First, {speaker}.',
+    rate: 'How did that land with you?',
+    callUp: 'We have time for the floor. {playerName}, you had your hand up. Pick a question and tell us where you stand.',
+    close: 'That is all we have time for. Thank you, and get home safe.',
+  },
+  topics: [{
+    id: 'belonging', title: 'Who counts as local', prompt: 'Who should get a say in how this town is run?',
+    options: [
+      { text: 'Anyone who lives here, in whatever language they bring.', stance: 'integration' },
+      { text: 'Anyone who lives here and takes the trouble to fit in.', stance: 'assimilation' },
+      { text: 'Each community should look after its own.', stance: 'separation' },
+      { text: 'I would rather listen than decide tonight.', stance: 'neutral' },
+    ],
+  }],
+  rows: new Map(),
+};
+
+function parseTownhallRows(r: Reporter, npcId: string, file: string, text: string): TownhallRow[] {
+  const rows = parseCsv(r, file, text, TOWNHALL_COLUMNS);
+  const out: TownhallRow[] = [];
+  const ids = new Set<string>();
+  rows.forEach((row, i) => {
+    const rowNum = i + 2;
+    const where = `row ${rowNum}${row.id ? ` (${row.id})` : ''}`;
+    if (!row.id) return r.error(file, `${where}: missing id`);
+    if (ids.has(row.id)) r.error(file, `${where}: duplicate id`);
+    ids.add(row.id);
+    const kind = row.kind === 'reaction' ? 'reaction' : row.kind === 'speech' ? 'speech' : null;
+    if (!kind) return r.error(file, `${where}: kind must be speech|reaction`);
+    const e = validateCond('nationalLeader', row.nationalLeader ?? '');
+    if (e) r.error(file, `${where}: ${e}`);
+    const block = kind === 'speech' ? num(row.block, 0) : 0;
+    if (kind === 'speech' && !(Number.isInteger(block) && block >= 1 && block <= 4)) r.error(file, `${where}: a speech needs block 1..4`);
+    const stance = row.stance ?? '';
+    if (kind === 'reaction' && stance && !(TOPIC_STANCES as readonly string[]).includes(stance)) r.error(file, `${where}: stance \"${stance}\" (integration|assimilation|separation|neutral or blank)`);
+    if (kind === 'speech' && stance) r.error(file, `${where}: a speech has no stance`);
+    const emotion = (row.emotion || 'neutral') as Emotion;
+    if (!EMOTIONS.includes(emotion)) r.error(file, `${where}: unknown emotion \"${row.emotion}\"`);
+    if (!row.text) r.error(file, `${where}: missing text`);
+    out.push({ id: row.id, speaker: npcId, kind, nationalLeader: row.nationalLeader ?? '', block, stance, emotion: EMOTIONS.includes(emotion) ? emotion : 'neutral', text: row.text ?? '', rowNum });
+  });
+  for (const leader of ['enforcement', 'inclusive']) {
+    const blocks = out.filter((x) => x.kind === 'speech' && (!x.nationalLeader || x.nationalLeader === leader));
+    if (!blocks.some((b) => b.block === 1)) r.error(file, `no speech block 1 under nationalLeader ${leader}`);
+  }
+  if (!out.some((x) => x.kind === 'reaction' && !x.stance)) r.error(file, 'no fallback reaction (kind reaction, stance blank)');
+  return out;
+}
+
+/** content/townhall.yaml: moderator text and the topic board. Problems are reported and the built-in text used. */
+export function parseTownhall(r: Reporter, file: string, text: string | null, rows: Map<string, TownhallRow[]>): Townhall {
+  if (!text) return { ...DEFAULT_TOWNHALL, rows };
+  let doc: any;
+  try { doc = loadYaml(text); } catch (e) { r.error(file, `YAML error: ${(e as Error).message}`); return { ...DEFAULT_TOWNHALL, rows }; }
+  const md = doc?.moderator ?? {};
+  const moderator: Moderator = { ...DEFAULT_TOWNHALL.moderator };
+  for (const k of ['name', 'open', 'introduce', 'rate', 'callUp', 'close'] as const) {
+    if (typeof md[k] === 'string' && md[k].trim()) moderator[k] = md[k].trim();
+    else r.error(file, `moderator.${k}: missing text (built-in used)`);
+  }
+  const topics: Topic[] = [];
+  const seen = new Set<string>();
+  for (const [i, t] of (Array.isArray(doc?.topics) ? doc.topics : []).entries()) {
+    const where = `topics[${i}]`;
+    if (!t || typeof t !== 'object' || !/^\w+$/.test(str(t.id)) || typeof t.title !== 'string' || typeof t.prompt !== 'string') { r.error(file, `${where}: needs id (a word), title and prompt`); continue; }
+    if (seen.has(str(t.id))) r.error(file, `${where}: duplicate id \"${t.id}\"`);
+    seen.add(str(t.id));
+    const options: TopicOption[] = [];
+    for (const [j, o] of (Array.isArray(t.options) ? t.options : []).entries()) {
+      if (!o || typeof o !== 'object' || typeof o.text !== 'string' || !o.text.trim() || !(TOPIC_STANCES as readonly string[]).includes(str(o.stance))) { r.error(file, `${where}.options[${j}]: needs text and stance integration|assimilation|separation|neutral`); continue; }
+      options.push({ text: o.text.trim(), stance: str(o.stance) as TopicStance });
+    }
+    if (options.length < 2) { r.error(file, `${where}: needs at least two options`); continue; }
+    topics.push({ id: str(t.id), title: t.title.trim(), prompt: t.prompt.trim(), options });
+  }
+  if (!topics.length) { r.error(file, 'no usable topics (built-in topic used)'); return { moderator, topics: DEFAULT_TOWNHALL.topics, rows }; }
+  return { moderator, topics, rows };
 }

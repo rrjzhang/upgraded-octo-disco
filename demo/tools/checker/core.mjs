@@ -10,10 +10,18 @@ export const DIALOGUE_COLUMNS = 'id,met,rapport,lastValence,nationalLeader,playe
 export const EVENT_COLUMNS = 'id,source,target,valence,proximity,trigger,scene,npc,minRapport,playerLean,nationalLeader,chance,cost,emotion,text,choice1,effect1,choice2,effect2'.split(',');
 export const NEWS_COLUMNS = 'id,channel,nationalLeader,dayMin,valence,headline,body'.split(',');
 // optional trailing columns (SPEC 2026-10-18, cast): accepted when present, never required
-export const EVENT_OPTIONAL = ['portrait', 'medium', 'pack'];
+export const EVENT_OPTIONAL = ['portrait', 'medium', 'pack', 'day', 'usLead', 'homeLead'];
 export const NEWS_OPTIONAL = ['figure', 'pack'];
-// optional dialogue column (SPEC 2026-10-18 "Dialogue location"), placed after dayPhase: blank = anywhere, else scene ids joined by |
-export const DIALOGUE_OPTIONAL = ['scene'];
+// optional dialogue columns, placed after dayPhase: `scene` (SPEC 2026-10-18 "Dialogue location": blank = anywhere, else scene
+// ids joined by |), then `usLead` and `homeLead` (SPEC 2026-10-19 "Leads": blank = any room, else pro|anti)
+export const DIALOGUE_OPTIONAL = ['scene', 'usLead', 'homeLead'];
+// SPEC "Leads": which of a side's two leaders is first among equals in a room; a dialogue/event cell names one (events allow a|b)
+export const LEAD_POS = ['pro', 'anti'];
+export const LEAD_COMBOS = [['pro', 'pro'], ['pro', 'anti'], ['anti', 'pro'], ['anti', 'anti']];
+const leadKey = (scene, lead) => `${scene}|${lead[0]}|${lead[1]}`;
+// SPEC "Town hall": content/townhall/<npcId>.csv and the stance codes of the topic options
+export const TOWNHALL_COLUMNS = 'id,kind,nationalLeader,block,stance,emotion,text'.split(',');
+export const TOPIC_STANCES = ['integration', 'assimilation', 'separation', 'neutral'];
 /** SPEC "Conversation limit": default conversations per NPC per day, and the demo length the limit is spread over. */
 export const DEFAULT_TALKS = 1;
 export const DEMO_DAYS = 5;
@@ -258,6 +266,9 @@ function validateScenes(files, diag, assets) {
     if (sc.maxPresent != null && !(Number.isInteger(sc.maxPresent) && sc.maxPresent > 0)) diag.error('BAD_VALUE', rel, loc('maxPresent'), `maxPresent must be a positive integer, got ${JSON.stringify(sc.maxPresent)}`);
     if (sc.pack != null && sc.pack !== '' && !SCENE_PACKS.includes(sc.pack)) diag.error('BAD_VALUE', rel, loc('pack'), `pack "${sc.pack}"; expected ${SCENE_PACKS.join('|')} (or omit for a shared scene)`);
     if (sc.lighting != null && !LIGHTING.includes(sc.lighting)) diag.error('BAD_VALUE', rel, loc('lighting'), `lighting "${sc.lighting}"; expected ${LIGHTING.join('|')}`);
+    // SPEC "Town hall": a hidden scene is entered by the engine only (no exit leads there); it needs a slot for the speaker
+    if (sc.hidden != null && typeof sc.hidden !== 'boolean') diag.error('BAD_VALUE', rel, loc('hidden'), 'hidden must be true|false');
+    if (sc.hidden === true && !(Array.isArray(sc.slots) && sc.slots.length)) diag.warn('SCHEMA', rel, loc('slots'), 'a hidden scene needs a slot (the town hall podium) for the person speaking');
     for (const [j, pr] of (sc.props || []).entries()) {
       if (!pr || !pr.asset) diag.error('SCHEMA', rel, loc(`props[${j}]`), 'prop needs asset');
       else if (assets && !hasAsset(assets, 'props', pr.asset)) diag.warn('UNKNOWN_ASSET', rel, loc(`props[${j}].asset`), `prop "${pr.asset}" not in assets/manifest.json`);
@@ -509,6 +520,16 @@ function validateNpcs(files, diag, scenes, assets) {
     enumCheck('pack', PACKS); enumCheck('community', NPC_COMMUNITY); enumCheck('role', ROLES); enumCheck('stance', STANCES);
     if (!n.portrait) diag.error('SCHEMA', rel, loc('portrait'), 'missing portrait');
     else if (assets && !hasAsset(assets, 'portraits', n.portrait)) diag.warn('UNKNOWN_ASSET', rel, loc('portrait'), `portrait "${n.portrait}" not in assets/manifest.json`);
+    // SPEC "Leads": lead pro|anti on a side's two leaders; `called` is how others name them; maxRapport caps rapport; emotions limits the busts
+    if (n.lead != null && !LEAD_POS.includes(n.lead)) diag.error('BAD_VALUE', rel, loc('lead'), `lead "${n.lead}"; expected pro|anti or omit`);
+    if (n.lead != null && n.role !== 'local_leader') diag.warn('SCHEMA', rel, loc('lead'), `a lead should have role local_leader (has "${n.role}")`);
+    if (n.called != null && (typeof n.called !== 'string' || !n.called.trim())) diag.error('BAD_VALUE', rel, loc('called'), 'called must be a short non-empty string ("Mr. Guo")');
+    if (n.maxRapport != null && !(Number.isInteger(n.maxRapport) && n.maxRapport >= 0 && n.maxRapport <= 3)) diag.error('BAD_VALUE', rel, loc('maxRapport'), `maxRapport must be 0..3, got ${JSON.stringify(n.maxRapport)}`);
+    if (n.emotions != null) {
+      if (!Array.isArray(n.emotions) || !n.emotions.length) diag.error('BAD_VALUE', rel, loc('emotions'), `emotions must be a non-empty list from ${EMOTIONS.join('|')}`);
+      else for (const e of n.emotions) if (!EMOTIONS.includes(e)) diag.error('BAD_VALUE', rel, loc('emotions'), `emotions: "${e}"; expected ${EMOTIONS.join('|')}`);
+      if (Array.isArray(n.emotions) && !n.emotions.includes('neutral')) diag.error('BAD_VALUE', rel, loc('emotions'), 'emotions must include neutral (the default bust)');
+    }
     if (n.figure && assets && !hasAsset(assets, 'figures', n.figure)) diag.warn('UNKNOWN_ASSET', rel, loc('figure'), `figure "${n.figure}" not in assets/manifest.json`);
     if (n.seated != null && typeof n.seated !== 'boolean') diag.error('BAD_VALUE', rel, loc('seated'), 'seated must be true|false');
     const apps = Array.isArray(n.appearances) ? n.appearances : [];
@@ -540,6 +561,18 @@ function validateNpcs(files, diag, scenes, assets) {
     validateProfile(n.profile, diag, rel, loc);
     npcs.set(n.id, { ...n, appearances: apps, line: yamlLine(y.text, n.id), start: ((met ? 1 : 0) * 4 + rap) * 3 + ['none', 'positive', 'negative'].indexOf(lv) });
   });
+  // SPEC "Leads": once any NPC carries `lead`, every side in play needs exactly one pro and one anti (shared = the US side)
+  if ([...npcs.values()].some(n => n.lead != null)) {
+    const sides = new Set(['shared', ...[...npcs.values()].map(n => n.pack).filter(p => SCENE_PACKS.includes(p))]);
+    for (const side of sides) {
+      for (const pos of LEAD_POS) {
+        const have = [...npcs.values()].filter(n => n.pack === side && n.lead === pos);
+        const label = side === 'shared' ? 'the US side (pack shared)' : `pack ${side}`;
+        if (!have.length) diag.error('LEAD_MISSING', rel, { path: 'npcs' }, `${label} has no ${pos}-integration lead (an NPC with lead: ${pos}); {${side === 'shared' ? 'usLead' : 'homeLead'}} and the town hall need one`);
+        if (have.length > 1) diag.error('LEAD_DUP', rel, { line: have[1].line, path: `npcs.${have[1].id}.lead` }, `${label} has ${have.length} NPCs with lead: ${pos} (${have.map(n => n.id).join(', ')}); exactly one`);
+      }
+    }
+  }
   return npcs;
 }
 
@@ -557,6 +590,10 @@ function validateEvents(files, diag, scenes, npcs, assets, castIds) {
     const en = (col, vals, blankOk) => { if (!(blankOk && r[col] === '') && !vals.includes(r[col])) diag.error('BAD_VALUE', rel, loc(col), `"${r[col]}"; expected ${vals.join('|')}${blankOk ? ' or blank' : ''}`); };
     en('source', EV_SIDES); en('target', EV_SIDES); en('valence', VALENCE); en('proximity', PROXIMITY); en('trigger', TRIGGERS);
     en('playerLean', DIMS[4].values, true); en('nationalLeader', DIMS[3].values, true); en('emotion', EMOTIONS, true);
+    // SPEC "Leads": optional day (a day, a range 2-3 or 4+) and lead cells (pro|anti, alternatives with |)
+    if (r.day && !/^[1-5]$|^[1-5]-[1-5]$|^[1-5]\+$/.test(r.day)) diag.error('BAD_VALUE', rel, loc('day'), `"${r.day}"; expected a day 1..5, a range like 2-3, 4+ or blank`);
+    for (const col of ['usLead', 'homeLead']) if (r[col] && r[col].split('|').some(x => !LEAD_POS.includes(x.trim()))) diag.error('BAD_VALUE', rel, loc(col), `"${r[col]}"; expected pro, anti, pro|anti or blank`);
+    if (r.npc && npcs.get(r.npc)?.emotions && r.emotion && !npcs.get(r.npc).emotions.includes(r.emotion)) diag.error('EMOTION_FORBIDDEN', rel, loc('emotion'), `${r.npc} has no "${r.emotion}" bust (emotions: ${npcs.get(r.npc).emotions.join(', ')})`);
     if (r.scene && !scenes.has(r.scene)) diag.error('UNKNOWN_SCENE', rel, loc('scene'), `unknown scene "${r.scene}"`);
     if (r.npc && !npcs.has(r.npc)) diag.error('UNKNOWN_NPC', rel, loc('npc'), `unknown npc "${r.npc}"`);
     if (r.portrait && assets && !assets.cast?.[r.portrait] && !castIds.has(r.portrait)) diag.warn('UNKNOWN_ASSET', rel, loc('portrait'), `cast "${r.portrait}" is not in cast.yaml or assets/manifest.json cast (PLACEHOLDER shown)`);
@@ -610,12 +647,16 @@ function validateNews(files, diag, assets, castIds) {
 /**
  * npcScenes: scenes this NPC can be met in (completeness scope); a row whose `scene` names any other scene is an error.
  */
-function validateDialogue(files, npcId, diag, eventIds, scenes, npcScenes) {
+function validateDialogue(files, npcId, diag, eventIds, scenes, npcScenes, npc = null) {
   const rel = `dialogue/${npcId}.csv`;
   const rows = readCsv(files[rel], rel, DIALOGUE_COLUMNS, diag, false, DIALOGUE_OPTIONAL);
   if (!rows) return null;
   const header = (files[rel] || '').replace(/^\uFEFF/, '').split(/\r?\n/, 1)[0].split(',').map(x => x.trim());
   if (header.includes('scene') && header.indexOf('scene') !== header.indexOf('dayPhase') + 1) diag.warn('COLUMN_ORDER', rel, { line: 1, column: 'scene' }, 'the optional scene column belongs right after dayPhase');
+  const afterOf = (cands) => header.indexOf(cands.find(c => header.includes(c))) + 1;
+  if (header.includes('usLead') && header.indexOf('usLead') !== afterOf(['scene', 'dayPhase'])) diag.warn('COLUMN_ORDER', rel, { line: 1, column: 'usLead' }, 'the optional usLead column belongs right after scene (or dayPhase)');
+  if (header.includes('homeLead') && header.indexOf('homeLead') !== afterOf(['usLead', 'scene', 'dayPhase'])) diag.warn('COLUMN_ORDER', rel, { line: 1, column: 'homeLead' }, 'the optional homeLead column belongs right after usLead (or scene)');
+  const allowedEmotions = npc && Array.isArray(npc.emotions) ? npc.emotions : null;
   const parsed = [];
   const ids = new Set();
   for (const r of rows) {
@@ -643,6 +684,17 @@ function validateDialogue(files, npcId, diag, eventIds, scenes, npcScenes) {
       else diag.error('BAD_VALUE', rel, loc('priority'), `"${r.priority}"; expected a number or blank`);
     }
     if (r.emotion && !EMOTIONS.includes(r.emotion)) diag.error('BAD_VALUE', rel, loc('emotion'), `"${r.emotion}"; expected ${EMOTIONS.join('|')} or blank`);
+    // SPEC "Leads": an NPC with an `emotions` list (the never-warm superintendent) may not use the other busts, in the column or a beat tag
+    if (allowedEmotions) {
+      if (r.emotion && !allowedEmotions.includes(r.emotion)) diag.error('EMOTION_FORBIDDEN', rel, loc('emotion'), `${npcId} has no "${r.emotion}" bust (emotions: ${allowedEmotions.join(', ')})`);
+      for (const m of String(r.line || '').matchAll(/(?:^|\$)\s*\[(\w+)\]/g)) if (EMOTIONS.includes(m[1]) && !allowedEmotions.includes(m[1])) diag.error('EMOTION_FORBIDDEN', rel, loc('line'), `beat tag [${m[1]}]: ${npcId} has no such bust (emotions: ${allowedEmotions.join(', ')})`);
+    }
+    // SPEC "Leads": optional usLead / homeLead cells, one of pro|anti (no alternatives in dialogue); each adds 1 to specificity
+    const leads = ['usLead', 'homeLead'].map(col => {
+      const v = r[col] ?? '';
+      if (v && !LEAD_POS.includes(v)) { diag.error('BAD_VALUE', rel, loc(col), `"${v}"; expected pro, anti or blank`); return ''; } // reported; the row is analysed as if blank
+      return v;
+    });
     if (!r.line) diag.error('SCHEMA', rel, loc('line'), 'missing line');
     else checkBeats(r.line, diag, rel, loc('line'));
     const choices = [];
@@ -656,8 +708,8 @@ function validateDialogue(files, npcId, diag, eventIds, scenes, npcScenes) {
     for (const k of [2, 3]) if (r[`choice${k}`] && !r[`choice${k - 1}`]) diag.warn('SCHEMA', rel, loc(`choice${k}`), `choice${k} given but choice${k - 1} is blank`);
     // a non-blank scene adds 1 to specificity (SPEC "Dialogue location"), so a located row beats the same row anywhere
     const sceneSet = located.length ? new Set(located) : null;
-    const specificity = cond.filter(Boolean).length + (sceneSet ? 1 : 0);
-    parsed.push({ id: r.id, line: r.__line, text: r.line, cond, scenes: sceneSet, offScene, priority, specificity, choices, bad, raw: r });
+    const specificity = cond.filter(Boolean).length + (sceneSet ? 1 : 0) + leads.filter(Boolean).length;
+    parsed.push({ id: r.id, line: r.__line, text: r.line, cond, scenes: sceneSet, leads, offScene, priority, specificity, choices, bad, raw: r });
   }
   // next targets
   for (const row of parsed) for (const ch of row.choices) {
@@ -683,19 +735,21 @@ export function checkBeats(line, diag, rel, at) {
 }
 
 // ---------------------------------------------------------------- completeness
-function rowMatches(row, v, scene) {
+function rowMatches(row, v, scene, lead = LEAD_COMBOS[0]) {
   if (row.scenes && !row.scenes.has(scene)) return false;
+  // SPEC "Leads": a row with a usLead/homeLead cell only matches rooms with that lead
+  if (row.leads && ((row.leads[0] && row.leads[0] !== lead[0]) || (row.leads[1] && row.leads[1] !== lead[1]))) return false;
   for (let i = 0; i < 6; i++) if (row.cond[i] && !row.cond[i].has(v[i])) return false;
   return true;
 }
-/** Winning row per cell for one scene (scene null = "anywhere": only rows with a blank scene cell match). */
-function winnersFor(usable, scene) {
+/** Winning row per cell for one scene (scene null = "anywhere": only rows with a blank scene cell match) and one lead combination. */
+function winnersFor(usable, scene, lead = LEAD_COMBOS[0]) {
   const winners = new Array(NCELLS);
   for (let c = 0; c < NCELLS; c++) {
     const v = cellVector(c);
     let best = [];
     for (const r of usable) {
-      if (!rowMatches(r, v, scene)) continue;
+      if (!rowMatches(r, v, scene, lead)) continue;
       if (!best.length || r.priority > best[0].priority || (r.priority === best[0].priority && r.specificity > best[0].specificity)) best = [r];
       else if (r.priority === best[0].priority && r.specificity === best[0].specificity) best.push(r);
     }
@@ -719,25 +773,34 @@ function analyseCompleteness(sheet, diag, scenes) {
   const winCount = new Map(rows.map(r => [r.id, 0]));
   const ties = new Map(); // key -> {rows, cells (max per scene), scenes}
   const perScene = [];
-  const byScene = new Map();
+  const byScene = new Map(); // scene -> winners in a pro/pro room (the baseline the reports show)
+  const byLead = new Map();  // leadKey(scene, [us, home]) -> winners (SPEC "Leads": every room must be served, ties anywhere are errors)
+  const hasLeadRows = usable.some(r => r.leads && (r.leads[0] || r.leads[1]));
+  const combos = hasLeadRows ? LEAD_COMBOS : [LEAD_COMBOS[0]];
   for (const sc of scope) {
-    const winners = winnersFor(usable, sc);
-    byScene.set(sc, winners);
-    let noMatch = 0, served = 0;
+    let noMatch = 0, served = NCELLS;
     const local = new Map();
-    for (let c = 0; c < NCELLS; c++) {
-      const w = winners[c];
-      if (!w) { noMatch++; continue; }
-      winCount.set(w.row.id, winCount.get(w.row.id) + 1);
-      if (w.tie) {
-        const key = w.tie.map(r => r.id).join('|');
-        if (!local.has(key)) local.set(key, { rows: w.tie, cells: [] });
-        local.get(key).cells.push(c);
+    for (const lead of combos) {
+      const winners = winnersFor(usable, sc, lead);
+      byLead.set(leadKey(sc, lead), winners);
+      if (lead === LEAD_COMBOS[0]) byScene.set(sc, winners);
+      let nm = 0, sv = 0;
+      for (let c = 0; c < NCELLS; c++) {
+        const w = winners[c];
+        if (!w) { nm++; continue; }
+        winCount.set(w.row.id, winCount.get(w.row.id) + 1);
+        if (w.tie) {
+          const key = w.tie.map(r => r.id).join('|');
+          if (!local.has(key)) local.set(key, { rows: w.tie, cells: [], lead });
+          local.get(key).cells.push(c);
+        }
+        if (w.row !== fallback) sv++;
       }
-      if (w.row !== fallback) served++;
+      noMatch = Math.max(noMatch, nm); served = Math.min(served, sv);
     }
+    if (!hasLeadRows) for (const lead of LEAD_COMBOS.slice(1)) byLead.set(leadKey(sc, lead), byScene.get(sc));
     for (const [key, t] of local) {
-      if (!ties.has(key)) ties.set(key, { rows: t.rows, cells: t.cells.length, example: t.cells[0], scenes: [] });
+      if (!ties.has(key)) ties.set(key, { rows: t.rows, cells: t.cells.length, example: t.cells[0], lead: t.lead, scenes: [] });
       const g = ties.get(key);
       g.cells = Math.max(g.cells, t.cells.length);
       g.scenes.push(sc);
@@ -748,7 +811,7 @@ function analyseCompleteness(sheet, diag, scenes) {
   const where = (list) => sheet.located && list[0] != null ? ` in ${list.length === scope.length && scope.length > 1 ? 'every scene' : `scene ${list.join(', ')}`}` : '';
   for (const t of ties.values()) {
     diag.error('TIE', rel, { line: t.rows[0].line, row: t.rows.map(r => r.id).join(',') },
-      `rows ${t.rows.map(r => r.id).join(', ')} tie (priority ${t.rows[0].priority}, specificity ${t.rows[0].specificity}) in ${t.cells} cell(s)${where(t.scenes)}, e.g. ${cellLabel(t.example)}`, { cells: t.cells, scenes: t.scenes.filter(x => x != null) });
+      `rows ${t.rows.map(r => r.id).join(', ')} tie (priority ${t.rows[0].priority}, specificity ${t.rows[0].specificity}) in ${t.cells} cell(s)${where(t.scenes)}, e.g. ${cellLabel(t.example)}${hasLeadRows ? `, usLead=${t.lead[0]}, homeLead=${t.lead[1]}` : ''}`, { cells: t.cells, scenes: t.scenes.filter(x => x != null) });
   }
   const worst = perScene.reduce((a, b) => (b.noMatch > a.noMatch ? b : a), perScene[0]);
   if (worst.noMatch) diag.error('NO_MATCH', rel, {}, `${worst.noMatch} of ${NCELLS} cells match no row at all${where([worst.scene])}`);
@@ -761,18 +824,18 @@ function analyseCompleteness(sheet, diag, scenes) {
     neverWins.push(r.id);
     if (r.offScene) continue; // already reported as SCENE_NOT_APPEARED
     // find who shadows it (in a scene the row can match)
-    let anyCell = -1, anyScene = null;
+    let anyCell = -1, anyScene = null, anyLead = LEAD_COMBOS[0];
     for (const sc of scope) {
-      for (let c = 0; c < NCELLS && anyCell < 0; c++) if (rowMatches(r, cellVector(c), sc)) { anyCell = c; anyScene = sc; }
+      for (const lead of combos) for (let c = 0; c < NCELLS && anyCell < 0; c++) if (rowMatches(r, cellVector(c), sc, lead)) { anyCell = c; anyScene = sc; anyLead = lead; }
       if (anyCell >= 0) break;
     }
-    const w = anyCell >= 0 ? byScene.get(anyScene)[anyCell] : null;
+    const w = anyCell >= 0 ? byLead.get(leadKey(anyScene, anyLead))[anyCell] : null;
     diag.warn('NEVER_WINS', rel, { line: r.line, row: r.id }, anyCell < 0 ? (r.scenes ? 'row matches no cell in any scene this NPC appears in' : 'row matches no cell') : `row never wins any cell (shadowed; e.g. ${w ? w.row.id : '?'} wins at ${cellLabel(anyCell)}${where([anyScene])})`);
   }
   // headline numbers: the weakest scene (a sheet is only as complete as its least-covered scene)
   const minScene = perScene.reduce((a, b) => (b.coverage < a.coverage ? b : a), perScene[0]);
   return {
-    winners: byScene.get(minScene.scene), byScene, scope, perScene, fallback,
+    winners: byScene.get(minScene.scene), byScene, byLead, scope, perScene, fallback,
     coverage: minScene.coverage, served: minScene.served, noMatch: worst.noMatch,
     ties: [...ties.values()].map(t => ({ rows: t.rows.map(r => r.id), cells: t.cells, scenes: t.scenes.filter(x => x != null) })),
     neverWins, winCount: Object.fromEntries(winCount), nextTargets,
@@ -929,8 +992,28 @@ function analyseReachability(npc, sheet, comp, events, invitedExternally, diag, 
   for (const [id, bit] of inviteBit) if (invitedExternally.has(id)) startMask |= bit;
   const canTalk = talkScenes.length > 0;
   const depthCache = new Map();
-  const free = searchNpc(npc, sheet, comp, myEvents, inviteBit, startMask, talkScenes, null);
-  const lim = searchNpc(npc, sheet, comp, myEvents, inviteBit, startMask, talkScenes, maxTalks);
+  // SPEC "Leads": rows written for one lead win only in those rooms, so the search runs once per distinct winner table
+  // (usually one or two of the four lead combinations) and a row counts as reachable when some room reaches it
+  const views = [];
+  const seenView = new Set();
+  for (const lead of LEAD_COMBOS) {
+    const byScene = new Map(talkScenes.map(sc => [sc, comp.byLead?.get(leadKey(sc, lead)) ?? comp.byScene.get(sc)]));
+    const sig = talkScenes.map(sc => byScene.get(sc).map(w => (w ? w.row.id : '')).join(',')).join(';');
+    if (seenView.has(sig)) continue;
+    seenView.add(sig);
+    views.push({ ...comp, byScene });
+  }
+  const merge = (runs) => {
+    const out = { cellCost: runs[0].cellCost.slice(), rows: {}, reachableStates: 0 };
+    for (const run of runs) {
+      run.cellCost.forEach((c, i) => { if (c < out.cellCost[i]) out.cellCost[i] = c; });
+      out.reachableStates = Math.max(out.reachableStates, run.reachableStates);
+      for (const [id, r] of Object.entries(run.rows)) if (!out.rows[id] || (r.cost != null && (out.rows[id].cost == null || r.cost < out.rows[id].cost))) out.rows[id] = r;
+    }
+    return out;
+  };
+  const free = merge(views.map(v => searchNpc(npc, sheet, v, myEvents, inviteBit, startMask, talkScenes, null)));
+  const lim = merge(views.map(v => searchNpc(npc, sheet, v, myEvents, inviteBit, startMask, talkScenes, maxTalks)));
   const rowsOut = {};
   const unreachable = [], overBudget = [], limitUnreachable = [];
   for (const r of sheet.rows) {
@@ -942,7 +1025,7 @@ function analyseReachability(npc, sheet, comp, events, invitedExternally, diag, 
       ...(a.cost !== b.cost ? { costNoLimit: a.cost, witnessNoLimit: a.witness } : {}),
     };
     if (!canTalk || comp.neverWins.includes(r.id)) continue; // never-win rows are reported once, as NEVER_WINS
-    const talkWins = talkScenes.some(sc => comp.byScene.get(sc).some(w => w && w.row === r)) || comp.nextTargets.has(r.id);
+    const talkWins = views.some(v => talkScenes.some(sc => v.byScene.get(sc).some(w => w && w.row === r))) || comp.nextTargets.has(r.id);
     if (a.cost == null && !talkWins) {
       // it only wins in scenes where this NPC is met through events (e.g. a visit at home): no conversation starts there
       const only = comp.scope.filter(sc => sc != null && !talkScenes.includes(sc) && comp.byScene.get(sc).some(w => w && w.row === r));
@@ -960,6 +1043,95 @@ function analyseReachability(npc, sheet, comp, events, invitedExternally, diag, 
   }
   if (!canTalk) diag.info('NO_APPEARANCES', rel, {}, `NPC ${npc.id} has no appearances, so dialogue can never start; reachability not enforced`);
   return { cellCost: lim.cellCost, rows: rowsOut, unreachable, limitUnreachable, overBudget, reachableStates: lim.reachableStates, canTalk };
+}
+
+// ---------------------------------------------------------------- SPEC "Town hall" (added 2026-10-19)
+/**
+ * townhall.yaml (moderator text, topic board) and townhall/<npcId>.csv for every NPC with `lead`. Returns the
+ * player-facing texts for the pack checks ({speaker} is a known placeholder in moderator.introduce only).
+ */
+function validateTownhall(files, diag, npcs) {
+  const leads = [...npcs.values()].filter(n => n.lead != null);
+  const texts = [];
+  const add = (rel, loc, pack, field, text, extraVars = []) => { if (text) texts.push({ rel, loc, pack, field, text: String(text), extraVars }); };
+  const rel = 'townhall.yaml';
+  if (files[rel] == null) {
+    if (leads.length) diag.warn('MISSING_FILE', rel, {}, 'no townhall.yaml: the engine runs the town hall with its built-in moderator text and one topic');
+  } else {
+    const y = readYaml(files[rel], rel, diag);
+    if (y) {
+      const md = y.doc?.moderator;
+      if (!md || typeof md !== 'object') diag.error('SCHEMA', rel, { path: 'moderator' }, 'missing moderator block (name, open, introduce, rate, callUp, close)');
+      else for (const k of ['name', 'open', 'introduce', 'rate', 'callUp', 'close']) {
+        if (typeof md[k] !== 'string' || !md[k].trim()) diag.error('SCHEMA', rel, { path: `moderator.${k}` }, `moderator.${k}: missing text`);
+        else { if (k !== 'name') checkBeats(md[k], diag, rel, { path: `moderator.${k}` }); add(rel, { path: `moderator.${k}` }, null, k, md[k], k === 'introduce' ? ['speaker'] : []); }
+      }
+      const topics = y.doc?.topics;
+      if (!Array.isArray(topics) || !topics.length) diag.error('SCHEMA', rel, { path: 'topics' }, 'topics must be a non-empty list');
+      else {
+        const seen = new Set();
+        topics.forEach((t, i) => {
+          const p = `topics[${i}]`;
+          if (!t || typeof t !== 'object') { diag.error('SCHEMA', rel, { path: p }, 'expected a mapping'); return; }
+          if (!/^\w+$/.test(String(t.id ?? ''))) diag.error('BAD_VALUE', rel, { path: `${p}.id` }, `topic id "${t.id}" must be a word`);
+          if (seen.has(t.id)) diag.error('DUPLICATE_ID', rel, { path: `${p}.id` }, `duplicate topic id "${t.id}"`);
+          seen.add(t.id);
+          for (const k of ['title', 'prompt']) { if (typeof t[k] !== 'string' || !t[k].trim()) diag.error('SCHEMA', rel, { path: `${p}.${k}` }, `topic needs ${k}`); else add(rel, { path: `${p}.${k}` }, null, k, t[k]); }
+          const opts = Array.isArray(t.options) ? t.options : [];
+          if (opts.length < 2) diag.error('SCHEMA', rel, { path: `${p}.options` }, 'a topic needs at least two options');
+          const stances = new Set();
+          opts.forEach((o, j) => {
+            if (!o || typeof o.text !== 'string' || !o.text.trim()) diag.error('SCHEMA', rel, { path: `${p}.options[${j}].text` }, 'option needs text');
+            else add(rel, { path: `${p}.options[${j}].text` }, null, 'option', o.text);
+            if (!TOPIC_STANCES.includes(o?.stance)) diag.error('BAD_VALUE', rel, { path: `${p}.options[${j}].stance` }, `stance "${o?.stance}"; expected ${TOPIC_STANCES.join('|')}`);
+            else stances.add(o.stance);
+          });
+          const missing = TOPIC_STANCES.filter(s => !stances.has(s));
+          if (opts.length >= 2 && missing.length) diag.warn('TOPIC_STANCES', rel, { path: `${p}.options` }, `topic "${t.id}" offers no ${missing.join(', ')} option; every topic should let the player take each stance (the codes are the measure)`);
+        });
+      }
+    }
+  }
+  for (const n of leads) {
+    const trel = `townhall/${n.id}.csv`;
+    const rows = readCsv(files[trel], trel, TOWNHALL_COLUMNS, diag, false);
+    if (!rows) { diag.error('TOWNHALL_SHEET', trel, {}, `${n.id} is a lead (lead: ${n.lead}) but has no town hall sheet; the moderator reads a stand-in line`); continue; }
+    const seen = new Set();
+    const speech = { enforcement: new Set(), inclusive: new Set() };
+    let fallbackReaction = false;
+    const reactions = { enforcement: new Set(), inclusive: new Set() };
+    for (const r of rows) {
+      const loc = (column) => ({ line: r.__line, row: r.id || undefined, column });
+      if (!r.id) { diag.error('SCHEMA', trel, loc('id'), 'missing id'); continue; }
+      if (seen.has(r.id)) diag.error('DUPLICATE_ID', trel, loc('id'), `duplicate id "${r.id}"`);
+      seen.add(r.id);
+      if (!['speech', 'reaction'].includes(r.kind)) { diag.error('BAD_VALUE', trel, loc('kind'), `"${r.kind}"; expected speech|reaction`); continue; }
+      if (r.nationalLeader && !DIMS[3].values.includes(r.nationalLeader)) diag.error('BAD_VALUE', trel, loc('nationalLeader'), `"${r.nationalLeader}"; expected enforcement|inclusive or blank`);
+      const presidents = r.nationalLeader && DIMS[3].values.includes(r.nationalLeader) ? [r.nationalLeader] : DIMS[3].values;
+      if (r.kind === 'speech') {
+        if (!/^[1-4]$/.test(r.block)) diag.error('BAD_VALUE', trel, loc('block'), `"${r.block}"; a speech needs block 1..4`);
+        else for (const p of presidents) speech[p].add(+r.block);
+        if (r.stance) diag.error('SCHEMA', trel, loc('stance'), 'a speech has no stance (stance is for reactions)');
+      } else {
+        if (r.block) diag.warn('SCHEMA', trel, loc('block'), 'a reaction has no block');
+        if (r.stance && !TOPIC_STANCES.includes(r.stance)) diag.error('BAD_VALUE', trel, loc('stance'), `"${r.stance}"; expected ${TOPIC_STANCES.join('|')} or blank (fallback)`);
+        if (!r.stance && !r.nationalLeader) fallbackReaction = true;
+        if (r.stance && TOPIC_STANCES.includes(r.stance)) for (const p of presidents) reactions[p].add(r.stance);
+      }
+      if (r.emotion && !EMOTIONS.includes(r.emotion)) diag.error('BAD_VALUE', trel, loc('emotion'), `"${r.emotion}"; expected ${EMOTIONS.join('|')} or blank`);
+      if (r.emotion && Array.isArray(n.emotions) && !n.emotions.includes(r.emotion)) diag.error('EMOTION_FORBIDDEN', trel, loc('emotion'), `${n.id} has no "${r.emotion}" bust`);
+      if (!r.text) diag.error('SCHEMA', trel, loc('text'), 'missing text');
+      else { checkBeats(r.text, diag, trel, loc('text')); add(trel, loc('text'), n.pack === 'shared' ? null : n.pack, 'text', r.text); }
+    }
+    for (const p of DIMS[3].values) {
+      if (!speech[p].has(1)) diag.error('TOWNHALL_GAP', trel, {}, `no speech block 1 under nationalLeader ${p} (a blank nationalLeader serves both)`);
+      for (let b = 2; b <= 4; b++) if (speech[p].has(b) && !speech[p].has(b - 1)) diag.error('TOWNHALL_GAP', trel, {}, `speech block ${b} under ${p} but no block ${b - 1}; blocks are read in order`);
+      const miss = TOPIC_STANCES.filter(s => !reactions[p].has(s));
+      if (miss.length) diag.info('TOWNHALL_GAP', trel, {}, `no reaction row for a ${miss.join('/')} player under ${p}; the fallback reaction is read`);
+    }
+    if (!fallbackReaction) diag.error('TOWNHALL_GAP', trel, {}, 'no fallback reaction (kind reaction, stance and nationalLeader blank)');
+  }
+  return { texts };
 }
 
 // ---------------------------------------------------------------- main
@@ -1052,7 +1224,7 @@ export function checkContent(input) {
   }
   const sheets = new Map();
   for (const id of npcs.keys()) {
-    const s = validateDialogue(files, id, diag, eventIds, scenes, new Set(metScenesOf.get(id)));
+    const s = validateDialogue(files, id, diag, eventIds, scenes, new Set(metScenesOf.get(id)), npcs.get(id));
     if (s) sheets.set(id, s);
     else if (npcs.get(id).appearances.length) diag.error('MISSING_SHEET', `dialogue/${id}.csv`, {}, `NPC ${id} appears in scenes but has no dialogue sheet`);
   }
@@ -1066,8 +1238,30 @@ export function checkContent(input) {
     if (e.trigger !== 'invite' && inviteSources.has(e.id)) diag.warn('INVITE_TRIGGER', 'events.csv', { line: e.__line, row: e.id, column: 'trigger' }, `event is invited (by ${[...inviteSources.get(e.id)].join(', ')}) but its trigger is "${e.trigger}", not invite`);
   }
 
+  // SPEC "Leads": a line that names a lead literally ("Mr. Guo") in a row that is not conditioned on that lead reads oddly
+  // when the other leader leads; use {homeLead}/{usLead}, or condition the row. Info only: both leaders still exist in town.
+  {
+    const leads = [...npcs.values()].filter(n => n.lead != null && (n.called || n.name));
+    for (const [id, s] of sheets) {
+      const npc = npcs.get(id);
+      for (const L of leads) {
+        if (L.id === id) continue;
+        if (!(L.pack === 'shared' || npc.pack === 'shared' || L.pack === npc.pack)) continue;
+        const side = L.pack === 'shared' ? 0 : 1;
+        const names = [...new Set([L.called, L.name].filter(Boolean))];
+        const re = new RegExp(`(^|[^\\w])(${names.map(x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})(?![\\w])`);
+        for (const r of s.rows) {
+          if (r.bad || (r.leads && r.leads[side])) continue;
+          const text = [r.text, r.raw?.choice1, r.raw?.choice2, r.raw?.choice3].filter(Boolean).join(' ');
+          if (re.test(text)) diag.info('LEAD_LITERAL', s.rel, { line: r.line, row: r.id }, `names ${L.called || L.name} (${L.id}, lead ${L.lead}) but has no ${side ? 'homeLead' : 'usLead'} condition; in rooms where the other leader leads this still reads as written. Use {${side ? 'homeLead' : 'usLead'}} if the line means "whoever leads", or set ${side ? 'homeLead' : 'usLead'}=${L.lead} if it is about this person as the lead`);
+        }
+      }
+    }
+  }
+  // SPEC "Town hall": townhall.yaml and one speech/reaction sheet per lead
+  const townhall = validateTownhall(files, diag, npcs);
   // SPEC "Packs": the pack column of events/news, per-pack strings and placeholders, PACK_LEAK (packs.mjs)
-  checkPacks({ files, diag, scenes, npcs, events, news: newsRows, sheets });
+  checkPacks({ files, diag, scenes, npcs, events, news: newsRows, sheets, townhall });
 
   const npcResults = [];
   for (const [id, npc] of npcs) {

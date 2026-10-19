@@ -4,7 +4,8 @@ import * as yaml from 'js-yaml';
 
 const PACKS = ['cn', 'mx', 'in'];
 /** Placeholders the engine fills for every player; `pack.<pack>.<name>` strings add per-pack ones. */
-const BUILTIN_VARS = ['homeCulture', 'playerName', 'leaderName'];
+// SPEC "Leads": {usLead}/{homeLead} = how people refer to the room's first-among-equals on each side; *Full = full name
+const BUILTIN_VARS = ['homeCulture', 'playerName', 'leaderName', 'usLead', 'homeLead', 'usLeadFull', 'homeLeadFull'];
 
 /** A strings.en.json key: `pack.<pack>.<name>` or `pack.<pack>|<dim>=<value>[|...].<name>` (SPEC "Profile questions and variant words"). */
 export const PACK_KEY = /^pack\.([^.|]+)((?:\|\w+=\w+)*)\.(\w+)$/;
@@ -101,7 +102,7 @@ export function findLeaks(text, matchers, own = null) {
  * input: { files, diag, scenes (Map), npcs (Map), events (validated rows), news (rows), sheets (Map npcId -> sheet) }
  * Adds BAD_VALUE / PACK_MISMATCH / PACK_GAP for the `pack` columns, UNKNOWN_VAR for placeholders, and PACK_LEAK.
  */
-export function checkPacks({ files, diag, scenes, npcs, events, news, sheets }) {
+export function checkPacks({ files, diag, scenes, npcs, events, news, sheets, townhall = null }) {
   const scenePack = (id) => { const p = scenes.get(id)?.pack; return PACKS.includes(p) ? p : null; };
   const npcPack = (id) => { const p = npcs.get(id)?.pack; return PACKS.includes(p) ? p : null; };
 
@@ -199,6 +200,8 @@ export function checkPacks({ files, diag, scenes, npcs, events, news, sheets }) 
     // the street lists an exit only to scenes open to the player
     for (const [j, e] of (Array.isArray(sc.exits) ? sc.exits : []).entries()) if (e) add('scenes.yaml', at(`exits[${j}].label`), pack || scenePack(e.to), 'label', e.label);
   }
+  // SPEC "Town hall": moderator text, topics and the leads' speeches (townhall.yaml, townhall/<npcId>.csv)
+  for (const t of townhall?.texts ?? []) texts.push(t);
   if (strings) for (const [k, v] of Object.entries(strings)) {
     if (k.startsWith('culture.') || typeof v !== 'string') continue; // the culture names are labels, shown on purpose
     const m = PACK_KEY.exec(k);
@@ -221,7 +224,7 @@ export function checkPacks({ files, diag, scenes, npcs, events, news, sheets }) 
     const known = new Set([...BUILTIN_VARS, ...allVarNames]);
     for (const t of texts) {
       if (t.rel === 'strings.en.json' || t.rel.startsWith('questionnaire/')) continue; // UI strings and {H}/{M} have their own placeholders
-      const unknown = [...new Set([...t.text.matchAll(/\{(\w+)\}/g)].map(m => m[1]).filter(n => !known.has(n)))];
+      const unknown = [...new Set([...t.text.matchAll(/\{(\w+)\}/g)].map(m => m[1]).filter(n => !known.has(n) && !(t.extraVars || []).includes(n)))];
       if (unknown.length) diag.warn('UNKNOWN_VAR', t.rel, t.loc, `{${unknown.join('}, {')}} is not filled by the engine (known: ${[...known].map(n => `{${n}}`).join(' ')}; add pack.<pack>.<name> strings for a per-pack word)`);
     }
   }

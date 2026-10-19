@@ -22,6 +22,7 @@ const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'gv-assets-'));
 const BACKGROUNDS = {
   bg_home_day: 'warm_indoor', bg_home_eve: 'warm_indoor',
   bg_center_cn_day: 'warm_indoor', bg_center_mx_day: 'warm_indoor', bg_center_in_day: 'warm_indoor',
+  bg_townhall_eve: 'warm_indoor',
   bg_library_day: 'warm_indoor', bg_clinic_day: 'cool_indoor', bg_work_day: 'cool_indoor', bg_park_day: 'outdoor',
   bg_park_chess_day: 'outdoor',
   bg_park_game_day: 'outdoor', // scenes.yaml park `occupied`: the chess game in progress, drawn while someone sits at the board

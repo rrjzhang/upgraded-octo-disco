@@ -351,6 +351,21 @@ scenes:
       - { id: mid_right, x: 0.51, y: 0.86 }  # on the open floor, centre, in the foreground (left of by_board, clear of the board)
       - { id: seated_hall, x: 0.52, y: 0.53, seated: true }   # on a stool pulled up in front of the stage's middle
 
+  # SPEC "Town hall" (added 2026-10-19): the day-5 closing scene. `hidden: true` = the player never walks here; the
+  # engine enters it from bed on the last day and leaves it for the end-of-day call. One slot: the person at the podium.
+  - id: townhall
+    name: Town Hall
+    community: neutral
+    hidden: true
+    background: bg_townhall_eve
+    lighting: warm_indoor
+    horizon: 0.36        # a school gym or library meeting room seen from a seat in the second row; the podium a little above eye level
+    description: "The library's meeting room, every folding chair taken. A campaign banner for the governor hangs crooked behind a podium. Someone's phone keeps buzzing."
+    exits: []
+    hotspots: []
+    slots:
+      - { id: podium, x: 0.50, y: 0.78 }   # standing behind the podium, centre; feet hidden by it in the finished background
+
   - id: street
     name: Street
     community: neutral

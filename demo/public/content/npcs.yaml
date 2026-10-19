@@ -47,12 +47,42 @@ npcs:
       - { scene: library, slot: armchair, chance: 0.25 }
     initial: { met: false, rapport: 0, lastValence: none }
 
+  # SPEC "Leads" (2026-10-19): the one person in town who is never warm to the player. Not a bigot; a tired man who
+  # treats everyone as a problem to be processed. maxRapport 1 and three busts (no warm one), enforced by the checker.
+  - id: us_super
+    name: Vic Hollis
+    pack: shared
+    community: us
+    role: stranger
+    stance: none
+    called: "Vic"
+    maxRapport: 1
+    emotions: [neutral, guarded, worried]
+    profile:
+      integrationLean: 4
+      warmth: 1
+      talkative: 4
+      backstory: "Building superintendent for the three walk-ups on Grand, the player's among them, for nineteen years. Divorced, lives in the basement unit with a police scanner on low. Keeps a notebook of every complaint and every late fee. Has had tenants from everywhere and remembers each one by what they broke."
+      motivation: "Wants the player to be no trouble: rent on time, no noise, no guests on the stairs, no questions he has to answer twice."
+      voice: "Short sentences, no greetings, starts with the problem. Says 'tenant', not names. Never raises his voice, never jokes, never says thank you. Not about culture: he is like this with Dana too."
+      topics: [the boiler, the recycling, the front door that does not latch, the lease, who is parking in the alley, the landlord who never calls back]
+      avoid: [anything about where the player is from, politics, small talk]
+    portrait: ch_us_super
+    figure: ch_us_super_fig_stand
+    seated: false
+    appearances:
+      - { scene: clinic, slot: by_cooler, chance: 0.35 }   # blood pressure, every other week, under protest
+      - { scene: park, slot: path_far, chance: 0.3 }       # smoking where the landlord cannot see him
+    initial: { met: false, rapport: 0, lastValence: none }
+
   - id: us_leader_int
     name: Ruth Hale
     pack: shared
     community: us
     role: local_leader
     stance: integration
+    lead: pro            # SPEC "Leads": pro-integration leader of this side; the room picks which one leads
+    called: "Ruth"
     portrait: ch_us_leader_int
     figure: ch_us_leader_int_fig_stand
     seated: false
@@ -65,8 +95,8 @@ npcs:
     name: Gary Pruitt
     pack: shared
     community: us
-    role: local_leader
-    stance: separation
+    role: stranger        # demoted 2026-10-19 (SPEC "Leads"): an ordinary person now, no stance, no invitations expected
+    stance: none
     portrait: ch_us_leader_seg
     figure: ch_us_leader_seg_fig_stand
     seated: false
@@ -156,6 +186,8 @@ npcs:
     community: home
     role: local_leader
     stance: integration
+    lead: pro            # SPEC "Leads": pro-integration leader of this side; the room picks which one leads
+    called: "Dr. Zhou"
     portrait: ch_cn_leader_int
     figure: ch_cn_leader_int_fig_stand
     seated: false
@@ -170,12 +202,13 @@ npcs:
     community: home
     role: local_leader
     stance: separation
+    lead: anti            # SPEC "Leads": anti-integration leader of this side; the room picks which one leads
+    called: "Mr. Guo"
     portrait: ch_cn_leader_sep
     figure: ch_cn_leader_sep_fig_stand
     seated: false
     appearances:
       - { scene: center_cn, slot: near, chance: 0.75 }
-      - { scene: park, slot: by_lamp, chance: 0.2 }
     initial: { met: false, rapport: 0, lastValence: none }
 
   # ---- Assimilation leaders (SPEC "Culture packs, stances and the assimilation leaders", 2026-10-18 evening) ----
@@ -188,6 +221,8 @@ npcs:
     community: us
     role: local_leader
     stance: assimilation
+    lead: anti            # SPEC "Leads": anti-integration leader of this side; the room picks which one leads
+    called: "Frank"
     profile:
       integrationLean: 8
       warmth: 6
@@ -209,8 +244,8 @@ npcs:
     name: Alan Fong
     pack: cn
     community: home
-    role: local_leader
-    stance: assimilation
+    role: stranger        # demoted 2026-10-19 (SPEC "Leads"): an ordinary person now, no stance, no invitations expected
+    stance: none
     profile:
       integrationLean: 8
       warmth: 5
@@ -303,8 +338,8 @@ npcs:
     name: Ray Treviño
     pack: mx
     community: home
-    role: local_leader
-    stance: assimilation
+    role: stranger        # demoted 2026-10-19 (SPEC "Leads"): an ordinary person now, no stance, no invitations expected
+    stance: none
     profile:
       integrationLean: 8
       warmth: 5
@@ -328,6 +363,8 @@ npcs:
     community: home
     role: local_leader
     stance: integration
+    lead: pro            # SPEC "Leads": pro-integration leader of this side; the room picks which one leads
+    called: "Pilar"
     profile:
       integrationLean: 7
       warmth: 8
@@ -351,6 +388,8 @@ npcs:
     community: home
     role: local_leader
     stance: separation
+    lead: anti            # SPEC "Leads": anti-integration leader of this side; the room picks which one leads
+    called: "Don Aurelio"
     profile:
       integrationLean: 2
       warmth: 5
@@ -365,7 +404,6 @@ npcs:
     seated: false
     appearances:
       - { scene: center_mx, slot: near, chance: 0.75 }
-      - { scene: park, slot: by_lamp, chance: 0.2 }
     initial: { met: false, rapport: 0, lastValence: none }
 
   # ---- in pack: India Association Hall (center_in) ----
@@ -443,8 +481,8 @@ npcs:
     name: Anil Bhatt
     pack: in
     community: home
-    role: local_leader
-    stance: assimilation
+    role: stranger        # demoted 2026-10-19 (SPEC "Leads"): an ordinary person now, no stance, no invitations expected
+    stance: none
     profile:
       integrationLean: 8
       warmth: 5
@@ -468,6 +506,8 @@ npcs:
     community: home
     role: local_leader
     stance: integration
+    lead: pro            # SPEC "Leads": pro-integration leader of this side; the room picks which one leads
+    called: "Meena"
     profile:
       integrationLean: 7
       warmth: 8
@@ -491,6 +531,8 @@ npcs:
     community: home
     role: local_leader
     stance: separation
+    lead: anti            # SPEC "Leads": anti-integration leader of this side; the room picks which one leads
+    called: "Mr. Deshpande"
     profile:
       integrationLean: 2
       warmth: 4
@@ -505,5 +547,4 @@ npcs:
     seated: false
     appearances:
       - { scene: center_in, slot: near, chance: 0.75 }
-      - { scene: park, slot: by_lamp, chance: 0.2 }
     initial: { met: false, rapport: 0, lastValence: none }
