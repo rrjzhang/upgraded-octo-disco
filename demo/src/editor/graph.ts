@@ -4,6 +4,7 @@
 import { parseEffects, sceneList } from '../../tools/checker/core.mjs';
 import { h } from './dom';
 import type { Row } from './csv';
+import './graph.css';
 
 const NS = 'http://www.w3.org/2000/svg';
 const W = 172;         // node width
@@ -13,6 +14,13 @@ const COL = W + 124;   // column pitch (node + room for edge labels)
 const PORT = (k: number) => 15 + (k - 1) * 14; // y of choice k's port on the node's right edge
 const STUB = 30;       // exit stub length
 const READABLE = 0.8;  // smallest zoom the first view uses
+// focus view (a clicked row spread out with its full line, its choices and their targets)
+const FW = 330;        // focused card width
+const PW = 220;        // card width of a row that leads here
+const CW = 260;        // choice card width
+const TW = 220;        // card width of a row a choice leads to
+const G_IN = 54, G_OUT = 54, G_TGT = 46, G_STACK = 14;
+const CONDS = ['met', 'rapport', 'lastValence', 'nationalLeader', 'playerLean', 'dayPhase'] as const;
 export const EMOTION_COLOR: Record<string, string> = { neutral: '#9a9283', warm: '#c2563f', guarded: '#3d6e95', worried: '#7a5ca8' };
 
 type Attrs = Record<string, string | number>;
@@ -38,6 +46,43 @@ function excerpt(line: string): string[] {
 
 export interface GNode { i: number; id: string; row: Row; layer: number; x: number; y: number; entry: boolean; fallback: boolean; flagged: boolean; wins: number; incoming: GEdge[]; outgoing: GEdge[] }
 export interface GEdge { from: number; k: number; to: number | null; next: string; text: string; effect: string; kind: 'fwd' | 'back' | 'exit' | 'dangling' }
+/** a line's markup made readable: one block per `$` beat, a leading [tag] as an emotion chip, `_stage_` / `*stage*` in italics
+ *  on its own line, {placeholders} marked */
+function lineBlocks(line: string, emotion: string): HTMLElement[] {
+  const beats = (line || '').split('$');
+  return beats.map((raw, j) => {
+    let t = raw.trim();
+    let emo = emotion;
+    const tag = /^\[(\w+)\]\s*/.exec(t);
+    if (tag) { emo = tag[1]; t = t.slice(tag[0].length); }
+    const el = h('div', { class: 'gf-beat' });
+    if (beats.length > 1 || tag) el.append(h('span', { class: `gf-emo${tag ? ' tagged' : ''}`, style: `--c:${EMOTION_COLOR[emo] ?? '#c9c1ae'}`, text: `${beats.length > 1 ? `beat ${j + 1}/${beats.length} · ` : ''}${emo || 'no emotion'}` }));
+    // split out stage directions (opening mark after a space or start, closing mark before space, punctuation or end)
+    const re = /(^|\s)([_*])([^_*]+?)\2(?=[\s.,;:!?)\u2014-]|$)/g;
+    let last = 0, m: RegExpExecArray | null;
+    const parts: HTMLElement[] = [];
+    let para = h('p', { class: 'gf-say' });
+    const flush = () => { if (para.textContent!.trim()) parts.push(para); para = h('p', { class: 'gf-say' }); };
+    while ((m = re.exec(t))) {
+      para.append(...marked(t.slice(last, m.index + m[1].length)));
+      flush();
+      parts.push(h('p', { class: 'gf-stage', text: m[3].trim() }));
+      last = m.index + m[0].length;
+    }
+    para.append(...marked(t.slice(last)));
+    flush();
+    if (!parts.length) parts.push(h('p', { class: 'gf-say muted', text: '(empty)' }));
+    el.append(...parts);
+    return el;
+  });
+}
+/** text with {placeholders} wrapped in a marker */
+function marked(t: string): (string | HTMLElement)[] {
+  return t.split(/(\{[^}]*\})/).filter(Boolean).map((p) => (/^\{[^}]*\}$/.test(p) ? h('span', { class: 'gf-ph', text: p }) : p));
+}
+const costOf = (effect: string) => parseEffects(effect).ops.reduce((n: number, o: { op: string; v: number }) => (o.op === 'cost' ? n + o.v : n), 0);
+const effectSummary = (effect: string) => effect.split(';').map((x) => x.trim()).filter(Boolean).join(' · ');
+
 export interface GraphInput { rows: Row[]; winCount?: Record<string, number>; fallback?: string | null }
 
 /** Layout: longest-path layering over the acyclic part (entry rows pinned to column 0), barycentre ordering, y aligned to the source port. */
@@ -152,6 +197,14 @@ export class ConvGraph {
   private nodeEls = new Map<number, SVGGElement>();
   private edgeEls: { e: GEdge; el: SVGElement }[] = [];
   private ro: ResizeObserver;
+  /** focused row (spread-out view), -1 = overview */
+  private focus = -1;
+  /** overview transform to return to when the focus is cleared */
+  private overview: { k: number; tx: number; ty: number } | null = null;
+  /** focused cluster in world units: its bounds and the focused card's centre */
+  private fbox: { x0: number; y0: number; x1: number; y1: number; cx: number; cy: number } | null = null;
+  private fMeasured = true;
+  private anim = 0;
 
   constructor(private hooks: GraphHooks) {
     const defs = s('defs');
@@ -175,25 +228,60 @@ export class ConvGraph {
       h('span', { class: 'muted' }, '⊣ ends the conversation · drag to pan · wheel to zoom'));
     this.el.append(h('div', { class: 'g-bar' }, this.info, controls), h('div', { class: 'g-canvas' }, this.svg, this.tip), legend);
     this.wirePanZoom();
-    this.ro = new ResizeObserver(() => { if (this.needFit && this.svg.clientWidth > 0 && this.data) this.initialView(); });
+    this.ro = new ResizeObserver(() => {
+      if (!this.svg.clientWidth || !this.data) return;
+      if (this.needFit) this.initialView();
+      if (this.focus >= 0 && !this.fMeasured) { this.drawFocus(); this.viewFocus(false); }
+    });
+    this.el.addEventListener('keydown', (ev) => this.onKey(ev));
     this.ro.observe(this.el);
   }
 
   /** next update fits the view (NPC switched) */
-  reset(): void { this.needFit = true; this.sel = -1; }
+  reset(): void { this.needFit = true; this.sel = -1; this.focus = -1; this.overview = null; this.el.classList.remove('focusing'); }
 
   update(input: GraphInput, sel: number): void {
     this.data = layout(input);
     this.sel = sel;
+    if (this.focus >= this.data.nodes.length) this.focus = -1;
     this.draw();
-    if (this.needFit && this.svg.clientWidth > 0) this.initialView();
+    if (this.needFit && this.svg.clientWidth > 0) { this.initialView(); if (this.focus >= 0) this.viewFocus(false); }
     else this.apply();
   }
 
+  /** selection from outside (the table, the info bar's links): follows the focus when one is open, else highlights and reveals */
   setSelected(i: number): void {
     this.sel = i;
+    if (this.focus >= 0 && i >= 0 && this.data?.nodes[i]) { this.focusOn(i); return; }
+    if (i < 0 && this.focus >= 0) this.clearFocus();
     this.highlight();
     this.reveal(i);
+  }
+
+  /** spread row i out in the middle of the view: full line, its choices with full text, the rows around it */
+  focusOn(i: number, animate = true): void {
+    if (!this.data?.nodes[i]) return;
+    if (this.focus === i && this.fbox) return;
+    if (this.focus < 0) this.overview = { k: this.k, tx: this.tx, ty: this.ty };
+    this.focus = i;
+    this.sel = i;
+    this.tip.hidden = true;
+    this.highlight();
+    this.drawFocus();
+    this.viewFocus(animate);
+  }
+
+  /** back to the overview (Escape, a click on empty space) */
+  clearFocus(): void {
+    if (this.focus < 0) return;
+    this.focus = -1;
+    this.fbox = null;
+    this.world.querySelector('.gf-layer')?.remove();
+    this.el.classList.remove('focusing');
+    this.highlight();
+    const o = this.overview;
+    this.overview = null;
+    if (o) this.animateTo(o.k, o.tx, o.ty);
   }
 
   /** pan so node i is in view (only when it is not) */
@@ -269,12 +357,196 @@ export class ConvGraph {
       g.addEventListener('pointerenter', (ev) => this.showTip(n, ev as PointerEvent));
       g.addEventListener('pointermove', (ev) => this.moveTip(ev as PointerEvent));
       g.addEventListener('pointerleave', () => { this.tip.hidden = true; });
-      g.addEventListener('keydown', (ev) => { if ((ev as KeyboardEvent).key === 'Enter' || (ev as KeyboardEvent).key === ' ') { ev.preventDefault(); this.hooks.pick(n.i); } });
+      g.addEventListener('keydown', (ev) => { if ((ev as KeyboardEvent).key === 'Enter' || (ev as KeyboardEvent).key === ' ') { ev.preventDefault(); this.follow(n.i); } });
       gNodes.append(g);
       this.nodeEls.set(n.i, g);
     }
     this.world.append(gEdges, gNodes, gLabels);
     this.highlight();
+    if (this.focus >= 0) this.drawFocus();
+  }
+
+  // ------------------------------------------------------------ focus view
+  private drawFocus(): void {
+    const d = this.data;
+    this.world.querySelector('.gf-layer')?.remove();
+    const n = d?.nodes[this.focus];
+    if (!d || !n) return;
+    this.el.classList.add('focusing');
+    const layer = s('g', { class: 'gf-layer' });
+    const back = s('rect', { class: 'gf-back', x: -1e5, y: -1e5, width: 2e5, height: 2e5 });
+    const gE = s('g', { class: 'gf-edges' }), gC = s('g', { class: 'gf-cards' });
+    layer.append(back, gE, gC);
+    this.world.append(layer);
+    /** an HTML card in a foreignObject; measured after it is in the document */
+    const card = (w: number, cls: string, i: number | null, label: string, ...kids: (Node | string | null)[]) => {
+      const div = h('div', { class: `gf-card ${cls}`, ...(i != null ? { 'data-i': i, tabindex: 0, role: 'button', 'aria-label': label } : {}) }, ...kids);
+      const fo = s('foreignObject', { width: w, height: 10 });
+      fo.append(div);
+      gC.append(fo);
+      return { fo, div, w, x: 0, y: 0, hh: 0 };
+    };
+    type Card = ReturnType<typeof card>;
+    const r = n.row;
+    const emo = EMOTION_COLOR[r.emotion] ?? '#c9c1ae';
+    const conds = CONDS.filter((c) => (r[c] ?? '').trim()).map((c) => `${c} ${r[c]}`);
+    const scene = sceneList(r.scene ?? '');
+    const status = n.fallback ? 'fallback entry' : n.entry ? `entry · wins ${n.wins} cells` : n.flagged ? 'no way in' : 'follow-up';
+    const F = card(FW, `gf-focus${n.entry ? ' gf-entry' : ''}${n.flagged ? ' gf-flagged' : ''}`, null, '',
+      h('div', { class: 'gf-head' }, h('b', { text: n.id || '(no id)' }), h('span', { class: 'gf-emo', style: `--c:${emo}`, text: r.emotion || 'no emotion' }),
+        scene.length ? h('span', { class: 'gf-scene', text: '@' + scene.join(' | ') }) : null, h('span', { class: `gf-status${n.flagged ? ' bad' : ''}`, text: status })),
+      conds.length || r.priority ? h('div', { class: 'gf-conds', text: [...conds, r.priority ? `priority ${r.priority}` : ''].filter(Boolean).join(' · ') }) : null,
+      h('div', { class: 'gf-line' }, ...lineBlocks(r.line ?? '', r.emotion ?? '')),
+      n.outgoing.length ? null : h('div', { class: 'gf-foot muted', text: 'No choices: Continue ends the conversation.' }));
+    F.div.style.setProperty('--c', emo);
+
+    // rows that lead here (deduplicated), each with the choice(s) the player took
+    const parents = new Map<number, GEdge[]>();
+    for (const e of n.incoming) parents.set(e.from, [...(parents.get(e.from) ?? []), e]);
+    const P: Card[] = [...parents].map(([pi, es]) => {
+      const pn = d.nodes[pi];
+      return card(PW, 'gf-parent', pi, `go to ${pn.id}`,
+        h('div', { class: 'gf-head' }, h('i', { class: 'gf-sw', style: `background:${EMOTION_COLOR[pn.row.emotion] ?? '#c9c1ae'}` }), h('b', { text: pn.id || '(no id)' }), h('span', { class: 'gf-status', text: pi === n.i ? 'this row' : 'leads here' })),
+        h('div', { class: 'gf-excerpt', text: (pn.row.line ?? '').replace(/\$/g, ' ') }),
+        ...es.map((e) => h('div', { class: 'gf-via' }, h('b', { text: `c${e.k} ` }), ...marked(e.text || '(no text)'))));
+    });
+
+    // the choices, full text
+    const C: { c: Card; e: GEdge }[] = n.outgoing.map((e) => {
+      const ask = costOf(e.effect);
+      const eff = effectSummary(e.effect);
+      const tn = e.to != null ? d.nodes[e.to] : null;
+      const foot = e.kind === 'exit' ? h('div', { class: 'gf-foot muted', text: '⊣ ends the conversation' })
+        : e.kind === 'dangling' ? h('div', { class: 'gf-foot d-err', text: `→ ${e.next} does not exist` })
+          : h('div', { class: 'gf-foot', text: `→ ${tn!.id}${e.kind === 'back' ? ' (back)' : ''}` });
+      return { e, c: card(CW, `gf-choice gf-${e.kind}`, e.to, `choice ${e.k}: ${e.text}${e.to != null ? `, go to ${e.next}` : ''}`,
+        h('div', { class: 'gf-head' }, h('b', { text: `c${e.k}` }), ask ? h('span', { class: 'gf-cost', title: `costs ${ask} action${ask === 1 ? '' : 's'}`, text: `${'●'.repeat(Math.min(ask, 5))} ${ask}` }) : null),
+        h('div', { class: 'gf-ctext' }, ...marked(e.text || '(no choice text)')),
+        eff ? h('div', { class: 'gf-eff', text: eff }) : null,
+        foot) };
+    });
+
+    // rows the choices lead to (deduplicated)
+    const tgtOf = new Map<number, Card>();
+    for (const { e } of C) {
+      if (e.to == null || tgtOf.has(e.to)) continue;
+      const tn = d.nodes[e.to];
+      tgtOf.set(e.to, card(TW, 'gf-target', e.to, `go to ${tn.id}`,
+        h('div', { class: 'gf-head' }, h('i', { class: 'gf-sw', style: `background:${EMOTION_COLOR[tn.row.emotion] ?? '#c9c1ae'}` }), h('b', { text: tn.id || '(no id)' }),
+          h('span', { class: 'gf-status', text: e.to === n.i ? 'this row again' : `${tn.outgoing.length} choice${tn.outgoing.length === 1 ? '' : 's'}` })),
+        h('div', { class: 'gf-excerpt', text: (tn.row.line ?? '').replace(/\$/g, ' ') })));
+    }
+
+    // measure
+    const all = [F, ...P, ...C.map((x) => x.c), ...tgtOf.values()];
+    this.fMeasured = true;
+    for (const c of all) {
+      const hh = c.div.offsetHeight;
+      if (!hh) this.fMeasured = false;
+      c.hh = Math.ceil(hh || 90) + 2;
+      c.fo.setAttribute('height', String(c.hh));
+    }
+    // place: focused card centred on the overview node, parents to the left, choices then targets to the right
+    const ox = n.x + W / 2 - FW / 2, oy = n.y + H / 2 - F.hh / 2;
+    F.x = ox; F.y = oy;
+    const stack = (cards: Card[], x: number) => {
+      const tot = cards.reduce((a, c) => a + c.hh, 0) + G_STACK * Math.max(0, cards.length - 1);
+      let y = oy + F.hh / 2 - tot / 2;
+      for (const c of cards) { c.x = x; c.y = y; y += c.hh + G_STACK; }
+    };
+    stack(P, ox - G_IN - PW);
+    stack(C.map((x) => x.c), ox + FW + G_OUT);
+    const tx = ox + FW + G_OUT + CW + G_TGT;
+    const T = [...tgtOf.entries()].map(([ti, c]) => {
+      const mine = C.filter((x) => x.e.to === ti).map((x) => x.c.y + x.c.hh / 2);
+      c.x = tx; c.y = mine.reduce((a, b) => a + b, 0) / mine.length - c.hh / 2;
+      return c;
+    }).sort((a, b) => a.y - b.y);
+    for (let j = 1; j < T.length; j++) T[j].y = Math.max(T[j].y, T[j - 1].y + T[j - 1].hh + G_STACK);
+    for (const c of all) { c.fo.setAttribute('x', String(c.x)); c.fo.setAttribute('y', String(c.y)); }
+
+    // connectors
+    const curve = (x1: number, y1: number, x2: number, y2: number, cls: string, marker: string) => {
+      const dx = Math.max(18, (x2 - x1) * 0.5);
+      gE.append(s('path', { d: `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`, class: `gf-edge ${cls}`, 'marker-end': `url(#${marker})` }));
+    };
+    const clampY = (y: number, c: Card) => Math.min(c.y + c.hh - 12, Math.max(c.y + 12, y));
+    P.forEach((p) => curve(p.x + PW, p.y + p.hh / 2, F.x, clampY(p.y + p.hh / 2, F), 'up', 'g-arrow-up'));
+    C.forEach(({ c, e }) => {
+      curve(F.x + FW, clampY(c.y + c.hh / 2, F), c.x, c.y + c.hh / 2, 'down', 'g-arrow-down');
+      const t = e.to != null ? tgtOf.get(e.to) : null;
+      if (t) curve(c.x + CW, c.y + c.hh / 2, t.x, clampY(c.y + c.hh / 2, t), `down${e.kind === 'back' ? ' back' : ''}`, 'g-arrow-down');
+    });
+    const x0 = Math.min(...all.map((c) => c.x)), y0 = Math.min(...all.map((c) => c.y));
+    const x1 = Math.max(...all.map((c) => c.x + c.w)), y1 = Math.max(...all.map((c) => c.y + c.hh));
+    this.fbox = { x0, y0, x1, y1, cx: F.x + FW / 2, cy: F.y + F.hh / 2 };
+  }
+
+  /** pan/zoom so the focused card is centred and as much of its cluster as fits is in view */
+  private viewFocus(animate = true): void {
+    const b = this.fbox;
+    const cw = this.svg.clientWidth, ch = this.svg.clientHeight;
+    if (!b || !cw || !ch) return;
+    const pad = 16;
+    const k = Math.max(0.6, Math.min(1, (cw - 2 * pad) / (b.x1 - b.x0), (ch - 2 * pad) / (b.y1 - b.y0)));
+    const axis = (lo: number, hi: number, c: number, size: number) => {
+      let t = size / 2 - c * k;                         // focused card centred
+      if ((hi - lo) * k <= size - 2 * pad) t = Math.max(pad - lo * k, Math.min(size - pad - hi * k, t)); // whole cluster in view when it fits
+      else t = Math.max(size - pad - hi * k, Math.min(pad - lo * k, t)); // too big: no empty room before or after it
+      return t;
+    };
+    const tx = axis(b.x0, b.x1, b.cx, cw), ty = axis(b.y0, b.y1, b.cy, ch);
+    this.needFit = false;
+    if (animate) this.animateTo(k, tx, ty);
+    else { cancelAnimationFrame(this.anim); this.k = k; this.tx = tx; this.ty = ty; this.apply(); }
+  }
+
+  private animateTo(k: number, tx: number, ty: number): void {
+    cancelAnimationFrame(this.anim);
+    const reduce = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const from = { k: this.k, tx: this.tx, ty: this.ty }, t0 = performance.now(), dur = reduce ? 0 : 260;
+    const step = (now: number) => {
+      const p = dur ? Math.min(1, (now - t0) / dur) : 1, e = 1 - Math.pow(1 - p, 3);
+      this.k = from.k + (k - from.k) * e; this.tx = from.tx + (tx - from.tx) * e; this.ty = from.ty + (ty - from.ty) * e;
+      this.apply();
+      if (p < 1) this.anim = requestAnimationFrame(step);
+    };
+    this.anim = requestAnimationFrame(step);
+  }
+
+  /** Escape: overview · ↑/↓: between the focused row's choices · ←: a row that leads here · →: the choice's target · Enter: follow */
+  private onKey(ev: KeyboardEvent): void {
+    if (this.focus < 0) return;
+    const t = ev.target as HTMLElement;
+    if (t.matches?.('input, textarea, select')) return;
+    if (ev.key === 'Escape') { ev.preventDefault(); this.clearFocus(); this.el.focus({ preventScroll: true }); return; }
+    const cards = (sel: string) => [...this.world.querySelectorAll<HTMLElement>(`.gf-card.${sel}`)];
+    const choices = cards('gf-choice');
+    const cur = choices.indexOf(t.closest('.gf-card') as HTMLElement);
+    if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+      if (!choices.length) return;
+      ev.preventDefault();
+      const j = cur < 0 ? (ev.key === 'ArrowDown' ? 0 : choices.length - 1) : (cur + (ev.key === 'ArrowDown' ? 1 : choices.length - 1)) % choices.length;
+      choices[j].focus({ preventScroll: true });
+    } else if (ev.key === 'ArrowLeft') {
+      const p = cards('gf-parent')[0];
+      if (p) { ev.preventDefault(); this.follow(+p.dataset.i!); }
+    } else if (ev.key === 'ArrowRight') {
+      const c = cur >= 0 ? choices[cur] : choices.find((x) => x.dataset.i != null);
+      if (c?.dataset.i != null) { ev.preventDefault(); this.follow(+c.dataset.i); }
+    } else if ((ev.key === 'Enter' || ev.key === ' ') && t.closest('.gf-card')?.hasAttribute('data-i')) {
+      ev.preventDefault();
+      this.follow(+(t.closest('.gf-card') as HTMLElement).dataset.i!);
+    }
+  }
+
+  /** move the focus to row i (a click in the graph), select it in the table, keep keyboard focus in the graph */
+  private follow(i: number): void {
+    this.focusOn(i);
+    this.hooks.pick(i);
+    this.el.focus({ preventScroll: true });
+    const first = this.world.querySelector<HTMLElement>('.gf-card.gf-choice');
+    first?.focus({ preventScroll: true });
   }
 
   /** upstream = every row with a path to the selection, downstream = every row the selection can lead to */
@@ -319,7 +591,7 @@ export class ConvGraph {
     const n = d.nodes[sel];
     if (!n) {
       const flagged = d.nodes.filter((x) => x.flagged);
-      const parts: HTMLElement[] = [h('div', { class: 'muted small', text: `${d.nodes.length} rows · ${d.nodes.filter((x) => x.entry).length} entry rows${d.known ? '' : ' (validating…)'}. Click a row to trace it backwards and forwards.` }),
+      const parts: HTMLElement[] = [h('div', { class: 'muted small', text: `${d.nodes.length} rows · ${d.nodes.filter((x) => x.entry).length} entry rows${d.known ? '' : ' (validating…)'}. Click a row to spread it out with its full line and choices and trace it backwards and forwards.` }),
       ];
       if (flagged.length) parts.push(h('div', { class: 'small d-err' }, `No way in (no incoming choice, wins no cell): `, ...flagged.map((f) => this.link(f.i, f.id))));
       this.info.replaceChildren(...parts);
@@ -331,6 +603,8 @@ export class ConvGraph {
         : this.link(e.to!, `c${e.k} → ${e.next}`));
     const sep = (els: HTMLElement[]) => els.flatMap((el, j) => (j ? [', ', el] : [el]));
     this.info.replaceChildren(
+      ...(this.focus >= 0 ? [h('div', { class: 'g-info-focus small' }, h('b', { text: 'Focused' }), ' · click a choice or a row to follow it · ↑↓ choices, ← back, → follow · ',
+        h('button', { class: 'linkish', text: 'Esc: overview', onclick: () => this.clearFocus() }))] : []),
       h('div', { class: 'g-info-head' }, h('b', { text: n.id || '(no id)' }), h('span', { class: 'muted small', text: n.entry ? `entry · wins ${n.wins} cells${n.fallback ? ' · fallback' : ''}` : n.flagged ? 'no way in' : 'follow-up' })),
       h('div', { class: 'small' }, h('span', { class: 'k-up', text: 'Reached from: ' }), ...(via.length ? sep(via.map((v) => this.link(v.i, v.label))) : [h('span', { class: 'muted', text: n.entry ? 'opens a conversation' : 'nothing' })])),
       h('div', { class: 'small' }, h('span', { class: 'k-down', text: 'Leads to: ' }), ...(leads.length ? sep(leads) : [h('span', { class: 'muted', text: 'no choices' })])),
@@ -390,11 +664,14 @@ export class ConvGraph {
     this.apply();
   }
   private wirePanZoom(): void {
-    let down: { x: number; y: number; tx: number; ty: number; node: number; moved: boolean; id: number } | null = null;
+    let down: { x: number; y: number; tx: number; ty: number; node: number; bg: boolean; moved: boolean; id: number } | null = null;
     this.svg.addEventListener('pointerdown', (ev) => {
       if (ev.button !== 0) return;
-      const g = (ev.target as Element).closest('.g-node') as SVGGElement | null;
-      down = { x: ev.clientX, y: ev.clientY, tx: this.tx, ty: this.ty, node: g ? +g.dataset.i! : -1, moved: false, id: ev.pointerId };
+      cancelAnimationFrame(this.anim);
+      const tgt = ev.target as Element;
+      const g = tgt.closest('.g-node, .gf-card[data-i]') as SVGGElement | HTMLElement | null;
+      const bg = !g && (!!tgt.closest('.gf-back') || tgt === this.svg || !tgt.closest('.gf-card'));
+      down = { x: ev.clientX, y: ev.clientY, tx: this.tx, ty: this.ty, node: g ? +g.dataset.i! : -1, bg, moved: false, id: ev.pointerId };
     });
     this.svg.addEventListener('pointermove', (ev) => {
       if (!down || ev.pointerId !== down.id) return;
@@ -407,13 +684,15 @@ export class ConvGraph {
       const d = down;
       down = null;
       this.el.classList.remove('panning');
-      if (!d.moved && d.node >= 0) this.hooks.pick(d.node);
+      if (d.moved) return;
+      if (d.node >= 0) this.follow(d.node);
+      else if (d.bg && this.focus >= 0) { this.clearFocus(); this.el.focus({ preventScroll: true }); }
     };
     this.svg.addEventListener('pointerup', end);
     this.svg.addEventListener('pointercancel', () => { down = null; this.el.classList.remove('panning'); });
     this.svg.addEventListener('dblclick', (ev) => {
-      const g = (ev.target as Element).closest('.g-node') as SVGGElement | null;
-      if (g) this.hooks.open(+g.dataset.i!);
+      const g = (ev.target as Element).closest('.g-node, .gf-card.gf-focus, .gf-card[data-i]') as SVGGElement | HTMLElement | null;
+      if (g) this.hooks.open(g.dataset.i != null ? +g.dataset.i : this.focus);
     });
     this.svg.addEventListener('wheel', (ev) => {
       ev.preventDefault();
