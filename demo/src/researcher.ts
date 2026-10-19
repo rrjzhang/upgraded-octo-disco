@@ -124,6 +124,49 @@ async function main(): Promise<void> {
     }
   };
 
+  // Backup and restore (2026-10-19): rooms, saves, logs, the login and the editor's text override are per browser origin
+  // (the dev server on 5173 and the preview on 4173 do not share them), so they can be carried across as one JSON file.
+  const backupMsg = h('span', { class: 'muted', 'aria-live': 'polite' });
+  const exportAll = () => {
+    const items: Record<string, string> = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('gv:')) items[k] = localStorage.getItem(k) ?? '';
+    }
+    const stamp = isoNow().slice(0, 16).replace(/[:T]/g, '-');
+    downloadText(`greatvote_backup_${stamp}.json`, JSON.stringify({ app: 'great-vote', version: 1, exported: isoNow(), origin: location.origin, items }, null, 1), 'application/json');
+    backupMsg.textContent = `Exported ${Object.keys(items).length} entries.`;
+  };
+  const importFile = h('input', { type: 'file', accept: '.json,application/json', id: 'backup-file', 'aria-label': 'Backup file to restore' }) as HTMLInputElement;
+  importFile.addEventListener('change', async () => {
+    const f = importFile.files?.[0];
+    if (!f) return;
+    try {
+      const data = JSON.parse(await f.text());
+      if (data?.app !== 'great-vote' || !data.items || typeof data.items !== 'object') throw new Error('not a Great Vote backup');
+      let n = 0, skipped = 0;
+      for (const [k, v] of Object.entries(data.items as Record<string, string>)) {
+        if (!k.startsWith('gv:') || typeof v !== 'string') { skipped++; continue; }
+        // a room's log is appended to, so the longer of the two copies wins; everything else is replaced
+        if (k.startsWith('gv:log:')) { const mine = localStorage.getItem(k) ?? ''; if (mine.length > v.length) { skipped++; continue; } }
+        localStorage.setItem(k, v);
+        n++;
+      }
+      backupMsg.textContent = `Restored ${n} entries from ${String(data.origin ?? 'another browser')}${skipped ? ` (${skipped} kept as they were)` : ''}.`;
+      renderRooms();
+    } catch (e) {
+      backupMsg.textContent = `Could not restore: ${(e as Error).message}`;
+    }
+    importFile.value = '';
+  });
+  const backup = h('div', { class: 'backup' },
+    h('h2', { text: 'Backup and restore' }),
+    h('p', { class: 'muted', text: 'Everything above as one file: rooms, saves, logs, the remembered login and the editor\'s text changes. Use it to carry a playtest from the dev server to the preview server, or to another browser. Restoring merges: rooms and saves are replaced by the file\'s, a log is replaced only by a longer one.' }),
+    h('div', { class: 'backup-row' },
+      h('button', { class: 'btn', type: 'button', onclick: exportAll, text: 'Export everything' }),
+      h('label', { class: 'btn ghost', for: 'backup-file', text: 'Restore from file\u2026' }), importFile,
+      backupMsg));
+
   const form = h('form', { class: 'card wide' },
     h('h1', { text: 'Create a room' }),
     h('p', { class: 'muted', text: 'Values are randomized; every field can be edited before creating.' + (isFixtures ? ' (fixtures manifest)' : '') }),
@@ -195,7 +238,8 @@ async function main(): Promise<void> {
       h('div', { class: 'table-wrap' }, h('table', {},
         h('thead', {}, h('tr', {}, ...['Code', 'Password', 'Leader', 'Created', 'Status', 'Log lines', ''].map((t) => h('th', { text: t })))),
         table)),
-      h('p', { class: 'muted', text: 'Rooms, saves and logs live in this browser\'s localStorage until a server is added.' })),
+      h('p', { class: 'muted', text: 'Rooms, saves and logs live in this browser\'s localStorage until a server is added.' }),
+      backup),
     settings));
   renderRooms();
   window.addEventListener('storage', renderRooms);

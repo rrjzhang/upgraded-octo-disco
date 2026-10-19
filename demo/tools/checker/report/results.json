@@ -1,11 +1,11 @@
 {
  "content": "/Users/richardzhang/great_vote/demo/public/content",
- "generated": "2026-10-19T06:17:16.669Z",
+ "generated": "2026-10-19T07:23:19.809Z",
  "ok": true,
  "counts": {
   "error": 0,
   "warning": 0,
-  "info": 43
+  "info": 44
  },
  "maxTalks": 1,
  "diagnostics": [
@@ -24,6 +24,14 @@
    "line": 102,
    "path": "scenes.clinic.slots.by_table",
    "message": "in clinic, a figure on slot \"near\" (nearer) would cover 56% of the head band and 56% of a figure on \"by_table\"; the engine never shows both at once. Move one sideways if both should be able to appear together"
+  },
+  {
+   "severity": "info",
+   "code": "SLOT_OCCLUSION",
+   "file": "scenes.yaml",
+   "line": 142,
+   "path": "scenes.library.slots.by_shelves",
+   "message": "in library, a figure on slot \"near\" (nearer) would cover 26% of the head band and 26% of a figure on \"by_shelves\"; the engine never shows both at once. Move one sideways if both should be able to appear together"
   },
   {
    "severity": "info",

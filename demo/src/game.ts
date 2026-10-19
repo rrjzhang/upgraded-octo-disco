@@ -1135,6 +1135,87 @@ export class Game {
     return { leaderId, leaderName, placeholder, stories };
   }
 
+
+  // ------------------------------------------------------------------ SPEC "Who said what" (nightly memory test, Taylor et al. 1978)
+  /** A line as the player read it: beats joined, tags and stage directions dropped, placeholders filled, trimmed to a sentence or two. */
+  private cleanLine(line: string): string {
+    const parts = splitBeats(line).flatMap((b) => speechParts(this.t(b.text)).filter((p) => p.kind !== 'stage').map((p) => p.text));
+    let text = parts.join(' ').replace(/\s+/g, ' ').trim();
+    if (text.length > 200) { const cut = text.slice(0, 200); const end = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('? '), cut.lastIndexOf('! ')); text = end > 60 ? cut.slice(0, end + 1) : cut.replace(/\s\S*$/, '') + '\u2026'; }
+    return text;
+  }
+
+  /** NPC lines the player saw today (openers and follow-ups, from today's log), without the ones that name their speaker. */
+  private linesToday(): { npc: string; text: string }[] {
+    const out: { npc: string; text: string }[] = [];
+    const seen = new Set<string>();
+    for (const ln of readLog(this.s.room).split('\n')) {
+      if (!ln.includes('"dialogue"') && !ln.includes('"choice"')) continue;
+      let l: any;
+      try { l = JSON.parse(ln); } catch { continue; }
+      if (l.day !== this.s.day) continue;
+      let npc: string | undefined, rule: string | undefined;
+      if (l.type === 'dialogue' && l.target && l.rule) { npc = l.target; rule = l.rule; }
+      else if (l.type === 'choice' && !l.event && l.target && l.next) { npc = l.target; rule = l.next; }
+      else continue;
+      const key = `${npc}|${rule}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const n = this.c.npcById.get(npc!);
+      const row = (this.c.dialogue.get(npc!) ?? []).find((r) => r.id === rule);
+      if (!n || !row) continue;
+      const text = this.cleanLine(row.line);
+      if (text.split(/\s+/).length < 6) continue;
+      const names = [...n.name.split(/\s+/), ...(n.called ? n.called.split(/\s+/) : [])].filter((w) => w.length > 2 && !/^(Mr|Mrs|Ms|Dr|Don|Sra)\.?$/i.test(w));
+      if (names.some((w) => new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).test(text))) continue;
+      out.push({ npc: n.id, text });
+    }
+    return out;
+  }
+
+  /** The nightly test: up to six of today's lines, each with the people met so far as the options (speakers from both communities). */
+  private whoSaidQuestionnaire(): (Questionnaire & { key: Record<string, string> }) | null {
+    const lines = this.linesToday();
+    if (lines.length < 2) return null;
+    const rng = seeded(this.s.config.seed, 'whosaid', this.s.day);
+    const shuffle = <T,>(a: T[]) => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+    const picked = shuffle(lines).slice(0, 6);
+    const speakers = new Set(picked.map((x) => x.npc));
+    const met = this.c.npcs.filter((n) => n.appearances.length && (speakers.has(n.id) || this.s.npcs[n.id]?.met === 'yes') && this.inRoster(n));
+    // options: today's speakers plus other people met, so a wrong answer can land in either community; at most eight names
+    const side = (n: Npc) => (n.community === 'us' ? 'us' : 'home');
+    const extras = shuffle(met.filter((n) => !speakers.has(n.id)));
+    const pool = [...met.filter((n) => speakers.has(n.id))];
+    for (const want of ['us', 'home']) if (!pool.some((n) => side(n) === want)) { const e = extras.find((n) => side(n) === want); if (e) pool.push(e); }
+    for (const e of extras) { if (pool.length >= 8) break; if (!pool.includes(e)) pool.push(e); }
+    const options = pool.map((n) => n.name).sort((a, b) => a.localeCompare(b));
+    const key: Record<string, string> = {};
+    const items = picked.map((x, i) => { key[`ws_${i + 1}`] = x.npc; return { id: `ws_${i + 1}`, type: 'choice' as const, text: `\u201C${x.text}\u201D`, options }; });
+    return {
+      id: 'whosaid', title: this.str('ui.whosaid.title'), intro: this.str('ui.whosaid.intro'),
+      pages: [{ items }], key,
+    };
+  }
+
+  /** Scores the answers (Taylor et al. 1978: errors within vs between the two communities) and writes the `whosaid` line. */
+  private logWhoSaid(q: Questionnaire & { key: Record<string, string> }, answers: Record<string, unknown>): void {
+    const byName = new Map(this.c.npcs.map((n) => [n.name, n]));
+    const side = (n?: Npc) => (!n ? '' : n.community === 'us' ? 'us' : 'home');
+    const items = Object.entries(q.key).map(([id, npc]) => {
+      const n = this.c.npcById.get(npc);
+      const chosen = byName.get(String(answers[id] ?? ''));
+      const item = (q.pages[0].items.find((it) => it.id === id));
+      const correct = chosen?.id === npc;
+      return { id, text: item?.text ?? '', speaker: npc, speakerSide: side(n), chosen: chosen?.id ?? null, chosenSide: side(chosen), correct, error: correct ? null : chosen ? (side(chosen) === side(n) ? 'within' : 'between') : 'none' };
+    });
+    const score = items.filter((x) => x.correct).length;
+    appendLog(this.s, {
+      type: 'whosaid', target: `day${this.s.day}`, n: items.length, score,
+      within: items.filter((x) => x.error === 'within').length, between: items.filter((x) => x.error === 'between').length,
+      options: q.pages[0].items[0]?.options ?? [], items,
+    });
+  }
+
   endDay(): void {
     if (this.win?.module === 'survey' || this.surveyLoading) return; // already open: re-opening would reload the frame and wipe answers
     // SPEC "Town hall": on the last day, bed leads into the town hall; the survey follows once it is over
@@ -1142,6 +1223,20 @@ export class Game {
     if (this.townhallActive()) return;
     this.endConvo('day_end');
     this.phoneOpen = false;
+    // SPEC "Who said what": the nightly memory test comes before the check-in, once per day (closing it asks again next time)
+    if (this.s.whoSaidDay !== this.s.day) {
+      const q = this.whoSaidQuestionnaire();
+      if (!q) this.s.whoSaidDay = this.s.day; // nothing to ask tonight
+      else {
+        this.save();
+        this.render();
+        this.openWindow('survey', { ...q, day: this.s.day }, {
+          onSubmit: (answers) => { this.logWhoSaid(q, answers); this.s.whoSaidDay = this.s.day; this.closeWindow(false); this.endDay(); },
+          onClose: () => { this.save(); },
+        });
+        return;
+      }
+    }
     this.s.surveyDay = this.s.day;
     this.save();
     this.render();
@@ -1576,7 +1671,7 @@ export class Game {
       // (the same homography as the TV glass); without one it is placed flat at x/y/w
       const pw = m.w || 1000, ph = m.h || 1000;
       const prop = h('img', {
-        class: q ? 'prop prop-quad' : 'prop', src: this.c.assetUrl(m.file), alt: '', draggable: 'false',
+        class: `${q ? 'prop prop-quad' : 'prop'}${p.over ? ' prop-over' : ''}`, src: this.c.assetUrl(m.file), alt: '', draggable: 'false',
         style: q
           ? `left:0;top:0;width:${pw}px;height:${ph}px;max-width:none;transform-origin:0 0;transform:${matrix3d(q.map(([x, y]) => [x * IMG_W, y * IMG_H] as [number, number]), pw, ph)};`
           : `left:${p.x * IMG_W}px;top:${p.y * IMG_H}px;width:${w}px;`,
@@ -1858,7 +1953,7 @@ export class Game {
         appendLog(this.s, { type: 'hotspot', target: p.hs, choice: n });
         this.panel = { kind: 'idle' };
         if (n === 1) return this.moveTo('work');
-        if (n === 2) return this.endDay();
+        if (n === 2) return this.bedtimeCall();
         this.render();
       };
       choices.append(
@@ -1910,7 +2005,16 @@ export class Game {
 
   /** Out of actions and the day not over: the end-of-day call is waiting to be answered. */
   private ringing(): boolean {
-    return this.s.actions <= 0 && !this.s.finished && !this.win && !this.townhallActive();
+    return (this.s.actions <= 0 || this.bedtime) && !this.s.finished && !this.win && !this.townhallActive();
+  }
+
+  /** "Go to bed anyway": the phone rings for a moment (so the call reads as a call) before the evening check-in opens. */
+  private bedtime = false;
+  private bedtimeCall(): void {
+    if (this.bedtime) return;
+    this.bedtime = true;
+    this.render();
+    setTimeout(() => { this.bedtime = false; this.endDay(); }, 1400);
   }
 
   private renderPhone(): void {

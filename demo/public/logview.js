@@ -316,6 +316,9 @@
         if (l.op === 'end') return [el('span', { class: 'who', text: 'Town hall: ' }), T(`over; ${(l.ratings || []).length} ratings, ${Object.keys(l.answers || {}).length} answers, dominant ${l.dominant}`)];
         return [el('span', { class: 'who', text: 'Town hall: ' }), T(String(l.op || ''))];
       }
+      case 'whosaid':
+        return [el('span', { class: 'who', text: 'Who said what: ' }), T(`${l.score} of ${l.n} right; ${l.within} within-community and ${l.between} between-community errors`),
+          el('span', { class: 'small', text: Array.isArray(l.items) ? ' · ' + l.items.map((it) => `${npcName(it.speaker)} → ${it.chosen ? npcName(it.chosen) : '?'}${it.correct ? ' ✓' : ''}`).join(', ') : '' })];
       case 'client_error':
         return [el('span', { class: 'who', text: 'Client error: ' }), T(`${l.what}: ${l.detail}`), el('span', { class: 'small', text: l.href ? ` · ${l.href}` : '' })];
       case 'profile':

@@ -70,6 +70,9 @@ export const DEFAULT_STRINGS: Record<string, string> = {
   'ui.via.message': 'Message from {name}',
   'ui.talkedToday': 'Talked already today',
   'ui.via.door': '{name} at the door',
+  // SPEC "Who said what": the nightly memory test
+  'ui.whosaid.title': 'Before you turn in',
+  'ui.whosaid.intro': 'A few things people said to you today. Who said each one? Pick the name you think is right, even if you are not sure.',
   // SPEC "Plans": an accepted invitation with a time
   'ui.plan.chip': 'Plans: {name}, {when}',
   'ui.plan.now': 'Time to go: {name}.',

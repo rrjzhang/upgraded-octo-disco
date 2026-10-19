@@ -49,6 +49,8 @@ export interface Prop {
   quad?: [number, number][];
   /** a different quad for a background variant, keyed by its asset id (as Screen.byBackground) */
   byBackground?: Record<string, [number, number][]>;
+  /** drawn above the figures (the town hall podium, cropped from the background, in front of the speaker) */
+  over?: boolean;
 }
 export interface Exit { to: string; label: string }
 
@@ -355,6 +357,8 @@ export interface GameState {
   /** SPEC "TV once a day": the day the TV was opened; it cannot be opened again that day and the room screens go black */
   tvWatchedDay?: number;
   surveyDay?: number; // day whose end-of-day survey is open; a reload reopens it instead of dropping it
+  /** SPEC "Who said what": the day whose nightly memory test was answered (asked once per day, before the survey) */
+  whoSaidDay?: number;
   /** SPEC "Town hall": the day-5 closing sequence in progress or done; absent until bed on the last day */
   townhall?: TownhallState;
   finished: boolean;

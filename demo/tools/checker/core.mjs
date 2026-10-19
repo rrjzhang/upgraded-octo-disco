@@ -280,6 +280,7 @@ function validateScenes(files, diag, assets) {
       // SPEC "Content schemas": optional quad (the prop image projected onto a surface, as TV screens) and byBackground
       const isPropQuad = (q) => Array.isArray(q) && q.length === 4 && q.every(pt => Array.isArray(pt) && pt.length === 2 && pt.every(v => typeof v === 'number' && v >= -0.2 && v <= 1.2));
       if (pr && pr.quad != null && !isPropQuad(pr.quad)) diag.error('BAD_VALUE', rel, loc(`props[${j}].quad`), 'quad must be four [x, y] fraction pairs: top-left, top-right, bottom-right, bottom-left');
+      if (pr && pr.over != null && typeof pr.over !== 'boolean') diag.error('BAD_VALUE', rel, loc(`props[${j}].over`), 'over must be true|false (drawn in front of the figures)');
       if (pr && pr.byBackground != null) {
         if (typeof pr.byBackground !== 'object' || Array.isArray(pr.byBackground)) diag.error('SCHEMA', rel, loc(`props[${j}].byBackground`), 'byBackground must map a background asset id to a quad');
         else {

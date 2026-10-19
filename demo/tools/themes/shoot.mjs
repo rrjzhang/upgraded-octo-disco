@@ -5,7 +5,7 @@
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -13,6 +13,7 @@ const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? proces
 const base = arg('--base', 'http://localhost:5173');
 const PORT = +arg('--port', '9371');
 const only = arg('--only', '')?.split(',').filter(Boolean);
+const DSF = +arg('--dsf', '2'); // device pixels per CSS pixel: PNGs are 2880x1800 at 2; the JPG previews stay 1440 px wide
 const CHROME = process.env.CHROME || '/Users/richardzhang/Library/Caches/ms-playwright/chromium-1200/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing';
 
 // ---------------------------------------------------------------- colour helpers
@@ -107,8 +108,11 @@ html,body{background:${q.strip}}
  * selectors (`.phone`, `.ph-*`; not `.phone-btn` in the strip or the `.ph-mark` placeholder tag). Inherited sizes
  * follow from `.stage` / `.phone` (16 px default) and the phone's buttons get the phone scale.
  */
-const scaleCssExpr = (scale, phoneScale) => `(()=>{const S=${scale},P=${phoneScale},out=[];
+const scaleCssExpr = (scale, phoneScale, smallScale = 1) => `(()=>{const S=${scale},P=${phoneScale},SS=${smallScale},out=[];
   const isPhone=(sel)=>/(^|[\\s>+~(])\\.(phone(?![-\\w])|ph-(?!mark))/.test(sel);
+  // the text that is still small at 1x: top bar, exit strip, the portrait's name tag and mood chip, the scene description,
+  // the phone's tabs and its journal / contacts / wallet text (not the dev status line, not the opening questions)
+  const isSmall=(sel)=>${SMALL_RE.toString()}.test(sel);
   const px=(v,k)=>(Math.round(parseFloat(v)*k*100)/100)+'px';
   for (const sh of document.styleSheets) {
     if (sh.ownerNode?.dataset?.gvTheme) continue;
@@ -119,14 +123,20 @@ const scaleCssExpr = (scale, phoneScale) => `(()=>{const S=${scale},P=${phoneSca
       let fs=r.style.fontSize; if (!fs) { const m=/(?:^|\\s)(\\d+(?:\\.\\d+)?px)(?:\\/\\S+)?\\s/.exec(r.style.getPropertyValue('font')+' '); fs=m?m[1]:''; }
       if (!fs || !fs.endsWith('px')) continue;
       const sels=r.selectorText.split(',').map(x=>x.trim());
-      const ph=sels.filter(isPhone), main=sels.filter(x=>!isPhone(x));
-      if (main.length && S!==1) out.push(main.join(',')+'{font-size:'+px(fs,S)+'}');
-      if (ph.length && P!==1) out.push(ph.join(',')+'{font-size:'+px(fs,P)+'}');
+      for (const [k, list] of [[S, sels.filter(x=>!isPhone(x)&&!isSmall(x))], [S*SS, sels.filter(x=>!isPhone(x)&&isSmall(x))], [P, sels.filter(x=>isPhone(x)&&!isSmall(x))], [P*SS, sels.filter(x=>isPhone(x)&&isSmall(x))]])
+        if (list.length && k!==1) out.push(list.join(',')+'{font-size:'+px(fs,k)+'}');
     }
   }
   out.unshift('.stage{font-size:'+px('16px',S)+'}');
   out.push('.phone{font-size:'+px('16px',P)+'}', '.phone .btn{font-size:'+px('15px',P)+'}', '.phone .btn.small{font-size:'+px('13px',P)+'}');
+  // small text that inherits its size today (the name tag, the phone button, contact names) gets an explicit size
+  if (SS!==1) out.push('.who{font-size:'+px('16px',S*SS)+'}', '.phone-btn{font-size:'+px('16px',S*SS)+'}', '.ph-contacts{font-size:'+px('16px',P*SS)+'}');
   return out.join('\\n');})()`;
+/** Selectors scaled by `smallScale` on top of `scale` (a selector's last-matching class decides; `.exits`, `.chip-warm` etc. excluded). */
+const SMALL_RE = /\.(topbar|tb-[\w-]+|exit|strip|phone-btn|phone-badge|reveal-btn|who|chip|desc|ph-tab|ph-hint|ph-journal|ph-msg|ph-contacts|ct-name|ct-meta|ph-ledger|ph-balance)(?![\w-])/;
+
+/** In-page snippet: computed font-size of the first match of each selector (null when absent). */
+const SIZES = (m) => `Object.fromEntries(Object.entries(${JSON.stringify(m)}).map(([k,s])=>{const e=document.querySelector(s); return [k, e&&e.getClientRects().length?getComputedStyle(e).fontSize:null];}))`;
 
 /** In-page layout probe for the main screen: text cut off, boxes overlapping, the right panel needing to scroll. */
 const MAIN_PROBE = `(()=>{const w=[]; const R=(e)=>e.getBoundingClientRect(); const hit=(a,b)=>a.left<b.right-1&&a.right>b.left+1&&a.top<b.bottom-1&&a.bottom>b.top+1;
@@ -143,7 +153,7 @@ const MAIN_PROBE = `(()=>{const w=[]; const R=(e)=>e.getBoundingClientRect(); co
   const ex=[...document.querySelectorAll('.exit, .phone-btn')]; for(let i=0;i<ex.length;i++) for(let j=i+1;j<ex.length;j++) if(hit(R(ex[i]),R(ex[j]))) w.push('exit buttons overlap');
   const st=document.querySelector('.strip'); if(st){ for(const e of ex) if(R(e).bottom>R(st).bottom+1||R(e).top<R(st).top-1) w.push('exit strip: a button sits outside the strip'); }
   const rp=document.querySelector('.right'); let below=0; if(rp&&rp.scrollHeight>rp.clientHeight+1){ below=rp.scrollHeight-rp.clientHeight; const last=ch[ch.length-1]; const hidden=last&&R(last).bottom>R(rp).bottom; w.push('right panel scrolls '+below+' px'+(hidden?' (last choice below the fold at 1440x900)':'')); }
-  return {warn:[...new Set(w)], choices:ch.length, rightOverflow:below, lineFont:getComputedStyle(document.querySelector('.dialogue .line')||document.body).fontSize, choiceFont:getComputedStyle(ch[0]||document.body).fontSize};})()`;
+  return {warn:[...new Set(w)], choices:ch.length, rightOverflow:below, lineFont:getComputedStyle(document.querySelector('.dialogue .line')||document.body).fontSize, choiceFont:getComputedStyle(ch[0]||document.body).fontSize, ...${SIZES({topbar:'.tb-day', topbarSmall:'.tb-legend', who:'.portrait .who', chip:'.portrait .chip', desc:'.right .desc', exit:'.exit', phoneBtn:'.phone-btn'})}};})()`;
 
 /** In-page layout probe for the open phone: the camera cutout covers nothing interactive, tabs fit, pane text not cut. */
 const PHONE_PROBE = `(()=>{const w=[]; const ph=document.querySelector('.phone'); if(!ph||ph.hidden) return {warn:['phone not open']};
@@ -156,22 +166,22 @@ const PHONE_PROBE = `(()=>{const w=[]; const ph=document.querySelector('.phone')
   ph.querySelectorAll('.ph-tab').forEach(t=>{ if(t.scrollWidth>t.clientWidth+1) w.push('phone tab cut off: '+t.textContent); if(R(t).height>60) w.push('phone tab wraps: '+t.textContent); });
   const pane=ph.querySelector('.ph-pane'); if(pane&&pane.scrollHeight>pane.clientHeight+1) w.push('phone pane scrolls '+(pane.scrollHeight-pane.clientHeight)+' px');
   const ta=ph.querySelector('.ph-journal'); if(ta&&R(ta).height<140) w.push('journal box only '+Math.round(R(ta).height)+' px tall');
-  return {warn:[...new Set(w)], island:ir&&{w:Math.round(ir.width),h:Math.round(ir.height)}, tabFont:getComputedStyle(ph.querySelector('.ph-tab')||ph).fontSize};})()`;
+  return {warn:[...new Set(w)], island:ir&&{w:Math.round(ir.width),h:Math.round(ir.height)}, tabFont:getComputedStyle(ph.querySelector('.ph-tab')||ph).fontSize, ...${SIZES({hint:'.phone .ph-hint', journal:'.phone .ph-journal', ctName:'.phone .ct-name', ctMeta:'.phone .ct-talk', profileQ:'.phone .ph-q legend'})}};})()`;
 
 // ---------------------------------------------------------------- browser
 const raw = JSON.parse(readFileSync(join(here, 'themes.json'), 'utf8')).themes;
 const byId = new Map(raw.map((t) => [t.id, t]));
-/** `extends` copies the base theme's fonts and palette (own keys win); scale defaults to 1, phoneScale to scale. */
+/** `extends` copies the base theme's fonts and palette (own keys win); scale defaults to 1, phoneScale to scale, smallScale to 1. */
 const all = raw.map((t) => {
   const b = t.extends ? byId.get(t.extends) : null;
   if (t.extends && !b) throw new Error(`theme ${t.id}: extends unknown theme ${t.extends}`);
   const m = b ? { ...b, mood: b.mood, ...t, palette: { ...b.palette, ...(t.palette ?? {}) } } : { ...t };
-  m.scale = +(t.scale ?? 1); m.phoneScale = +(t.phoneScale ?? m.scale);
+  m.scale = +(t.scale ?? 1); m.phoneScale = +(t.phoneScale ?? m.scale); m.smallScale = +(t.smallScale ?? 1);
   return m;
 });
 const themes = only?.length ? all.filter((t) => only.includes(t.id)) : all;
 const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\..*/, '').replace('T', '-');
-const out = join(here, 'out', stamp); mkdirSync(join(out, 'png'), { recursive: true }); mkdirSync(join(out, 'jpg'), { recursive: true });
+const out = join(here, 'out', stamp); mkdirSync(join(out, 'png'), { recursive: true }); mkdirSync(join(out, 'jpg'), { recursive: true }); mkdirSync(join(out, 'html'), { recursive: true });
 const profile = join(here, 'out', '.profile');
 
 const chrome = spawn(CHROME, ['--headless=new', `--remote-debugging-port=${PORT}`, '--window-size=1440,900', '--no-first-run', '--no-default-browser-check', `--user-data-dir=${profile}`, '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
@@ -182,12 +192,13 @@ let id = 0; const pending = new Map(); const errors = [];
 ws.onmessage = (m) => { const msg = JSON.parse(m.data); if (msg.id && pending.has(msg.id)) { pending.get(msg.id)(msg); pending.delete(msg.id); } else if (msg.method === 'Runtime.exceptionThrown') errors.push('EXC ' + (msg.params.exceptionDetails.exception?.description ?? msg.params.exceptionDetails.text)); };
 const send = (method, params = {}, ms = 20000) => new Promise((r, j) => { const i = ++id; const to = setTimeout(() => { pending.delete(i); j(new Error(`timeout ${method}`)); }, ms); pending.set(i, (m) => { clearTimeout(to); r(m); }); ws.send(JSON.stringify({ id: i, method, params })); });
 await send('Page.enable'); await send('Runtime.enable');
-await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: DSF, mobile: false });
 const ev = async (e) => { const r = await send('Runtime.evaluate', { expression: e, awaitPromise: true, returnByValue: true }); if (r.result?.exceptionDetails) throw new Error(r.result.exceptionDetails.exception?.description ?? r.result.exceptionDetails.text); return r.result?.result?.value; };
 const shot = async (name, clip) => {
   const png = await send('Page.captureScreenshot', { format: 'png', ...(clip ? { clip: { ...clip, scale: 1 } } : {}) });
   writeFileSync(join(out, 'png', name + '.png'), Buffer.from(png.result.data, 'base64'));
-  const w = clip ? clip.width : 1440, h = clip ? clip.height : 900, scale = clip ? Math.min(1, 360 / w) : 720 / 1440;
+  // the clip scale multiplies the device scale factor: full screens come out 1440 px wide, phone crops 720 px wide (2x of 360)
+  const w = clip ? clip.width : 1440, h = clip ? clip.height : 900, scale = (clip ? Math.min(DSF, 720 / w) : 1) / DSF;
   const jpg = await send('Page.captureScreenshot', { format: 'jpeg', quality: 82, clip: { x: clip?.x ?? 0, y: clip?.y ?? 0, width: w, height: h, scale } });
   writeFileSync(join(out, 'jpg', name + '.jpg'), Buffer.from(jpg.result.data, 'base64'));
 };
@@ -201,16 +212,88 @@ async function setup() {
 await setup();
 
 const JOURNAL = 'Dana at the library: worried about the bus route.\nAsk again on Thursday.';
+// ---------------------------------------------------------------- HTML rendition
+// Per theme, html/<id>.html: the right panel (twice: a beat with a stage direction and the Next triangle, then the same
+// row's last beat with its three choices) and the phone (journal, contacts) as the game's own DOM, styled by src/style.css
+// (copied in verbatim) plus exactly the CSS this script injects for the theme, so the text is vector and the sizes are the
+// game's. Dev-only elements (Back / edit buttons, the status line, the contacts' debug line) are left out; the busts and
+// contact photos are one neutral inline SVG. Its sizes are checked against the game's after the run (see verifyRenditions).
+const REND = { npc: 'us_stranger_a', scene: 'park', slot: 'by_fence', row: 'WT28' };
+const BUST = 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 290 290"><g fill="#8d887e" fill-opacity=".55"><circle cx="145" cy="112" r="56"/><path d="M38 290c0-68 48-110 107-110s107 42 107 110z"/></g></svg>`);
+const GRAB = (sel) => `(()=>{const r=document.querySelector(${JSON.stringify(sel)}); const c=r.cloneNode(true);
+  c.querySelectorAll('.dev-back,.dev-edit-open,.status,.ct-debug').forEach(e=>e.remove());
+  const ta=r.querySelector('textarea'), tc=c.querySelector('textarea'); if(ta&&tc) tc.textContent=ta.value;
+  c.querySelectorAll('img').forEach(i=>i.setAttribute('src','__BUST__'));
+  const b=r.getBoundingClientRect(); return {html:c.outerHTML, w:Math.round(b.width), h:Math.round(b.height)};})()`;
+async function captureRendition() {
+  await ev(`gv.game.phoneOpen=false; gv.goto('${REND.scene}'); gv.actions(10); gv.place('${REND.npc}','${REND.slot}'); gv.talk('${REND.npc}',{force:true}); true`);
+  await sleep(250);
+  const right = [];
+  for (const beat of [0, 1]) {
+    const ok = await ev(`(()=>{const p=gv.panel(); const row=gv.content.dialogue.get('${REND.npc}')?.find(r=>r.id==='${REND.row}'); if(!row||p.kind!=='dialogue'||p.npc!=='${REND.npc}') return false; gv.game.panel={...p,row,beat:${beat}}; gv.game.render(); return true})()`);
+    if (!ok) throw new Error(`rendition: could not show ${REND.npc} row ${REND.row}`);
+    await sleep(200); right.push(await ev(GRAB('.right')));
+  }
+  await ev(`gv.game.phoneTab='journal'; gv.game.journalDraft=${JSON.stringify(JOURNAL)}; document.querySelector('.phone-btn').click(); true`); await sleep(250);
+  const journal = await ev(GRAB('.phone'));
+  await ev(`[...document.querySelectorAll('.ph-tab')][1].click(); true`); await sleep(250);
+  const contacts = await ev(GRAB('.phone'));
+  await ev(`gv.game.phoneOpen=false; gv.game.phoneTab='journal'; gv.game.journalDraft=null; gv.game.render(); true`);
+  return { right, journal, contacts };
+}
+const STYLE_CSS = readFileSync(join(here, '..', '..', 'src', 'style.css'), 'utf8');
+function writeRendition(t, q, links, css, rd, sizes) {
+  const e = (x) => String(x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const sized = (x) => x.html.replace(/^<div /, `<div style="height:${x.h}px" `).replaceAll('__BUST__', BUST);
+  const sz = Object.entries({ dialogue: sizes.line, choices: sizes.choice, 'scene description': sizes.desc, 'name tag': sizes.who, 'mood chip': sizes.chip, 'phone tabs': sizes.phoneTab, journal: sizes.journal, 'contact names': sizes.ctName, 'contact detail': sizes.ctMeta }).filter(([, v]) => v).map(([k, v]) => `${k} ${v}`).join(' · ');
+  const cell = (cap, inner) => `<figure class="gvr-cell"><figcaption class="gvr-cap">${cap}</figcaption>${inner}</figure>`;
+  const page = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${e(t.name)} · HTML rendition</title>
+${links.filter((l) => l.url).map((l) => `<link rel="stylesheet" href="${e(l.url)}">`).join('\n')}
+<style>/* src/style.css, copied verbatim */
+${STYLE_CSS}</style>
+<style>/* the theme exactly as tools/themes/shoot.mjs injects it into the game: colours, fonts and the type scale */
+${css}</style>
+<style>/* rendition layout only: the panels side by side at their real size; no type sizes for game elements */
+body.gvr { height: auto; min-height: 100%; overflow: auto; background: ${q.strip}; color: ${q.stripInk}; }
+.gvr-top { font: 14px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif; padding: 20px 24px 0; max-width: 1100px; }
+.gvr-top h1 { font: 600 19px/1.3 system-ui, -apple-system, 'Segoe UI', sans-serif; margin: 0 0 4px; }
+.gvr-top p { margin: 0 0 4px; opacity: .85; }
+.stage.gvr-stage { position: static; width: auto; height: auto; overflow: visible; display: block; background: transparent; }
+.gvr-row { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; padding: 18px 24px 48px; }
+.gvr-cell { margin: 0; flex: none; }
+.gvr-cap { font: 600 12px/1.3 system-ui, -apple-system, 'Segoe UI', sans-serif; letter-spacing: .06em; text-transform: uppercase; color: ${q.stripInk}; opacity: .8; margin: 0 0 8px; }
+.gvr-row .right { flex: none; border-radius: 4px; }
+.gvr-row .phone { position: relative; left: auto; bottom: auto; z-index: auto; }
+</style></head>
+<body class="gvr">
+<header class="gvr-top"><h1>${e(t.name)}</h1>
+<p>${e(t.serifStack ? t.serifStack.split(',')[0] : t.serif)} for dialogue, ${e(t.uiStack ? t.uiStack.split(',')[0] : t.ui)} for the interface. Text ${t.scale}&times;${t.phoneScale !== t.scale ? `, phone ${t.phoneScale}&times;` : ''}${t.smallScale !== 1 ? `, small text a further ${t.smallScale}&times;` : ''}.</p>
+<p>Rendered from the game's own markup and stylesheet with this theme's CSS, at 1:1 CSS pixels (zoom in: the text stays sharp). Sizes measured in the game: ${e(sz)}. Portraits are a neutral placeholder; dev-only buttons are left out.</p></header>
+<div class="stage gvr-stage"><div class="gvr-row">
+${cell('Right panel &middot; a beat with a stage direction', sized(rd.right[0]))}
+${cell('Right panel &middot; the last beat, three choices', sized(rd.right[1]))}
+${cell('Phone &middot; journal', sized(rd.journal))}
+${cell('Phone &middot; contacts', sized(rd.contacts))}
+</div></div>
+</body></html>
+`;
+  writeFileSync(join(out, 'html', t.id + '.html'), page);
+}
+
 const results = [];
 async function shootTheme(t) {
+  await setup(); // the same fresh game state for every theme (the contacts' talk counts, rapport, the day)
   const q = fullPalette(t.palette); const checks = contrastChecks(q); const warn = checks.filter((c) => !c.ok);
   for (const w of warn) console.log(`  ! ${t.id}: ${w.what} ${w.fg} on ${w.bg} = ${w.ratio}:1 (< ${w.min})`);
   const fams = [...new Set([t.serifStack ? null : t.serif, t.uiStack ? null : t.ui].filter(Boolean))];
   const links = [];
   for (const f of fams) { const u = await fontUrl(f, f === t.serif); links.push({ family: f, url: u?.url ?? null, spec: u?.spec ?? null }); }
   await ev(`(()=>{document.querySelectorAll('[data-gv-theme]').forEach(e=>e.remove()); return true})()`);
-  const scaleCss = t.scale !== 1 || t.phoneScale !== 1 ? await ev(scaleCssExpr(t.scale, t.phoneScale)) : '';
-  const css = themeCss(t, q) + (scaleCss ? '\n/* type scale ' + t.scale + ', phone ' + t.phoneScale + ' */\n' + scaleCss : '');
+  const scaled = t.scale !== 1 || t.phoneScale !== 1 || t.smallScale !== 1;
+  const scaleCss = scaled ? await ev(scaleCssExpr(t.scale, t.phoneScale, t.smallScale)) : '';
+  const css = themeCss(t, q) + (scaleCss ? '\n/* type scale ' + t.scale + ', phone ' + t.phoneScale + ', small text ' + t.smallScale + ' */\n' + scaleCss : '');
   await ev(`(()=>{
     for (const u of ${JSON.stringify(links.filter((l) => l.url).map((l) => l.url))}) { const l=document.createElement('link'); l.rel='stylesheet'; l.href=u; l.dataset.gvTheme=1; document.head.append(l); }
     const s=document.createElement('style'); s.dataset.gvTheme=1; s.textContent=${JSON.stringify(css)}; document.head.append(s); return true;})()`);
@@ -254,10 +337,15 @@ async function shootTheme(t) {
   mainLayout.warn.push(...new Set(laterWarn));
   await sleep(150);
   await shot(`${t.id}_later`);
+  // (d) the HTML rendition: the right panel and the phone as DOM, with this theme's injected CSS (see writeRendition)
+  const rendition = await captureRendition();
   const failed = Object.entries(fontState).filter(([, ok]) => !ok).map(([f]) => f).concat(links.filter((l) => !l.url).map((l) => l.family + ' (no css)'));
   const layout = [...mainLayout.warn.map((x) => 'main: ' + x), ...journalLayout.warn.map((x) => 'phone journal: ' + x), ...contactsLayout.warn.map((x) => 'phone contacts: ' + x), ...profileLayout.warn.map((x) => 'phone opening questions: ' + x.replace(/^phone pane scrolls (\d+) px$/, 'Begin needs scrolling ($1 px; SPEC wants one screen)'))];
   for (const l of layout) console.log(`  ~ ${t.id}: ${l}`);
-  return { t, q, checks, warn, links, fontState, failed, probe, contacts, layout, sizes: { line: mainLayout.lineFont, choice: mainLayout.choiceFont, phoneTab: journalLayout.tabFont, island: journalLayout.island } };
+  const { warn: _w1, choices: _c, rightOverflow: _r, lineFont, choiceFont, ...mainSizes } = mainLayout;
+  const sizes = { line: lineFont, choice: choiceFont, phoneTab: journalLayout.tabFont, ...mainSizes, hint: journalLayout.hint, journal: journalLayout.journal, ctName: contactsLayout.ctName, ctMeta: contactsLayout.ctMeta, profileQ: profileLayout.profileQ, island: journalLayout.island };
+  writeRendition(t, q, links, css, rendition, sizes);
+  return { t, q, checks, warn, links, fontState, failed, probe, contacts, layout, sizes };
 }
 for (const t of themes) {
   let r = null;
@@ -271,19 +359,34 @@ for (const t of themes) {
   const { warn, failed, probe, contacts, layout, sizes } = r; results.push(r);
   console.log(`${t.id.padEnd(22)} fonts:${failed.length ? ' FAILED ' + failed.join(',') : ' ok'}  contrast:${warn.length ? ' ' + warn.length + ' warn' : ' ok'}  layout:${layout.length ? ' ' + layout.length + ' note' : ' ok'}  choices:${probe.choices} contacts:${contacts}  line ${sizes.line} choice ${sizes.choice}`);
 }
+// each HTML rendition, opened on its own: its text sizes must be the ones measured in the game
+const REND_SIZES = { line: '.dialogue .line:not(.stage)', choice: '.choice:not(.next)', desc: '.right .desc', who: '.portrait .who', chip: '.portrait .chip', phoneTab: '.ph-tab', journal: '.ph-journal', hint: '.ph-hint', ctName: '.ct-name', ctMeta: '.ct-talk' };
+for (const r of results) {
+  try {
+    await send('Page.navigate', { url: pathToFileURL(join(out, 'html', r.t.id + '.html')).href }); await sleep(1200);
+    await ev(`document.fonts.ready.then(()=>true)`);
+    const got = await ev(SIZES(REND_SIZES));
+    const stage = await ev(`getComputedStyle(document.querySelector('.line.stage')).fontSize`);
+    r.rendition = { sizes: got, stage, mismatch: Object.keys(REND_SIZES).filter((k) => got[k] !== r.sizes[k]).map((k) => `${k}: game ${r.sizes[k]}, html ${got[k]}`), errors: errors.length };
+    r.sizes.stage = stage;
+    if (r.rendition.mismatch.length) console.log(`  ! ${r.t.id} html rendition differs: ${r.rendition.mismatch.join('; ')}`);
+  } catch (e) { r.rendition = { mismatch: ['not checked: ' + e.message] }; console.log(`  ! ${r.t.id} html rendition not checked (${e.message})`); }
+}
 ws.close(); chrome.kill();
 try { rmSync(profile, { recursive: true, force: true }); } catch {}
 
 // ---------------------------------------------------------------- gallery
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const SW = ['panel', 'panel2', 'card', 'ink', 'muted', 'accent', 'amber', 'topbar', 'strip', 'line'];
-const rootBlock = (r) => (r.t.scale !== 1 || r.t.phoneScale !== 1 ? `  /* type scale ${r.t.scale}, phone ${r.t.phoneScale}: multiply the px font sizes in style.css (see scaleCssExpr in shoot.mjs) */\n` : '') + `  --ink: ${r.q.ink};\n  --panel: ${r.q.panel};\n  --panel2: ${r.q.panel2};\n  --accent: ${r.q.accent};\n  --amber: ${r.q.amber};\n  --muted: ${r.q.muted};\n  --ui: ${r.t.uiStack ?? fontStack(r.t.ui, UI_FB)};\n  --serif: ${r.t.serifStack ?? fontStack(r.t.serif, SERIF_FB)};`;
+const rootBlock = (r) => (r.t.scale !== 1 || r.t.phoneScale !== 1 || r.t.smallScale !== 1 ? `  /* type scale ${r.t.scale}, phone ${r.t.phoneScale}, small text x${r.t.smallScale} more: multiply the px font sizes in style.css (see scaleCssExpr in shoot.mjs) */\n` : '') + `  --ink: ${r.q.ink};\n  --panel: ${r.q.panel};\n  --panel2: ${r.q.panel2};\n  --accent: ${r.q.accent};\n  --amber: ${r.q.amber};\n  --muted: ${r.q.muted};\n  --ui: ${r.t.uiStack ?? fontStack(r.t.ui, UI_FB)};\n  --serif: ${r.t.serifStack ?? fontStack(r.t.serif, SERIF_FB)};`;
 const card = (r, i) => {
   const { t } = r;
   const fonts = `<b>Dialogue</b> ${esc(t.serifStack ? 'system: ' + t.serifStack.split(',')[0] : t.serif)} &middot; <b>UI</b> ${esc(t.uiStack ? 'system: ' + t.uiStack.split(',')[0] : t.ui)}`;
   const warn = r.warn.length ? `<p class="warn">Contrast below 4.5:1: ${r.warn.map((w) => `${esc(w.what)} ${w.ratio}:1`).join('; ')}</p>` : '';
   const ff = r.failed.length ? `<p class="warn">Font not loaded: ${esc(r.failed.join(', '))}</p>` : '';
-  const sc = t.scale !== 1 || t.phoneScale !== 1 ? `<p class="scale">Type scale <b>${t.scale}&times;</b>${t.phoneScale !== t.scale ? ` (phone ${t.phoneScale}&times;)` : ''}: dialogue ${esc(r.sizes.line)}, choices ${esc(r.sizes.choice)}, phone tabs ${esc(r.sizes.phoneTab)}</p>` : '';
+  const s = r.sizes;
+  const sc = `<p class="scale">Type scale <b>${t.scale}&times;</b>${t.phoneScale !== t.scale ? ` (phone ${t.phoneScale}&times;)` : ''}, small text <b>${t.smallScale}&times;</b> on top: dialogue ${esc(s.line)}, choices ${esc(s.choice)}, phone tabs ${esc(s.phoneTab)}, top bar ${esc(s.topbar)}, name tag ${esc(s.who)}, chip ${esc(s.chip)}, scene description ${esc(s.desc)}, exits ${esc(s.exit)}, journal ${esc(s.journal)}, contact detail ${esc(s.ctMeta)}</p>`
+    + (r.rendition?.mismatch?.length ? `<p class="warn">HTML rendition sizes differ: ${esc(r.rendition.mismatch.join('; '))}</p>` : '');
   const lay = r.layout.length ? `<p class="warn">At 1440x900: ${r.layout.map(esc).join('; ')}</p>` : '';
   return `<section class="theme" id="${t.id}">
   <header><span class="num">${i + 1}</span><h2>${esc(t.name)}</h2><span class="mood">${esc(t.mood)}</span>${t.scale !== 1 ? `<span class="mood">${t.scale}&times; text</span>` : ''}<code>${t.id}</code></header>
@@ -291,7 +394,7 @@ const card = (r, i) => {
   <div class="sw">${SW.map((k) => `<span title="${k} ${r.q[k]}"><i style="background:${r.q[k]}"></i>${k}<br><code>${r.q[k]}</code></span>`).join('')}</div>
   ${sc}${warn}${ff}${lay}
   <div class="pair"><a href="png/${t.id}_main.png"><img loading="lazy" src="jpg/${t.id}_main.jpg" alt="main screen"></a><a href="png/${t.id}_phone.png"><img loading="lazy" src="jpg/${t.id}_phone.jpg" alt="phone open"></a></div>
-  <p class="links">Full size: <a href="png/${t.id}_main.png">main</a> &middot; <a href="png/${t.id}_phone.png">phone (full screen)</a> &middot; <a href="png/${t.id}_phone_journal.png">phone journal</a> &middot; <a href="png/${t.id}_phone_contacts.png">phone contacts</a> &middot; <a href="png/${t.id}_phone_profile.png">phone opening questions</a> &middot; <a href="png/${t.id}_later.png">two clicks later</a></p>
+  <p class="links">Full size: <a href="png/${t.id}_main.png">main</a> &middot; <a href="png/${t.id}_phone.png">phone (full screen)</a> &middot; <a href="png/${t.id}_phone_journal.png">phone journal</a> &middot; <a href="png/${t.id}_phone_contacts.png">phone contacts</a> &middot; <a href="png/${t.id}_phone_profile.png">phone opening questions</a> &middot; <a href="png/${t.id}_later.png">two clicks later</a> &middot; <a href="html/${t.id}.html">open as HTML</a></p>
   <details><summary>:root block for style.css</summary><pre>${esc(rootBlock(r))}</pre></details>
 </section>`;
 };
@@ -337,10 +440,11 @@ ${results.map(card).join('\n')}
 <div class="phones">${results.map(phoneCard).join('\n')}</div>
 </main></body></html>`;
 writeFileSync(join(out, 'index.html'), html);
-writeFileSync(join(out, 'results.json'), JSON.stringify(results.map((r) => ({ id: r.t.id, scale: r.t.scale, phoneScale: r.t.phoneScale, sizes: r.sizes, layoutWarnings: r.layout, fonts: r.links, fontLoaded: r.fontState, failed: r.failed, contrastWarnings: r.warn, probe: r.probe, contacts: r.contacts })), null, 2));
+writeFileSync(join(out, 'results.json'), JSON.stringify(results.map((r) => ({ id: r.t.id, scale: r.t.scale, phoneScale: r.t.phoneScale, smallScale: r.t.smallScale, sizes: r.sizes, rendition: r.rendition, layoutWarnings: r.layout, fonts: r.links, fontLoaded: r.fontState, failed: r.failed, contrastWarnings: r.warn, probe: r.probe, contacts: r.contacts })), null, 2));
 console.log(`\n${results.length} themes -> ${join(out, 'index.html')}`);
 console.log(`font failures: ${results.filter((r) => r.failed.length).map((r) => r.t.id + '(' + r.failed + ')').join(' ') || 'none'}`);
 console.log(`contrast warnings: ${results.filter((r) => r.warn.length).map((r) => r.t.id).join(' ') || 'none'}`);
 console.log(`layout notes: ${results.filter((r) => r.layout.length).map((r) => r.t.id).join(' ') || 'none'}`);
+console.log(`html renditions differing from the game: ${results.filter((r) => r.rendition?.mismatch?.length).map((r) => r.t.id).join(' ') || 'none'}`);
 console.log(`page errors: ${errors.length}`); for (const e of errors.slice(0, 5)) console.log('  ' + e.slice(0, 200));
 process.exit(0);

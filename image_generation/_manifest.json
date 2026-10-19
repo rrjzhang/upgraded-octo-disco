@@ -1,6 +1,6 @@
 {
  "budget": 50,
- "planned": 262,
+ "planned": 263,
  "reserved_for_retries": 5,
  "items": [
   {
@@ -4596,6 +4596,24 @@
    "save_prompt_used_as": "out/bg_townhall_eve_A.prompt.txt",
    "status": "done",
    "file": "262_bg_townhall_eve_A.md"
+  },
+  {
+   "id": "bg_townhall_eve_A_v2",
+   "order": 263,
+   "part": 19,
+   "style": "A",
+   "kind": "background",
+   "aspect": "3:2",
+   "transparent_background": false,
+   "chat_group": "bg_townhall_A",
+   "depends_on": [
+    "bg_townhall_eve_A"
+   ],
+   "attach": "out/bg_townhall_eve_A.png",
+   "save_image_as": "out/bg_townhall_eve_A_v2.png",
+   "save_prompt_used_as": "out/bg_townhall_eve_A_v2.prompt.txt",
+   "status": "pending",
+   "file": "263_bg_townhall_eve_A_v2.md"
   }
  ]
 }

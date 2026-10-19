@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-19T05:50:09.478Z",
+  "generated": "2026-10-19T07:20:21.452Z",
   "source": "image_generation/out (_A set)",
   "backgrounds": {
     "bg_home_day": {
@@ -952,6 +952,19 @@
       "file": "prop/prop_radio.png",
       "w": 600,
       "h": 576
+    },
+    "prop_podium": {
+      "file": "prop/prop_podium.png",
+      "w": 160,
+      "h": 243,
+      "source": "bg_townhall_eve_A",
+      "cropOf": "bg_townhall_eve_A",
+      "crop": {
+        "x": 0.452,
+        "y": 0.29,
+        "w": 0.104,
+        "h": 0.237
+      }
     }
   },
   "tv": {

@@ -433,6 +433,21 @@ for (const id of PROPS) {
   manifest.props[key] = { file: rel(dest), w: r.w, h: r.h };
 }
 
+// SPEC "Town hall": the podium, cropped out of the town hall background itself, is drawn in front of the speaker (scenes.yaml
+// prop `over: true` at the same place). Fractions of the 1536 x 1024 image, measured on bg_townhall_eve_A; a `_vN` retake
+// keeps the podium where it is (the request says so), so the crop follows latest() automatically.
+{
+  const PODIUM = { x: 0.452, y: 0.290, w: 0.104, h: 0.237 };
+  const sid = (BG_SOURCES.bg_townhall_eve ?? ['bg_townhall_eve_A']).find(exists);
+  if (sid) {
+    const dest = out('prop', 'prop_podium.png');
+    const d = dims(src(sid));
+    const px = Math.round(PODIUM.x * d.w), py = Math.round(PODIUM.y * d.h), pw = Math.round(PODIUM.w * d.w), ph = Math.round(PODIUM.h * d.h);
+    sips('--cropOffset', String(py), String(px), '--cropToHeightWidth', String(ph), String(pw), src(sid), '--out', dest);
+    manifest.props.prop_podium = { file: rel(dest), w: pw, h: ph, source: latest(sid), cropOf: sid, crop: PODIUM };
+  } else warn.push('no town hall background: prop_podium not built');
+}
+
 if (exists('ch_nat_anti_tv_1_A')) {
   const dest = out('tv', 'nat_enforcement_1.jpg');
   sips('-s', 'format', 'jpeg', '-s', 'formatOptions', '85', '--resampleWidth', String(TV_W), src('ch_nat_anti_tv_1_A'), '--out', dest);

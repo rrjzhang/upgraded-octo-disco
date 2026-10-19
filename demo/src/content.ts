@@ -182,7 +182,7 @@ function parseScenes(r: Reporter, file: string, text: string): Scene[] {
       screens: parseScreens(r, file, where, s.screens),
       props: (Array.isArray(s.props) ? s.props : [])
         .filter((p: any, j: number) => (p?.asset ? true : (r.error(file, `${where} prop #${j + 1}: missing asset`), false)))
-        .map((p: any, j: number) => ({ asset: str(p.asset), x: num(p.x, 0), y: num(p.y, 0), w: num(p.w, 0.1), ...parsePropQuad(r, file, `${where} prop #${j + 1}`, p) })),
+        .map((p: any, j: number) => ({ asset: str(p.asset), x: num(p.x, 0), y: num(p.y, 0), w: num(p.w, 0.1), ...(p.over === true ? { over: true } : {}), ...parsePropQuad(r, file, `${where} prop #${j + 1}`, p) })),
       ...(s.hidden === true ? { hidden: true } : {}),
       horizon: typeof s.horizon === 'number' && s.horizon > 0 && s.horizon < 1 ? s.horizon : DEFAULT_HORIZON,
       cameraHeight: typeof s.cameraHeight === 'number' && s.cameraHeight > 0 ? s.cameraHeight : DEFAULT_CAMERA_HEIGHT,

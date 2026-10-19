@@ -68,6 +68,8 @@ button { font-family: inherit; }
 .bg-flat-name { font: 600 40px var(--ui); color: var(--ink); }
 .bg-flat-id { margin-top: 8px; font-size: 14px; }
 .prop { position: absolute; pointer-events: none; user-select: none; z-index: 2; }
+/* a prop drawn in front of the people (the town hall podium, SPEC "Town hall"): figures sit at z 10 + 100 * slot y */
+.prop.prop-over { z-index: 140; }
 /* a prop projected onto a surface seen in perspective (Prop.quad): softened a little to sit in the photo */
 .prop-quad { filter: blur(0.35px) brightness(.9) saturate(.85); }
 
@@ -205,8 +207,9 @@ button { font-family: inherit; }
 .portrait .bust { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); width: 290px; height: 290px; object-fit: contain; object-position: bottom; }
 /* conversation over: the last bust stays and fades back instead of the panel snapping to the scene description */
 .portrait.ended .bust, .portrait.ended .chip { animation: bust-fade 1.1s ease-out forwards; }
-@keyframes bust-fade { from { opacity: 1; filter: none; } to { opacity: .3; filter: grayscale(.8); } }
-@media (prefers-reduced-motion: reduce) { .portrait.ended .bust, .portrait.ended .chip { animation: none; opacity: .3; filter: grayscale(.8); } }
+/* the person simply goes (no grey: that read as an obituary) */
+@keyframes bust-fade { from { opacity: 1; } to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .portrait.ended .bust, .portrait.ended .chip { animation: none; opacity: 0; } }
 /* a stage direction (SPEC "Writing dialogue: beats and stage directions"): its own italic line, like an action in a script */
 .line.stage { font-style: italic; color: var(--muted); font-size: 17px; margin: 2px 0 6px; }
 .choice.next { position: relative; text-align: center; padding: 6px 0; min-height: 32px; background: none; border: 0; box-shadow: none; }
@@ -261,7 +264,7 @@ button { font-family: inherit; }
 
 /* ---------- phone ---------- */
 .phone {
-  position: absolute; left: 16px; bottom: 16px; width: 420px; height: 800px; z-index: 200; background: var(--panel);
+  position: absolute; left: 16px; bottom: 16px; width: 420px; height: 800px; z-index: 1100; background: var(--panel); /* above the "too tired" overlay (z 1000) */
   border: 10px solid var(--phoneFrame); border-radius: 36px; display: flex; flex-direction: column; overflow: hidden;
   box-shadow: 0 12px 40px rgba(0,0,0,.45);
 }
@@ -409,3 +412,4 @@ th { color: var(--muted); font-weight: 500; }
 .choice.topic.done { color: var(--muted); }
 .choice.picked { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
 .choice.sit { font-weight: 600; }
+\n\n/* researcher.html: backup and restore (2026-10-19) */\n.backup { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line, #cfc7b6); }\n.backup h2 { font-size: 17px; margin: 0 0 6px; }\n.backup-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }\n.backup-row input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }\n.backup-row label.btn { cursor: pointer; }\n

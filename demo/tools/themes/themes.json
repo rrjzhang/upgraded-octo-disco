@@ -1,5 +1,5 @@
 {
-  "_doc": "Font/theme candidates for design review. serif = Google Fonts family for dialogue (--serif), ui = Google Fonts family for UI (--ui); serifStack/uiStack replace them with a system stack (no Google load). palette: panel, panel2, ink, muted, accent, amber are the style.css variables; optional card, line, onAccent, accentHover, topbar, topbarInk, topbarMuted, strip, stripInk, exitOff, exitOffInk, phoneFrame override the hard-coded colours (derived when absent). extends = id of a theme whose fonts and palette this one copies; scale = type size multiplier for the whole game (default 1), phoneScale = the same for the phone (default scale). See README.md.",
+  "_doc": "Font/theme candidates for design review. serif = Google Fonts family for dialogue (--serif), ui = Google Fonts family for UI (--ui); serifStack/uiStack replace them with a system stack (no Google load). palette: panel, panel2, ink, muted, accent, amber are the style.css variables; optional card, line, onAccent, accentHover, topbar, topbarInk, topbarMuted, strip, stripInk, exitOff, exitOffInk, phoneFrame override the hard-coded colours (derived when absent). extends = id of a theme whose fonts and palette this one copies; scale = type size multiplier for the whole game (default 1), phoneScale = the same for the phone (default scale), smallScale = a further multiplier for the text that is still small (top bar, exit strip, name tag and mood chip, scene description, phone tabs and journal / contacts text; default 1). See README.md.",
   "themes": [
     {"id":"current","name":"Current default","mood":"warm paper","serif":"Source Serif 4","ui":"IBM Plex Sans","palette":{"panel":"#f4f1ea","panel2":"#e8e2d4","ink":"#1f1d1a","muted":"#5d574d","accent":"#1f6f6b","amber":"#d9a441","card":"#ffffff","line":"#cfc7b6","topbar":"#1f1d1a","topbarInk":"#f4f1ea","topbarMuted":"#d8d1c2","strip":"#2f2b26","stripInk":"#e8e2d4","exitOff":"#4a453e","exitOffInk":"#a59d8f","accentHover":"#185955"}},
     {"id":"paper-lora","name":"Paper / Lora","mood":"warm paper","serif":"Lora","ui":"Inter","palette":{"panel":"#f6f1e7","panel2":"#ebe3d2","ink":"#2a241d","muted":"#6a5f50","accent":"#8a4b2a","amber":"#d39b3a"}},
@@ -71,6 +71,10 @@
     {"id":"hc-atkinson-large","name":"High contrast / Atkinson · large","extends":"hc-atkinson","scale":1.15},
     {"id":"hc-atkinson-xl","name":"High contrast / Atkinson · extra large","extends":"hc-atkinson","scale":1.3},
     {"id":"hc-dark-atkinson-large","name":"High contrast dark / Atkinson · large","extends":"hc-dark-atkinson","scale":1.15},
-    {"id":"hc-dark-atkinson-xl","name":"High contrast dark / Atkinson · extra large","extends":"hc-dark-atkinson","scale":1.3}
+    {"id":"hc-dark-atkinson-xl","name":"High contrast dark / Atkinson · extra large","extends":"hc-dark-atkinson","scale":1.3},
+    {"id":"current-large-s125","name":"Current default · large, small text 1.25×","extends":"current","scale":1.15,"smallScale":1.25},
+    {"id":"current-large-s135","name":"Current default · large, small text 1.35×","extends":"current","scale":1.15,"smallScale":1.35},
+    {"id":"paper-lora-large-s125","name":"Paper / Lora · large, small text 1.25×","extends":"paper-lora","scale":1.15,"smallScale":1.25},
+    {"id":"hc-atkinson-large-s125","name":"High contrast / Atkinson · large, small text 1.25×","extends":"hc-atkinson","scale":1.15,"smallScale":1.25}
   ]
 }
