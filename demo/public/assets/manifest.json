@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-19T07:20:21.452Z",
+  "generated": "2026-10-19T08:00:09.664Z",
   "source": "image_generation/out (_A set)",
   "backgrounds": {
     "bg_home_day": {
@@ -42,7 +42,7 @@
       "w": 1536,
       "h": 1024,
       "lighting": "warm_indoor",
-      "source": "bg_townhall_eve_A"
+      "source": "bg_townhall_eve_A_v2"
     },
     "bg_library_day": {
       "file": "bg/bg_library_day.jpg",
@@ -957,7 +957,7 @@
       "file": "prop/prop_podium.png",
       "w": 160,
       "h": 243,
-      "source": "bg_townhall_eve_A",
+      "source": "bg_townhall_eve_A_v2",
       "cropOf": "bg_townhall_eve_A",
       "crop": {
         "x": 0.452,

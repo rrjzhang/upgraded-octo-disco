@@ -11,7 +11,7 @@ depends_on: ["bg_townhall_eve_A"]
 attach: "out/bg_townhall_eve_A.png"
 save_image_as: "out/bg_townhall_eve_A_v2.png"
 save_prompt_used_as: "out/bg_townhall_eve_A_v2.prompt.txt"
-status: "pending"
+status: "done"
 ---
 
 # bg_townhall_eve_A_v2
