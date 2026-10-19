@@ -17,6 +17,12 @@ for (let i = 2; i < process.argv.length; i++) { const a = process.argv[i]; if (a
 const BASE = args.get('base') ?? 'http://localhost:5173';
 const SEEDS = args.has('seed') ? [+args.get('seed')] : Array.from({ length: +(args.get('seeds') ?? 10) }, (_, i) => +(args.get('start') ?? 1) + i);
 const STEPS = +(args.get('steps') ?? 500);
+// --mode random (default) | lead (always leads on in a conversation) | tour (visits every scene each day and talks to
+// everyone there) | both. Tour modes top the actions up when they run out until the day's tour is done (--no-topup off).
+const MODE = args.get('mode') ?? 'random';
+if (!['random', 'lead', 'tour', 'both'].includes(MODE)) { console.error(`--mode ${MODE}? random | lead | tour | both`); process.exit(2); }
+const LEAD = MODE === 'lead' || MODE === 'both', TOUR = MODE === 'tour' || MODE === 'both';
+const TOPUP = TOUR && !args.has('no-topup');
 const STAMP = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
 const OUT = args.get('out') ?? path.join('tools', 'fuzz', 'out', STAMP);
 fs.mkdirSync(OUT, { recursive: true });
@@ -88,7 +94,7 @@ const PAGE_LIB = `window.__fz = (() => {
     }
     if (document.querySelector('.end-overlay')) return [{ kind: 'end', w: 1, sel: 'end', idx: 0, label: 'demo ended' }];
     const phone = document.querySelector('.phone'), phoneOpen = phone && !phone.hidden;
-    const add = (sel, kind, w, filter) => { [...document.querySelectorAll(sel)].forEach((el, i) => { if (!vis(el) || !enabled(el) || (filter && !filter(el))) return; out.push({ kind, w, sel, idx: i, label: label(el) }); }); };
+    const add = (sel, kind, w, filter) => { [...document.querySelectorAll(sel)].forEach((el, i) => { if (!vis(el) || !enabled(el) || (filter && !filter(el))) return; out.push({ kind, w, sel, idx: i, label: label(el), fk: el.dataset.fk || '' }); }); };
     if (phoneOpen) {
       // the phone pane: profile radios and Begin, tabs, journal save, the end-of-day call, close
       add('.phone input[type=radio]', 'radio', 6, (el) => !el.checked);
@@ -102,7 +108,8 @@ const PAGE_LIB = `window.__fz = (() => {
     [...document.querySelectorAll('.right .choice')].forEach((el, i) => {
       if (!vis(el) || !enabled(el) || el.classList.contains('dev-back') || el.classList.contains('dev-edit-open')) return;
       const m = /^ch:(\d+)$/.exec(el.dataset.fk || ''), ch = row && m ? row.choices[+m[1]] : null;
-      out.push({ kind: 'choice', w: el.classList.contains('next') ? 8 : ch ? (ch.next ? 6 : 2) : 4, sel: '.right .choice', idx: i, label: label(el) });
+      const next = el.classList.contains('next');
+      out.push({ kind: 'choice', w: next ? 8 : ch ? (ch.next ? 6 : 2) : 4, sel: '.right .choice', idx: i, label: label(el), fk: el.dataset.fk || '', leads: next || !!(ch && ch.next), leave: !!(ch && !ch.next) });
     });
     add('.scene-box .figure', 'figure', 5);
     add('.scene-box .hotspot', 'hotspot', 0.5, (el) => !el.classList.contains('spent'));
@@ -163,7 +170,8 @@ async function walk(seed) {
   for (let i = 0; i < 80; i++) { await sleep(100); try { if (await ev(`!!(window.gv && window.gv.game && document.querySelector('.stage'))`)) break; } catch { /* loading */ } }
   await ev(PAGE_LIB);
   const trace = [], fails = [], notes = [];
-  let steps = 0, idle = 0, lastDay = 0, finished = false, maxDay = 1;
+  let steps = 0, idle = 0, lastDay = 0, finished = false, maxDay = 1, topups = 0;
+  const tour = { visited: new Set(), known: new Set(), done: false }; // per day: scenes visited, scenes known from exits, tour finished
   const t0 = Date.now();
   for (; steps < STEPS; steps++) {
     let snap;
@@ -172,7 +180,13 @@ async function walk(seed) {
     maxDay = Math.max(maxDay, snap.day || 1);
     if (typeof snap.actions === 'number' && snap.actions < 0) fails.push({ step: steps, what: 'actions below zero', detail: `actions=${snap.actions}` });
     if (snap.holes.length) fails.push({ step: steps, what: 'unfilled placeholder on screen', detail: `${snap.holes.join(' ')} in ${snap.scene} (${snap.panel})` });
-    if (snap.day !== lastDay) { trace.push(`\n## Day ${snap.day} (${snap.actions} actions)`); lastDay = snap.day; }
+    if (snap.day !== lastDay) { trace.push(`\n## Day ${snap.day} (${snap.actions} actions)`); lastDay = snap.day; tour.visited.clear(); tour.done = false; }
+    if (snap.scene) tour.visited.add(snap.scene);
+    // test mode: the tour must not stall on an empty action bar; top up and say so in the trace
+    if (TOPUP && typeof snap.actions === 'number' && snap.actions <= 0 && !tour.done && !snap.pending && !snap.module) {
+      await ev('gv.actions(8)'); topups++; trace.push(`${String(steps).padStart(3)} d${snap.day} a0 ${String(snap.scene).padEnd(9)} topup     actions set back to 8 (tour not finished)`);
+      continue;
+    }
     let cands;
     try { cands = await ev('JSON.stringify(window.__fz.candidates())').then(JSON.parse); } catch (e) { fails.push({ step: steps, what: 'candidates failed', detail: String(e.message).slice(0, 200) }); break; }
     cands = cands.filter((c) => c.w > 0);
@@ -185,6 +199,23 @@ async function walk(seed) {
     idle = 0;
     // a dialogue row must always offer a click (a choice or Next); the phone and module windows cover the panel, so only when neither is open
     if (snap.panel === 'dialogue' && !snap.module && !snap.phoneOpen && !cands.some((c) => c.kind === 'choice')) fails.push({ step: steps, what: 'dialogue with no enabled choice', detail: snap.status || snap.line.slice(0, 80) });
+    for (const c of cands) for (const m of [/^(?:exit|hub):(\w+)$/.exec(c.fk || '')]) if (m) tour.known.add(m[1]);
+    if (LEAD) for (const c of cands) if (c.kind === 'choice') c.w = c.leads ? 20 : c.leave ? 0.4 : 4;
+    if (TOUR && !snap.module && !snap.phoneOpen && !snap.pending && snap.panel !== 'dialogue') {
+      const figures = cands.filter((c) => c.kind === 'figure');
+      const unvisited = [...tour.known].filter((id) => !tour.visited.has(id));
+      if (figures.length) for (const c of figures) c.w = 60;
+      else if (unvisited.length) {
+        const direct = cands.filter((c) => { const m = /^(?:exit|hub):(\w+)$/.exec(c.fk || ''); return m && unvisited.includes(m[1]); });
+        const toHub = cands.filter((c) => /^(?:exit|hub):street$/.test(c.fk || ''));
+        for (const c of direct.length ? direct : toHub) c.w = 60;
+      } else if (!tour.done) { tour.done = true; trace.push(`${String(steps).padStart(3)} d${snap.day} a${snap.actions} ${String(snap.scene).padEnd(9)} tour      every known scene visited, everyone met; letting the day run out`); }
+      // tour done: head for bed and sleep (or the ringing phone) so the next day's tour can start
+      if (tour.done) for (const c of cands) { if (c.kind === 'phone' && /ringing/i.test(c.label)) c.w = 40; if (c.fk === 'hs:bed') c.w = 30; if (c.kind === 'hotspot' && c.fk !== 'hs:bed') c.w = 0.2; if (c.kind === 'exit' && !/^(?:exit|hub):home$/.test(c.fk || '')) c.w = 0.5; }
+    }
+    if (TOUR && tour.done && snap.panel === 'bed') for (const c of cands) if (c.kind === 'choice' && /sleep|bed|turn in/i.test(c.label)) c.w = 40;
+    if (false) {
+    }
     const c = pickWeighted(rng, cands);
     let ok = false;
     try { ok = await ev(`window.__fz.act(${JSON.stringify(c)})`); } catch (e) { fails.push({ step: steps, what: 'click threw', detail: `${c.kind} ${c.label}: ${String(e.message).slice(0, 160)}` }); }
@@ -223,7 +254,7 @@ async function walk(seed) {
   if (fails.length) tr.push('', '## Failures', ...fails.map((f) => `- step ${f.step}: ${f.what}: ${f.detail}`));
   if (notes.length) tr.push('', '## Engine notes', ...notes.map((f) => `- step ${f.step}: ${f.detail}`));
   fs.writeFileSync(path.join(OUT, `seed-${seed}.md`), tr.join('\n') + '\n');
-  return { seed, culture: viaProfile ? 'profile' : culture, region: culture === 'in' ? region || '-' : '-', faith: culture === 'in' ? faith || '-' : '-', steps, ms, finished, maxDay, convos, charged, rows: rowsSeen, events: eventsSeen, fails, notes, nrows: content.nrows, nevents: content.nevents };
+  return { seed, topups, culture: viaProfile ? 'profile' : culture, region: culture === 'in' ? region || '-' : '-', faith: culture === 'in' ? faith || '-' : '-', steps, ms, finished, maxDay, convos, charged, rows: rowsSeen, events: eventsSeen, fails, notes, nrows: content.nrows, nevents: content.nevents };
 }
 
 // ---------------------------------------------------------------- run
@@ -243,16 +274,16 @@ const nrows = results.find((r) => r.nrows)?.nrows ?? 0, nevents = results.find((
 const byWhat = new Map();
 for (const r of results) for (const f of r.fails) { const k = `${f.what}: ${f.detail.replace(/\d+/g, 'N').slice(0, 90)}`; if (!byWhat.has(k)) byWhat.set(k, []); byWhat.get(k).push(`${r.seed}@${f.step}`); }
 const md = [];
-md.push(`# Fuzz walk ${STAMP}`, '', `${results.length} seed(s), ${STEPS} steps max, ${((Date.now() - started) / 1000).toFixed(0)} s total. Base ${BASE}.`, '');
-md.push(`| seed | start | steps | day | done | convos | charged | fails |`, `|---|---|---|---|---|---|---|---|`);
-for (const r of results) md.push(`| ${r.seed} | ${r.culture}${r.region !== '-' ? ' ' + r.region : ''}${r.faith !== '-' ? ' ' + r.faith : ''} | ${r.steps} | ${r.maxDay} | ${r.finished ? 'yes' : 'no'} | ${r.convos} | ${r.charged} | ${r.fails.length} |`);
+md.push(`# Fuzz walk ${STAMP} (mode ${MODE}${TOPUP ? ', top-ups on' : ''})`, '', `${results.length} seed(s), ${STEPS} steps max, ${((Date.now() - started) / 1000).toFixed(0)} s total. Base ${BASE}.`, '');
+md.push(`| seed | start | steps | day | done | convos | charged | top-ups | fails |`, `|---|---|---|---|---|---|---|---|---|`);
+for (const r of results) md.push(`| ${r.seed} | ${r.culture}${r.region !== '-' ? ' ' + r.region : ''}${r.faith !== '-' ? ' ' + r.faith : ''} | ${r.steps} | ${r.maxDay} | ${r.finished ? 'yes' : 'no'} | ${r.convos} | ${r.charged} | ${r.topups ?? 0} | ${r.fails.length} |`);
 md.push('', `Dialogue rows seen: ${allRows.size} of ${nrows} (${nrows ? (100 * allRows.size / nrows).toFixed(0) : 0}%). Events seen: ${allEvents.size} of ${nevents}. Finished the week: ${results.filter((r) => r.finished).length}/${results.length}.`);
 md.push('', byWhat.size ? '## Failures (grouped)' : '## No failures');
 for (const [k, where] of [...byWhat].sort((a, b) => b[1].length - a[1].length)) md.push(`- ${where.length}x ${k}  (seed@step: ${where.slice(0, 8).join(', ')}${where.length > 8 ? ', ...' : ''})`);
 const noteCount = new Map();
 for (const r of results) for (const n of r.notes) { const k = n.detail.replace(/\d+/g, 'N').slice(0, 100); noteCount.set(k, (noteCount.get(k) || 0) + 1); }
 if (noteCount.size) { md.push('', '## Engine notes (warnings)'); for (const [k, n] of [...noteCount].sort((a, b) => b[1] - a[1]).slice(0, 12)) md.push(`- ${n}x ${k}`); }
-md.push('', `Transcripts: ${OUT}/seed-<n>.md. Repro: node tools/fuzz/walk.mjs --seed <n> --steps ${STEPS}`);
+md.push('', `Transcripts: ${OUT}/seed-<n>.md. Repro: node tools/fuzz/walk.mjs --mode ${MODE} --seed <n> --steps ${STEPS}`);
 fs.writeFileSync(path.join(OUT, 'summary.md'), md.join('\n') + '\n');
 fs.writeFileSync(path.join(OUT, 'summary.json'), JSON.stringify({ stamp: STAMP, base: BASE, steps: STEPS, results: results.map((r) => ({ ...r, rows: [...r.rows], events: [...r.events] })), rowsSeen: [...allRows], eventsSeen: [...allEvents], nrows, nevents }, null, 1));
 console.log(`\nsummary: ${path.join(OUT, 'summary.md')}`);

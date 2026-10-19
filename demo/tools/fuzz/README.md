@@ -11,6 +11,12 @@ npm run fuzz -- --seeds 20 --steps 500       # 20 playthroughs (seeds 1..20), 50
 node tools/fuzz/walk.mjs --seed 7 --steps 500   # one seed again: a repro
 ```
 
+Modes (`--mode`): `random` (default, a wandering player), `lead` (always takes the choice that leads on, so
+conversations reach the material), `tour` (visits every scene it knows of each day and talks to everyone present,
+then goes to bed), `both` (lead + tour). In the tour modes the walker tops the actions back up to 8 when they run
+out before the day's tour is done (`--no-topup` turns that off); each top-up is a line in the trace, so the trace
+still shows the actions going down.
+
 Options: `--start N` (first seed), `--base http://localhost:5173`, `--out <dir>` (default `tools/fuzz/out/<stamp>`,
 git-ignored), `--chrome <path>` (default: Playwright's cached Chromium, else Google Chrome).
 
