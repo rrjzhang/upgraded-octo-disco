@@ -73,6 +73,10 @@
   "pack.in.homeRegion": "India",
   "pack.in|region=north.homeRegion": "north India",
   "pack.in|region=south.homeRegion": "south India",
+  "pack.cn.homeBread": "shaobing",
+  "pack.mx.homeBread": "bolillo",
+  "pack.in.homeBread": "naan",
+  "pack.in|region=south.homeBread": "parotta",
   "end.title": "That is the end of the demo week.",
   "end.body": "Thank you for playing. Please export your log and hand it to the researcher."
 }
