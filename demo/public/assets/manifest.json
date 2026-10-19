@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-18T23:48:30.960Z",
+  "generated": "2026-10-19T00:35:17.225Z",
   "source": "image_generation/out (_A set)",
   "backgrounds": {
     "bg_home_day": {
@@ -157,7 +157,7 @@
         "ch_us_stranger_a_worried_A"
       ],
       "dehazed": {
-        "neutral": 740877,
+        "neutral": 634680,
         "warm": 726658,
         "guarded": 691810,
         "worried": 692349
@@ -237,7 +237,7 @@
         "ch_nat_anti_worried_A"
       ],
       "dehazed": {
-        "neutral": 787815,
+        "neutral": 745234,
         "warm": 703018,
         "guarded": 690755,
         "worried": 680102
@@ -311,13 +311,13 @@
       "placeholder": false,
       "fromReference": false,
       "sources": [
-        "ch_cn_stranger_b_neutral_A",
+        "ch_cn_stranger_b_neutral_A_v2",
         "ch_cn_stranger_b_warm_A",
         "ch_cn_stranger_b_guarded_A",
         "ch_cn_stranger_b_worried_A"
       ],
       "dehazed": {
-        "neutral": 460133,
+        "neutral": 758730,
         "warm": 521294,
         "guarded": 540541,
         "worried": 675803

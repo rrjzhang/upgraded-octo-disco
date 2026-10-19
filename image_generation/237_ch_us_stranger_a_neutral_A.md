@@ -11,7 +11,8 @@ depends_on: ["ch_us_stranger_a_ref_A"]
 attach: "out/ch_us_stranger_a_ref_A.png"
 save_image_as: "out/ch_us_stranger_a_neutral_A.png"
 save_prompt_used_as: "out/ch_us_stranger_a_neutral_A.prompt.txt"
-status: "done"
+status: "failed"
+error: "1:1 aspect was returned as 1312x1199 after one retry."
 ---
 
 # ch_us_stranger_a_neutral_A

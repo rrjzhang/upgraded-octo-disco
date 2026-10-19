@@ -11,7 +11,8 @@ depends_on: ["ch_cn_stranger_b_neutral_A"]
 attach: "out/ch_cn_stranger_b_ref_A.png"
 save_image_as: "out/ch_cn_stranger_b_neutral_A_v2.png"
 save_prompt_used_as: "out/ch_cn_stranger_b_neutral_A_v2.prompt.txt"
-status: "pending"
+status: "done"  # generator noted a non-square canvas (1312x1199); accepted, the asset build crops busts to a square anchored above the subject
+error: "Image tool returned a non-square canvas for the requested 1:1 aspect."
 ---
 
 # ch_cn_stranger_b_neutral_A_v2

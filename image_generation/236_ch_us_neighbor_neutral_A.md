@@ -11,7 +11,8 @@ depends_on: ["ch_us_neighbor_ref_A"]
 attach: "out/ch_us_neighbor_ref_A.png"
 save_image_as: "out/ch_us_neighbor_neutral_A.png"
 save_prompt_used_as: "out/ch_us_neighbor_neutral_A.prompt.txt"
-status: "done"
+status: "failed"
+error: "Image tool returned a non-square canvas for the requested 1:1 aspect."
 ---
 
 # ch_us_neighbor_neutral_A

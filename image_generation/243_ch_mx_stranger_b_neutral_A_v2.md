@@ -11,7 +11,8 @@ depends_on: ["ch_mx_stranger_b_neutral_A"]
 attach: "out/ch_mx_stranger_b_ref_A.png"
 save_image_as: "out/ch_mx_stranger_b_neutral_A_v2.png"
 save_prompt_used_as: "out/ch_mx_stranger_b_neutral_A_v2.prompt.txt"
-status: "done"
+status: "failed"
+error: "Image tool returned a non-square canvas for the requested 1:1 aspect."
 ---
 
 # ch_mx_stranger_b_neutral_A_v2
