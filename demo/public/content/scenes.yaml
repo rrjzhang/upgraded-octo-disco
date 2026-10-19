@@ -360,7 +360,7 @@ scenes:
     background: bg_townhall_eve
     lighting: warm_indoor
     horizon: 0.36        # a school gym or library meeting room seen from a seat in the second row; the podium a little above eye level
-    description: "The library's meeting room, every folding chair taken. A campaign banner for the governor hangs crooked behind a podium. Someone's phone keeps buzzing."
+    description: "The library's meeting room, every folding chair taken. A flag hangs behind the podium, pinned a little crooked. Someone's phone keeps buzzing."
     exits: []
     hotspots: []
     # the podium is cut out of this very background by the asset build (prop_podium, fractions in tools/assets/build.mjs) and
