@@ -136,6 +136,7 @@ const PAGE_LIB = `window.__fz = (() => {
       day: s && s.day, actions: s && s.actions, wallet: s && s.wallet, scene: s && s.scene, pack: s && s.player.pack, pending: !!(s && s.player.profilePending),
       panel: g && g.game.panel && g.game.panel.kind, convo: !!(s && s.convo), finished: !!(s && s.finished) || !!document.querySelector('.end-overlay'),
       module: fd ? (document.querySelector('iframe.win-frame').getAttribute('src') || '').replace(/.*\\//, '') : null,
+      phoneOpen: !!(document.querySelector('.phone') && !document.querySelector('.phone').hidden),
       holes, pendingArt: document.querySelectorAll('.right .pending, .right .ph-mark').length,
       line: (document.querySelector('.right .line') || {}).textContent || '', status: (document.querySelector('.right .status') || {}).textContent || '',
       sceneBg: (document.querySelector('.scene-box img') || {}).getAttribute ? (document.querySelector('.scene-box img').getAttribute('src') || '') : '',
@@ -182,7 +183,8 @@ async function walk(seed) {
       await sleep(400); continue;
     }
     idle = 0;
-    if (snap.panel === 'dialogue' && !snap.module && !cands.some((c) => c.kind === 'choice')) fails.push({ step: steps, what: 'dialogue with no enabled choice', detail: snap.status || snap.line.slice(0, 80) });
+    // a dialogue row must always offer a click (a choice or Next); the phone and module windows cover the panel, so only when neither is open
+    if (snap.panel === 'dialogue' && !snap.module && !snap.phoneOpen && !cands.some((c) => c.kind === 'choice')) fails.push({ step: steps, what: 'dialogue with no enabled choice', detail: snap.status || snap.line.slice(0, 80) });
     const c = pickWeighted(rng, cands);
     let ok = false;
     try { ok = await ev(`window.__fz.act(${JSON.stringify(c)})`); } catch (e) { fails.push({ step: steps, what: 'click threw', detail: `${c.kind} ${c.label}: ${String(e.message).slice(0, 160)}` }); }
