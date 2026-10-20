@@ -133,7 +133,12 @@
     st.actions = p.actions ?? st.actions; st.wallet = p.wallet ?? st.wallet; showMeta();
     if (pending === 'start') { pending = null; p.ok ? play() : intro('Not enough actions left for a shift.'); }
   });
-  GV.fallback({});
+  // Standalone (opened outside the game, e.g. modules/work.html?task=rat&seed=abc&day=2&shift=1): bridge.js emulates the
+  // host with 8 actions, and the query string picks the task, seed, day and shift so each task can be tried on its own.
+  const q = new URLSearchParams(location.search);
+  const forced = { ...(q.get('task') && TASKS[q.get('task')] ? { tasks: [q.get('task')] } : {}), ...(q.get('seed') ? { seed: q.get('seed') } : {}),
+    ...(q.get('day') ? { day: Number(q.get('day')) || 1 } : {}), ...(q.get('shift') ? { shift: Number(q.get('shift')) || 0 } : {}) };
+  GV.fallback({ content: forced });
 </script>
 </body>
 </html>
