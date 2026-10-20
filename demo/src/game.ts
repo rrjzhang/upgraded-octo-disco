@@ -108,6 +108,7 @@ export class Game {
     host.replaceChildren(this.stage);
     this.buildShell();
     window.addEventListener('resize', () => this.fit());
+    document.addEventListener('fullscreenchange', () => this.fit()); // SPEC "Full screen" (resize also fires; belt and braces)
     window.addEventListener('message', (e) => this.onMessage(e));
     document.addEventListener('keydown', (e) => this.onKey(e));
     // stamp the open conversation when the page goes away, so a reload closes it with its real duration

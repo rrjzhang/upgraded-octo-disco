@@ -23,6 +23,9 @@ Source images: `/Users/richardzhang/great_vote/image_generation/out/*.png` (read
 
 One page, 1440 x 900 logical, scaled to fit the window (CSS transform on a fixed-size root is fine).
 
+- **Full screen** (added 2026-10-19). The game (index.html only; not the researcher page, editor or log viewer) asks for full screen once per page load, on the player's first deliberate gesture into it: Enter or "Continue in room" on the room form, or the first click anywhere when the page resumes straight into a room (refresh, `?dev=1`): `document.documentElement.requestFullscreen({ navigationUI: 'hide' })`, skipped when already full screen or when the API is missing, any refusal silent (`goFullscreen` in `src/main.ts`; `&fullscreen=0` turns it off).
+- Leaving full screen (Esc) is respected: no second request that page load. The stage re-fits on `resize` and `fullscreenchange`, so it fills the screen either way.
+
 - Top bar, 56 px: day and phase, scene name; right side: actions dots (8), wallet, room code.
 - Left: scene viewport, 900 px wide. The background image keeps its 3:2 aspect (900 x 600) and sits at the top of the left column; below it a 188 px strip holds exits (buttons with arrows) and the phone button at the far left. Hotspot zones and NPC slots are given as fractions of the background image, so they map exactly onto the 900 x 600 image box.
 - Right: 540 px column. Portrait panel (484 x 300, flat `#E8E2D4`, radius 12) at top: bust image of the speaking NPC with an expression chip; empty when nobody is speaking. Below: italic description, then dialogue text, then up to 3 choice buttons, then a one-line status (rule id matched, for the demo).

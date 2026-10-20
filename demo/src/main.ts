@@ -14,6 +14,24 @@ function fatal(msg: string, detail: string[] = []): void {
     detail.length ? h('ul', { class: 'errlist' }, ...detail.slice(0, 30).map((d) => h('li', { text: d }))) : null)));
 }
 
+// SPEC "Full screen": browsers grant requestFullscreen only on a user gesture, so the game asks once per page load, on
+// the player's first deliberate click into it (Enter / Continue on the room form, or the first click on the stage when
+// the page resumes straight into a room). A refusal (headless, permissions, old browser) is silent; leaving full screen
+// with Esc is respected (no second attempt). `&fullscreen=0` turns it off.
+let fsTried = false;
+function goFullscreen(): void {
+  if (fsTried) return;
+  fsTried = true;
+  const el = document.documentElement;
+  if (params.get('fullscreen') === '0' || document.fullscreenElement || typeof el.requestFullscreen !== 'function') return;
+  try { el.requestFullscreen({ navigationUI: 'hide' }).catch(() => {}); } catch { /* a synchronous throw in an old browser */ }
+}
+/** Resuming straight into a room: the first click anywhere (capture, so it runs inside the gesture) asks for full screen. */
+function fullscreenOnFirstClick(): void {
+  const once = (): void => { document.removeEventListener('click', once, true); goFullscreen(); };
+  document.addEventListener('click', once, true);
+}
+
 function startGame(content: Content, room: RoomRecord, player?: PlayerInfo): void {
   let state = loadState(room.code);
   if (!state) {
@@ -76,13 +94,14 @@ function roomForm(content: Content): void {
     const room = getRoom(c);
     if (!room) { err.textContent = `No room "${c}" on this computer.`; return; }
     if (room.password.trim().toLowerCase() !== pw.value.trim().toLowerCase()) { err.textContent = 'Wrong password.'; return; }
+    goFullscreen();
     enter(content, room);
   });
   // a room entered before on this browser can be re-entered without the password (SPEC "Study administration")
   const last = rememberedRoom();
   if (last && getRoom(last)) {
     form.append(h('p', { class: 'muted', style: 'margin-top:14px' }, 'Back again? ',
-      h('button', { class: 'btn ghost', type: 'button', text: `Continue in room ${last}`, onclick: () => enter(content, getRoom(last)!) })));
+      h('button', { class: 'btn ghost', type: 'button', text: `Continue in room ${last}`, onclick: () => { goFullscreen(); enter(content, getRoom(last)!); } })));
   }
   app.replaceChildren(h('div', { class: 'form-page' }, form));
   (code.value ? pw : code).focus();
@@ -132,6 +151,7 @@ async function main(): Promise<void> {
     const culture = (['cn', 'mx', 'in'].includes(params.get('culture') ?? '') ? params.get('culture') : 'cn') as CultureId;
     const variant: Record<string, string> = {};
     for (const dim of ['region', 'faith']) if (params.get(dim)) variant[dim] = params.get(dim)!;
+    fullscreenOnFirstClick();
     startGame(content, room, {
       name: params.get('name') ?? 'Alex', homeCulture: culture, pack: effectivePack(content, culture), language: 'English', eligible: true,
       heritage: culture, variant, profilePending: params.get('profile') === '1',
@@ -141,7 +161,7 @@ async function main(): Promise<void> {
   // a refresh in the same tab goes straight back into the room (SPEC "Study administration")
   let remembered: string | null = null;
   try { remembered = sessionStorage.getItem(LOGIN_KEY); } catch { /* private mode */ }
-  if (remembered && getRoom(remembered)) { enter(content, getRoom(remembered)!); return; }
+  if (remembered && getRoom(remembered)) { fullscreenOnFirstClick(); enter(content, getRoom(remembered)!); return; }
   roomForm(content);
 }
 
