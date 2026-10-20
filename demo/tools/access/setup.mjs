@@ -1,7 +1,8 @@
 // Puts the public site behind Cloudflare Access with an email allow-list (SPEC "Public build and hosting").
 //   node tools/access/setup.mjs                 # create or update the Access app + policy for the Pages site
 //   node tools/access/setup.mjs --list          # show the current app and its policies
-// Auth: CLOUDFLARE_API_TOKEN (scopes: Access: Apps and Policies: Edit) or, failing that, the wrangler OAuth login.
+// Auth: CLOUDFLARE_API_TOKEN, else ~/.config/great-vote/cloudflare_access_token (an API token with Access: Apps and
+// Policies: Edit), else the wrangler OAuth login (which can read Access but not write it).
 // Zero Trust must be enabled once in the dashboard (Zero Trust -> choose a team name -> Free plan) before this works.
 import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -16,6 +17,8 @@ const allow = () => local('access_allow.txt').split(/\s+/).filter(Boolean);
 
 function token() {
   if (process.env.CLOUDFLARE_API_TOKEN) return process.env.CLOUDFLARE_API_TOKEN;
+  // the Access-scoped API token, kept outside the repo: ~/.config/great-vote/cloudflare_access_token (mode 600)
+  try { const t = readFileSync(`${homedir()}/.config/great-vote/cloudflare_access_token`, 'utf8').trim(); if (t) return t; } catch { /* fall through */ }
   const cfg = readFileSync(`${homedir()}/Library/Preferences/.wrangler/config/default.toml`, 'utf8');
   return /oauth_token = "([^"]+)"/.exec(cfg)[1];
 }
