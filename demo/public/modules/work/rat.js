@@ -32,7 +32,7 @@
     { cues: ['fortune', 'jar', 'cutter'], answer: 'cookie', alt: [] },
     { cues: ['line', 'end', 'bolt'], answer: 'dead', alt: [] },
     { cues: ['mare', 'gown', 'club'], answer: 'night', alt: [] },
-    { cues: ['ticket', 'shop', 'broker'], answer: 'pawn', alt: [] },
+    { cues: ['paste', 'brush', 'wisdom'], answer: 'tooth', alt: [] },
   ],
   // set 2: EEEMMMHH
   [
@@ -127,7 +127,7 @@
     { cues: ['police', 'fire', 'gas'], answer: 'station', alt: [] },
     { cues: ['sea', 'home', 'car'], answer: 'sick', alt: [] },
     { cues: ['measure', 'video', 'duct'], answer: 'tape', alt: [] },
-    { cues: ['trip', 'house', 'goal'], answer: 'field', alt: [] },
+    { cues: ['trip', 'mine', 'goal'], answer: 'field', alt: [] },
     { cues: ['pea', 'chest', 'dough'], answer: 'nut', alt: [] },
     { cues: ['cage', 'song', 'early'], answer: 'bird', alt: [] },
     { cues: ['duck', 'fold', 'dollar'], answer: 'bill', alt: [] },
