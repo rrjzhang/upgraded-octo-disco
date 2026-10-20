@@ -78,7 +78,7 @@
     main.replaceChildren(
       el('p', { className: 'tasktag', textContent: `Shift ${cfg.shift + 1} today` }),
       el('p', { className: 'serif', style: 'font-size:22px;max-width:680px', textContent: current.blurb }),
-      el('p', { className: 'muted', style: 'max-width:680px', textContent: `About ${Math.round(current.seconds / 60 * 2) / 2} minute${current.seconds > 90 ? 's' : ''}. A shift pays $${cfg.pay} however it goes.` }),
+      el('p', { className: 'muted', style: 'max-width:680px', textContent: `About ${Math.round(current.seconds / 60 * 2) / 2} minute${current.seconds !== 60 ? 's' : ''}. A shift pays $${cfg.pay} however it goes.` }),
       el('p', { className: 'muted' }, 'One shift costs', GV.costDots(cfg.cost), el('span', { className: 'sr', textContent: ` ${cfg.cost} actions` }), '.'),
       msg ? el('p', { className: 'err', role: 'alert', textContent: msg }) : '',
     );
