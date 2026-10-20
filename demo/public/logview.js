@@ -86,11 +86,20 @@
 
   // ------------------------------------------------------------ content
   const C = { npcs: new Map(), scenes: new Map(), dialogue: new Map(), events: new Map(), news: new Map(), missing: [] };
+  // Obscured text assets (public build; mirrors src/obscure.ts): "GVZ1" + masked deflate-raw bytes.
+  const OBSCURE_KEY = 'gv-2026-10-19-quiet-cues-7f3a9c';
+  async function decodeMaybe(buf) {
+    const b = new Uint8Array(buf);
+    if (!(b.length >= 4 && b[0] === 0x47 && b[1] === 0x56 && b[2] === 0x5a && b[3] === 0x31)) return new TextDecoder().decode(buf);
+    const body = new Uint8Array(buf, 4), k = new TextEncoder().encode(OBSCURE_KEY), out = new Uint8Array(body.length);
+    for (let i = 0; i < body.length; i++) out[i] = body[i] ^ k[i % k.length];
+    return new Response(new Blob([out]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+  }
   async function fetchText(path) {
     try {
       const r = await fetch(path, { cache: 'no-cache' });
       if (!r.ok) throw new Error(r.status);
-      const t = await r.text();
+      const t = await decodeMaybe(await r.arrayBuffer());
       if (/^\s*<!doctype html/i.test(t)) throw new Error('html fallback'); // dev server SPA fallback for missing files
       return t;
     } catch (e) { C.missing.push(path); return null; }

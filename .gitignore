@@ -5,3 +5,5 @@ dist/
 image_generation/out/_codex_*.log
 image_generation/logs/
 dist_tasks/
+demo/.wrangler/
+.wrangler/

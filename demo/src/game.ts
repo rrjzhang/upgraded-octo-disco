@@ -2150,7 +2150,7 @@ export class Game {
       const pi = this.portraitFor(npc, emotion);
       via = p.kind === 'event' ? this.viaLabel(p.ev, npc.name) : null;
       portrait.append(this.bustImg(pi.url, `${npc.name}, ${emotion}`),
-        h('span', { class: `chip chip-${emotion}`, text: emotion }),
+        this.debug ? h('span', { class: `chip chip-${emotion}`, text: emotion }) : '', // the emotion word is a debugging aid
         h('span', { class: 'who', text: via ?? npc.name }),
         pi.placeholder ? this.pendingTag() : '');
     }

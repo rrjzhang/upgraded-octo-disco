@@ -4,7 +4,7 @@ import { load as loadYaml } from 'js-yaml';
 import { getSource } from './content';
 import { getSettings, listRooms, loadState, readLog, saveRoom, saveSettings, getRoom, type RoomRecord } from './store';
 import type { Leader, LeadPos, Npc, RoomConfig } from './types';
-import { appUrl, downloadText, h, isFixtures, isoNow } from './util';
+import { appUrl, downloadText, h, isFixtures, isoNow, isPublic } from './util';
 
 const app = document.getElementById('app')!;
 const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -282,7 +282,7 @@ async function main(): Promise<void> {
     saveSettings({ debug: dbg.checked });
     dbgMsg.textContent = dbg.checked ? ' On: games opened in this browser show the debugging aids.' : ' Off.';
   });
-  const settings = h('section', { class: 'card wide' },
+  const settings = isPublic ? h('section', { class: 'card wide' }, h('h1', { text: 'Settings' }), h('p', { class: 'muted', text: 'This is the public build: debugging aids, the content editor and ?dev=1 are switched off.' })) : h('section', { class: 'card wide' },
     h('h1', { text: 'Settings' }),
     h('label', { class: 'check', for: 'dbg' }, dbg, ' Show debugging aids', dbgMsg),
     h('p', { class: 'muted', text: 'Interactables button and H key, the rule / lean / phase line under the dialogue, rapport and last-talk valence in Contacts, and the figure-size guides. Applies to every game opened in this browser; ?dev=1 always shows them.' }));

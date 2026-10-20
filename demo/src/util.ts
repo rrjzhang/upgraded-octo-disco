@@ -131,5 +131,7 @@ export function downloadText(filename: string, text: string, mime = 'application
 }
 
 export const params = new URLSearchParams(location.search);
-export const isFixtures = params.get('fixtures') === '1';
-export const isDev = params.get('dev') === '1';
+/** SPEC "Public build": built with VITE_PUBLIC=1 (npm run build:public); no debugging aids of any kind, whatever the URL or settings say. */
+export const isPublic = import.meta.env.VITE_PUBLIC === '1';
+export const isFixtures = !isPublic && params.get('fixtures') === '1';
+export const isDev = !isPublic && params.get('dev') === '1';

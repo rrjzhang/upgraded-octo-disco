@@ -1,4 +1,5 @@
 /** Loads and loosely validates content + manifest. Errors are logged naming file and row, never thrown for row-level problems. */
+import { decodeMaybe } from './obscure';
 import { load as loadYaml } from 'js-yaml';
 import Papa from 'papaparse';
 import type {
@@ -52,7 +53,7 @@ export function liveSource(): Source {
         const res = await fetch(appUrl(path), { cache: 'no-cache' });
         if (!res.ok) return null;
         const ct = res.headers.get('content-type') ?? '';
-        const body = await res.text();
+        const body = await decodeMaybe(await res.arrayBuffer()); // SPEC "Public build": obscured text assets
         // Vite's dev server answers unknown paths with index.html; treat that as missing.
         if (!path.endsWith('.html') && (ct.includes('text/html') || /^\s*<!doctype html/i.test(body))) return null;
         return body;
