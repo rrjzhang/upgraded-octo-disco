@@ -21,7 +21,7 @@
     { cues: ['base', 'snow', 'room'], answer: 'ball', alt: [] },
     { cues: ['jelly', 'coffee', 'kidney'], answer: 'bean', alt: [] },
     { cues: ['stick', 'service', 'read'], answer: 'lip', alt: [] },
-    { cues: ['bump', 'egg', 'chase'], answer: 'goose', alt: [] },
+    { cues: ['bump', 'egg', 'mother'], answer: 'goose', alt: [] },
   ],
   // set 1: EEEMMMHH
   [
@@ -97,7 +97,7 @@
     { cues: ['cadet', 'capsule', 'ship'], answer: 'space', alt: [] },
     { cues: ['wheel', 'hand', 'shopping'], answer: 'cart', alt: [] },
     { cues: ['castle', 'paper', 'quick'], answer: 'sand', alt: [] },
-    { cues: ['chamber', 'staff', 'box'], answer: 'music', alt: [] },
+    { cues: ['chamber', 'sheet', 'box'], answer: 'music', alt: [] },
     { cues: ['mill', 'tooth', 'dust'], answer: 'saw', alt: [] },
   ],
   // set 8: EEMMMMHH
@@ -204,7 +204,7 @@
     { cues: ['tea', 'cake', 'board'], answer: 'cup', alt: [] },
     { cues: ['drum', 'plug', 'muff'], answer: 'ear', alt: [] },
     { cues: ['fur', 'rack', 'tail'], answer: 'coat', alt: [] },
-    { cues: ['thumb', 'pepper', 'envy'], answer: 'green', alt: [] },
+    { cues: ['thumb', 'pepper', 'light'], answer: 'green', alt: [] },
     { cues: ['witness', 'ball', 'brow'], answer: 'eye', alt: [] },
     { cues: ['tail', 'pen', 'guinea'], answer: 'pig', alt: [] },
     { cues: ['nuclear', 'feud', 'album'], answer: 'family', alt: [] },
