@@ -215,6 +215,7 @@ export function checkPacks({ files, diag, scenes, npcs, events, news, sheets, to
       (q.pages || []).forEach((pg, i) => (pg.items || []).forEach((it, j) => {
         add('questionnaire/eod.json', { path: `pages[${i}].items[${j}].text` }, null, 'text', it.text);
         for (const o of it.options || []) add('questionnaire/eod.json', { path: `pages[${i}].items[${j}].options` }, null, 'option', o);
+        for (const o of Object.values(it.anchors || {})) add('questionnaire/eod.json', { path: `pages[${i}].items[${j}].anchors` }, null, 'anchor', o);
       }));
     } catch { /* the engine reports bad questionnaire JSON */ }
   }

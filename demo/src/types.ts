@@ -202,10 +202,14 @@ export interface NewsRow {
 
 export interface QItem {
   id: string;
-  type: 'likert' | 'choice' | 'text';
+  type: 'likert' | 'choice' | 'text' | 'scale';
   text: string;
-  scale?: { min: number; max: number; minLabel?: string; maxLabel?: string };
+  scale?: { min: number; max: number; minLabel?: string; maxLabel?: string; labels?: string[] };
   options?: string[];
+  /** `scale` items: integer range (inclusive) and words shown under some of the numbers, keyed by value ("1": "Not at all"). */
+  min?: number;
+  max?: number;
+  anchors?: Record<string, string>;
 }
 export interface Questionnaire { id: string; title: string; intro?: string; pages: { items: QItem[] }[] }
 

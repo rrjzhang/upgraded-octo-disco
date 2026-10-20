@@ -1,10 +1,10 @@
 {
-  "id": "eod-biis2-v1",
+  "id": "eod-biis2-v2",
   "title": "Evening check-in",
   "intro": "A short call before bed. Think about how you see yourself as someone with both {H} and {M} cultures, and mark how much you agree with each statement. There are no right or wrong answers.",
   "instrument": {
-    "id": "biis2",
-    "name": "Bicultural Identity Integration Scale, Version 2 (BIIS-2)",
+    "id": "biis2-4",
+    "name": "Bicultural Identity Integration Scale, Version 2 (BIIS-2), 4-item short form (items 3, 10, 14, 17)",
     "citation": "Huynh, Q.-L., Benet-Martínez, V., & Nguyen, A.-M. D. (2018). Measuring variations in bicultural identity across U.S. ethnic and generational groups: Development and validation of the BIIS-2. Psychological Assessment. doi:10.1037/pas0000606",
     "placeholders": {
       "H": {
@@ -22,8 +22,8 @@
     "scoring": {
       "reverse": "6 - x",
       "subscales": {
-        "harmony": "mean of harmony items after reversing",
-        "blendedness": "mean of blendedness items after reversing"
+        "harmony": "mean of the 2 harmony items (biis2_03, biis2_10) after reversing",
+        "blendedness": "mean of the 2 blendedness items (biis2_14, biis2_17) after reversing"
       },
       "rawHalves": {
         "harmonyRaw": "harmony",
@@ -36,16 +36,17 @@
           "harmony": 3.63,
           "blendedness": 4.0
         }
-      }
+      },
+      "note": "Short form: each subscale mean rests on 2 items and each raw half on 1 item, so scores are not comparable to the full 17-item BIIS-2 scores logged by eod-biis2-v1."
     }
   },
   "pages": [
     {
       "items": [
         {
-          "id": "biis2_01",
+          "id": "biis2_10",
           "type": "likert",
-          "text": "I find it easy to harmonize {H} and {M} cultures.",
+          "text": "I feel caught between {H} and {M} cultures.",
           "scale": {
             "min": 1,
             "max": 5,
@@ -60,33 +61,10 @@
             ]
           },
           "instrument": "biis2",
-          "n": 1,
+          "n": 10,
           "subscale": "harmony",
-          "reverse": false,
-          "facet": "harmony"
-        },
-        {
-          "id": "biis2_02",
-          "type": "likert",
-          "text": "I rarely feel conflicted about being bicultural.",
-          "scale": {
-            "min": 1,
-            "max": 5,
-            "minLabel": "Strongly disagree",
-            "maxLabel": "Strongly agree",
-            "labels": [
-              "Strongly disagree",
-              "Disagree",
-              "Neutral",
-              "Agree",
-              "Strongly agree"
-            ]
-          },
-          "instrument": "biis2",
-          "n": 2,
-          "subscale": "harmony",
-          "reverse": false,
-          "facet": "harmony"
+          "reverse": true,
+          "facet": "conflict"
         },
         {
           "id": "biis2_03",
@@ -112,236 +90,6 @@
           "facet": "harmony"
         },
         {
-          "id": "biis2_04",
-          "type": "likert",
-          "text": "I do not feel trapped between the {H} and {M} cultures.",
-          "scale": {
-            "min": 1,
-            "max": 5,
-            "minLabel": "Strongly disagree",
-            "maxLabel": "Strongly agree",
-            "labels": [
-              "Strongly disagree",
-              "Disagree",
-              "Neutral",
-              "Agree",
-              "Strongly agree"
-            ]
-          },
-          "instrument": "biis2",
-          "n": 4,
-          "subscale": "harmony",
-          "reverse": false,
-          "facet": "harmony"
-        },
-        {
-          "id": "biis2_05",
-          "type": "likert",
-          "text": "I feel torn between {H} and {M} cultures.",
-          "scale": {
-            "min": 1,
-            "max": 5,
-            "minLabel": "Strongly disagree",
-            "maxLabel": "Strongly agree",
-            "labels": [
-              "Strongly disagree",
-              "Disagree",
-              "Neutral",
-              "Agree",
-              "Strongly agree"
-            ]
-          },
-          "instrument": "biis2",
-          "n": 5,
-          "subscale": "harmony",
-          "reverse": true,
-          "facet": "conflict"
-        },
-        {
-          "id": "biis2_06",
-          "type": "likert",
-          "text": "Being bicultural means having two cultural forces pulling on me at the same time.",
-          "scale": {
-            "min": 1,
-            "max": 5,
-            "minLabel": "Strongly disagree",
-            "maxLabel": "Strongly agree",
-            "labels": [
-              "Strongly disagree",
-              "Disagree",
-              "Neutral",
-              "Agree",
-              "Strongly agree"
-            ]
-          },
-          "instrument": "biis2",
-          "n": 6,
-          "subscale": "harmony",
-          "reverse": true,
-          "facet": "conflict"
-        },
-        {
-          "id": "biis2_07",
-          "type": "likert",
-          "text": "I feel that my {H} and {M} cultures are incompatible.",
-          "scale": {
-            "min": 1,
-            "max": 5,
-            "minLabel": "Strongly disagree",
-            "maxLabel": "Strongly agree",
-            "labels": [
-              "Strongly disagree",
-              "Disagree",
-              "Neutral",
-              "Agree",
-              "Strongly agree"
-            ]
-          },
-          "instrument": "biis2",
-          "n": 7,
-          "subscale": "harmony",
-          "reverse": true,
-          "facet": "conflict"
-        },
-        {
-          "id": "biis2_08",
-          "type": "likert",
-          "text": "I feel conflicted between the {M} and {H} ways of doing things.",
-          "scale": {
-            "min": 1,
-            "max": 5,
-            "minLabel": "Strongly disagree",
-            "maxLabel": "Strongly agree",
-            "labels": [
-              "Strongly disagree",
-              "Disagree",
-              "Neutral",
-              "Agree",
-              "Strongly agree"
-            ]
-          },
-          "instrument": "biis2",
-          "n": 8,
-          "subscale": "harmony",
-          "reverse": true,
-          "facet": "conflict"
-        },
-        {
-          "id": "biis2_09",
-          "type": "likert",
-          "text": "I feel like someone moving between two cultures.",
-          "scale": {
-            "min": 1,
-            "max": 5,
-            "minLabel": "Strongly disagree",
-            "maxLabel": "Strongly agree",
-            "labels": [
-              "Strongly disagree",
-              "Disagree",
-              "Neutral",
-              "Agree",
-              "Strongly agree"
-            ]
-          },
-          "instrument": "biis2",
-          "n": 9,
-          "subscale": "harmony",
-          "reverse": true,
-          "facet": "conflict"
-        },
-        {
-          "id": "biis2_10",
-          "type": "likert",
-          "text": "I feel caught between the {H} and {M} cultures.",
-          "scale": {
-            "min": 1,
-            "max": 5,
-            "minLabel": "Strongly disagree",
-            "maxLabel": "Strongly agree",
-            "labels": [
-              "Strongly disagree",
-              "Disagree",
-              "Neutral",
-              "Agree",
-              "Strongly agree"
-            ]
-          },
-          "instrument": "biis2",
-          "n": 10,
-          "subscale": "harmony",
-          "reverse": true,
-          "facet": "conflict"
-        },
-        {
-          "id": "biis2_11",
-          "type": "likert",
-          "text": "I cannot ignore the {H} or {M} side of me.",
-          "scale": {
-            "min": 1,
-            "max": 5,
-            "minLabel": "Strongly disagree",
-            "maxLabel": "Strongly agree",
-            "labels": [
-              "Strongly disagree",
-              "Disagree",
-              "Neutral",
-              "Agree",
-              "Strongly agree"
-            ]
-          },
-          "instrument": "biis2",
-          "n": 11,
-          "subscale": "blendedness",
-          "reverse": false,
-          "facet": "blend"
-        },
-        {
-          "id": "biis2_12",
-          "type": "likert",
-          "text": "I feel {H} and {M} at the same time.",
-          "scale": {
-            "min": 1,
-            "max": 5,
-            "minLabel": "Strongly disagree",
-            "maxLabel": "Strongly agree",
-            "labels": [
-              "Strongly disagree",
-              "Disagree",
-              "Neutral",
-              "Agree",
-              "Strongly agree"
-            ]
-          },
-          "instrument": "biis2",
-          "n": 12,
-          "subscale": "blendedness",
-          "reverse": false,
-          "facet": "blend"
-        },
-        {
-          "id": "biis2_13",
-          "type": "likert",
-          "text": "I relate better to a combined {H}-{M} culture than to {H} or {M} culture alone.",
-          "scale": {
-            "min": 1,
-            "max": 5,
-            "minLabel": "Strongly disagree",
-            "maxLabel": "Strongly agree",
-            "labels": [
-              "Strongly disagree",
-              "Disagree",
-              "Neutral",
-              "Agree",
-              "Strongly agree"
-            ]
-          },
-          "instrument": "biis2",
-          "n": 13,
-          "subscale": "blendedness",
-          "reverse": false,
-          "facet": "blend"
-        },
-        {
           "id": "biis2_14",
           "type": "likert",
           "text": "I feel {H}-{M}.",
@@ -363,52 +111,6 @@
           "subscale": "blendedness",
           "reverse": false,
           "facet": "blend"
-        },
-        {
-          "id": "biis2_15",
-          "type": "likert",
-          "text": "I feel part of a combined culture.",
-          "scale": {
-            "min": 1,
-            "max": 5,
-            "minLabel": "Strongly disagree",
-            "maxLabel": "Strongly agree",
-            "labels": [
-              "Strongly disagree",
-              "Disagree",
-              "Neutral",
-              "Agree",
-              "Strongly agree"
-            ]
-          },
-          "instrument": "biis2",
-          "n": 15,
-          "subscale": "blendedness",
-          "reverse": false,
-          "facet": "blend"
-        },
-        {
-          "id": "biis2_16",
-          "type": "likert",
-          "text": "I do not blend my {H} and {M} cultures.",
-          "scale": {
-            "min": 1,
-            "max": 5,
-            "minLabel": "Strongly disagree",
-            "maxLabel": "Strongly agree",
-            "labels": [
-              "Strongly disagree",
-              "Disagree",
-              "Neutral",
-              "Agree",
-              "Strongly agree"
-            ]
-          },
-          "instrument": "biis2",
-          "n": 16,
-          "subscale": "blendedness",
-          "reverse": true,
-          "facet": "comp"
         },
         {
           "id": "biis2_17",
@@ -438,11 +140,35 @@
     {
       "items": [
         {
+          "id": "fit_community",
+          "type": "scale",
+          "text": "How much do you feel like you fit in with your local community?",
+          "min": 1,
+          "max": 5,
+          "anchors": {
+            "1": "Not at all",
+            "3": "Somewhat",
+            "5": "Very much"
+          }
+        },
+        {
+          "id": "feel_today",
+          "type": "scale",
+          "text": "How do you feel today?",
+          "min": 0,
+          "max": 9,
+          "anchors": {
+            "0": "Very bad",
+            "5": "Neutral",
+            "9": "Very good"
+          }
+        },
+        {
           "id": "mood",
           "type": "choice",
           "text": "Which word comes closest to how today felt?",
           "options": [
-            "Settled",
+            "Calm",
             "Busy",
             "Torn",
             "Lonely",

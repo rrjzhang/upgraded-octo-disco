@@ -469,8 +469,24 @@ export function questionnaireProblems(q: unknown): string[] {
   const out: string[] = [];
   pages.forEach((p: any, i: number) =>
     (p?.items ?? []).forEach((it: any, j: number) => {
-      if (!it?.id || !['likert', 'choice', 'text'].includes(it?.type)) out.push(`page ${i + 1} item ${j + 1}: needs id and type likert|choice|text`);
+      const at = `page ${i + 1} item ${j + 1}`;
+      if (!it?.id || !['likert', 'choice', 'text', 'scale'].includes(it?.type)) { out.push(`${at}: needs id and type likert|choice|text|scale`); return; }
+      if (it.type === 'scale') {
+        const { min, max, anchors } = it;
+        if (!Number.isInteger(min) || !Number.isInteger(max) || min >= max || max - min > 10) out.push(`${at} (${it.id}): scale needs integer min < max, at most 11 points`);
+        else if (anchors != null) {
+          if (typeof anchors !== 'object' || Array.isArray(anchors)) out.push(`${at} (${it.id}): anchors must be an object like {"1": "not at all"}`);
+          else for (const [k, v] of Object.entries(anchors)) {
+            const n = Number(k);
+            if (!Number.isInteger(n) || n < min || n > max) out.push(`${at} (${it.id}): anchor "${k}" is not a value from ${min} to ${max}`);
+            if (typeof v !== 'string' || !v.trim()) out.push(`${at} (${it.id}): anchor "${k}" needs a text label`);
+          }
+        }
+      }
     }));
+  const ids = pages.flatMap((p: any) => (p?.items ?? []).map((it: any) => it?.id)).filter(Boolean);
+  for (const id of new Set(ids.filter((id: string, k: number) => ids.indexOf(id) !== k))) out.push(`duplicate item id "${id}"`);
+  for (const id of ['instrument', 'labels', 'scores', 'filledRandomly']) if (ids.includes(id)) out.push(`item id "${id}" is reserved (the module adds it to the answers)`);
   return out;
 }
 

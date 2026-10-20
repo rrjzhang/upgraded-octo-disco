@@ -412,7 +412,10 @@
     const lastLean = (day.lines.find((l) => l.type === 'day_end') || day.lines[day.lines.length - 1])?.lean;
     const sv = day.lines.filter((l) => l.type === 'survey').pop();
     const sc = sv?.answers?.scores;
-    const survey = sv ? el('span', { class: 'tag positive', text: sc ? `survey: harmony ${fmtN(sc.harmony)}, blendedness ${fmtN(sc.blendedness)}` : 'survey submitted' })
+    // eod-biis2-v2 check-in items: fit_community (scale 1-5), feel_today (scale 0-9), mood (choice); absent in older logs
+    const sa = sv?.answers || {};
+    const checkin = [sa.feel_today != null ? `feel ${sa.feel_today}/9` : '', sa.fit_community != null ? `fit-in ${sa.fit_community}/5` : '', sa.mood ? `mood ${sa.mood}` : ''].filter(Boolean).join(', ');
+    const survey = sv ? el('span', { class: 'tag positive', text: (sc ? `survey: harmony ${fmtN(sc.harmony)}, blendedness ${fmtN(sc.blendedness)}` : 'survey submitted') + (checkin ? `; ${checkin}` : '') })
       : el('span', { class: 'tag', text: day.lines.some((l) => l.type === 'day_end') ? 'no survey' : 'survey not yet' });
     return el('details', { class: 'day', open },
       el('summary', {}, el('span', { class: 's-title', text: day.day ? `Day ${day.day}` : 'No day' }),
