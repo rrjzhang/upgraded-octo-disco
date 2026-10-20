@@ -236,7 +236,8 @@ export function applyEffects(state: GameState, npcId: string | null, effect: str
       state.wallet += t.v;
       state.walletLog.push({ day: state.day, amount: t.v, why });
     } else if (t.k === 'invite') {
-      if (!state.invites.includes(t.v)) {
+      // SPEC "Plans": an invitation is booked once a game (queued, today's plan, or already fired), never on the last day
+      if (!state.invites.includes(t.v) && !(state.plans ?? []).some((p) => p.id === t.v) && !state.fired.includes(t.v) && state.day < DEMO_DAYS) {
         note('invites', state.invites.join(',') || null, [...state.invites, t.v].join(','));
         state.invites.push(t.v);
       }

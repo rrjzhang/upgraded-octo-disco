@@ -89,8 +89,9 @@ export interface LogLine {
   day: number;
   actions: number;
   /** `beat`: the player pressed Next inside a line split by `$`; `dev`: a debugging action (`op: 'back'`), only under ?dev=1 */
+  /** `plan`: SPEC "Plans" (`op`: book = an invitation accepted, `for` the day it happens; wait = the player waited at home for it) */
   /** `townhall`: the day-5 closing sequence (`op`: start | rating | answer | summary | end; SPEC "Town hall") */
-  type: 'dialogue' | 'choice' | 'event' | 'hotspot' | 'move' | 'window' | 'survey' | 'journal' | 'day_end' | 'start' | 'conversation' | 'beat' | 'dev' | 'profile' | 'client_error' | 'townhall' | 'whosaid' | 'work';
+  type: 'dialogue' | 'choice' | 'event' | 'hotspot' | 'move' | 'window' | 'survey' | 'journal' | 'day_end' | 'start' | 'conversation' | 'beat' | 'dev' | 'profile' | 'client_error' | 'townhall' | 'whosaid' | 'work' | 'plan';
   scene: string;
   target?: string;
   rule?: string;

@@ -6,7 +6,7 @@ import type {
 import { TOPIC_STANCES } from './types';
 import { WORK_PAY, WORK_COST, WORK_TASKS } from './rules';
 import {
-  DAY_ACTIONS, DEFAULT_TALKS_PER_DAY, DEMO_DAYS, FEATURES, applyEffects, dayPhaseOf, eventMatches, leanOf, optionCharge, phaseOf, selectRow,
+  DAY_ACTIONS, DEFAULT_TALKS_PER_DAY, DEMO_DAYS, FEATURES, applyEffects, dayPhaseOf, eventMatches, leanOf, optionCharge, parseEffects, phaseOf, selectRow,
   DEFAULT_MAX_PRESENT, figureRect, figuresClash, type FigRect,
   type Delta,
 } from './rules';
@@ -29,9 +29,10 @@ type Panel =
   | { kind: 'idle'; note?: string; ended?: { npc: string; emotion: Emotion } }
   // `beat`: which `$`-separated part of the line is on screen (SPEC "Writing dialogue: beats and stage directions")
   | { kind: 'dialogue'; npc: string; row: DialogueRow; tie: string[]; beat?: number }
-  | { kind: 'event'; ev: EventRow; beat?: number }
+  // `note`: a one-line notice above the event (SPEC "Plans": "Time to go: Mr. Guo.")
+  | { kind: 'event'; ev: EventRow; beat?: number; note?: string }
   | { kind: 'text'; title?: string; text: string; rule?: string; figure?: string }
-  | { kind: 'bed'; hs: string } // going to bed with actions left: confirm first
+  | { kind: 'bed'; hs: string } // going to bed with actions left (or a plan still to come): confirm first
   | { kind: 'townhall' }; // SPEC "Town hall": the day-5 closing sequence; what is shown comes from state.townhall
 
 // slot null = the NPC is painted into the background (scene.painted); no figure is drawn and a `talk` hotspot stands for them.
@@ -189,7 +190,7 @@ export class Game {
         break;
       }
     }
-    appendLog(s, { type: 'start', target: `day${s.day}`, invites: this.queue.map((e) => e.id) });
+    appendLog(s, { type: 'start', target: `day${s.day}`, invites: this.queue.map((e) => e.id), plans: s.plans.length ? s.plans.map((p) => ({ ...p })) : undefined });
     this.save();
     this.nextQueued();
   }
@@ -243,9 +244,121 @@ export class Game {
     }
     this.fireEvent(p.ev, false, true);
     appendLog(this.s, { type: 'dev', op: 'plan', rule: p.id, when: p.when, phase: phaseOf(this.s.actions) });
-    this.panel = { kind: 'event', ev: p.ev };
+    this.panel = { kind: 'event', ev: p.ev, note: this.str('ui.plan.now', { name: this.planName(p.ev) }) };
     this.save();
     return true;
+  }
+
+  /**
+   * SPEC "Plans": attendance is forced. While a plan is still to come today, bed, the phone's Call tab and (day 5) the
+   * town hall wait for it. This never traps the player:
+   *  - every way of spending actions on something else (hotspots, paid turns, module `spend`, unforced events) is capped
+   *    by spendable() = actions - reserved, and actions only ever go down within a day;
+   *  - duePlan() returns a plan once its phase has arrived or once available() is 0, so at the latest when the actions
+   *    reach the reserve (an `actions -N` effect that eats into it only makes available() 0 sooner);
+   *  - checkPlans() fires it as soon as the panel is idle, and every panel leads back to idle (each dialogue row has a
+   *    leave option, events and texts close, windows close);
+   *  - and a player with nothing left to spend on can take "Wait until ..." at the bed (waitForPlan), which runs the
+   *    clock to the plan's time.
+   * Guard anyway: a plan whose event row has vanished (an override removed it) is dropped with a `dev` line.
+   */
+  private planPending(): boolean {
+    const raw = this.s.plans ?? [];
+    const live = this.plans();
+    if (live.length !== raw.length) {
+      for (const p of raw) if (!live.some((l) => l.id === p.id)) appendLog(this.s, { type: 'dev', op: 'plan-drop', rule: p.id, when: p.when, why: 'event not found' });
+      this.s.plans = live.map(({ id, when }) => ({ id, when }));
+      this.save();
+    }
+    return live.length > 0;
+  }
+
+  /** Today's plans, earliest first. */
+  private plansByTime(): { id: string; when: Phase; ev: EventRow }[] {
+    const order: Phase[] = ['morning', 'afternoon', 'evening'];
+    return this.plans().sort((a, b) => order.indexOf(a.when) - order.indexOf(b.when));
+  }
+
+  /** "You told Mr. Guo you'd be there this evening. Bed can wait." for the earliest plan still to come. */
+  private planBedLine(): string {
+    const p = this.plansByTime()[0];
+    return p ? this.str('ui.plan.bed', { name: this.planName(p.ev), when: this.str(`ui.plan.${p.when}`) }) : '';
+  }
+
+  /** The name the chip shows for a plan: the inviter's name (the event id when the row has no NPC). */
+  private planName(ev: EventRow): string {
+    return ev.npc ? this.c.npcById.get(ev.npc)?.name ?? ev.npc : ev.id;
+  }
+
+  /**
+   * Bed while a plan is still to come: time passes at home until the earliest plan is due (its phase begins, or the
+   * free actions are gone), then render() fires it. The waited actions are not spending in any community (lean).
+   */
+  private waitForPlan(): void {
+    const order: Phase[] = ['morning', 'afternoon', 'evening'];
+    const list = this.plansByTime();
+    if (!list.length) return;
+    const first = list[0];
+    let target = this.s.actions;
+    while (target > 0 && order.indexOf(phaseOf(target)) < order.indexOf(first.when)) target--;
+    target = Math.min(this.s.actions, Math.max(target, this.reserved()));
+    const before = this.s.actions;
+    this.s.actions = target;
+    appendLog(this.s, { type: 'plan', op: 'wait', rule: first.id, when: first.when, delta: before !== target ? { actions: [before, target] } : undefined });
+    this.panel = { kind: 'idle' };
+    this.save();
+    this.render();
+  }
+
+  /** One `plan` `book` line per invitation an effect has just queued (SPEC "Plans"). */
+  private logBookings(before: string[], npc: string | undefined, from: string): void {
+    for (const id of this.s.invites) {
+      if (before.includes(id)) continue;
+      const ev = this.c.events.find((e) => e.id === id);
+      appendLog(this.s, { type: 'plan', op: 'book', target: npc, rule: id, when: ev?.when || undefined, for: `day${this.s.day + 1}`, from });
+    }
+  }
+
+  /**
+   * SPEC "Plans": why the invitation in a choice cannot be booked now. `repeat`: already accepted (queued or today's
+   * plan) or already happened this game; `lastDay`: day 5 has no tomorrow; `booked`: tomorrow's slot at that time is
+   * taken by another accepted invitation (`by`).
+   */
+  private inviteBlock(effect: string): { kind: 'repeat' | 'lastDay' } | { kind: 'booked'; by: EventRow; when: Phase } | null {
+    const s = this.s;
+    for (const t of parseEffects(effect).tokens) {
+      if (t.k !== 'invite') continue;
+      if (s.invites.includes(t.v) || (s.plans ?? []).some((p) => p.id === t.v) || s.fired.includes(t.v)) return { kind: 'repeat' };
+      if (s.day >= DEMO_DAYS) return { kind: 'lastDay' };
+      const ev = this.c.events.find((e) => e.id === t.v);
+      if (!ev?.when) continue;
+      const by = s.invites.map((id) => this.c.events.find((e) => e.id === id)).find((e) => e?.when === ev.when);
+      if (by) return { kind: 'booked', by, when: ev.when };
+    }
+    return null;
+  }
+
+  /** The row's plain No: a choice with no invitation, no rapport gain and a `lastValence none|negative` (the last such). */
+  private declineOf(row: DialogueRow): DialogueRow['choices'][number] | undefined {
+    return row.choices.filter((c) => !/(^|;)\s*invite\s/.test(c.effect) && !/rapport\s+\+/.test(c.effect) && /lastValence\s+(none|negative)/.test(c.effect)).pop();
+  }
+
+  /**
+   * A dialogue choice as the player sees and takes it (SPEC "Plans"). An invitation that is a repeat or comes on the
+   * last day is `hidden` when the row has a plain No to take instead; a clash with an accepted invitation becomes the
+   * sorry line (`ui.plan.sorry`), taken as the row's No without its effects (no NPC affect changes) and leading where the
+   * No leads (its `next`, else the conversation ends). The row itself is never changed (the dev editor shows the original).
+   */
+  private planChoice(row: DialogueRow, idx: number): { text: string; effect: string; next: string; hidden?: boolean; declined?: 'booked' | 'repeat' | 'lastDay' } {
+    const ch = row.choices[idx];
+    const b = this.inviteBlock(ch.effect);
+    if (!b) return { text: this.t(ch.text), effect: ch.effect, next: ch.next };
+    const no = this.declineOf(row);
+    if (b.kind !== 'booked' && no) return { text: this.t(ch.text), effect: '', next: '', hidden: true, declined: b.kind };
+    const text = b.kind === 'booked'
+      ? this.str('ui.plan.sorry', { name: this.planName(b.by), when: this.str(`ui.plan.tomorrow.${b.when}`) })
+      : this.str('ui.plan.cant');
+    return { text, effect: '', next: no?.next ?? '', declined: b.kind };
   }
 
   private save(): void {
@@ -750,7 +863,7 @@ export class Game {
    * charged instead when larger. Leaving (no `next`, no `cost N`) is always free.
    */
   private optionCharge(row: DialogueRow, idx: number): { charge: number; stay: boolean } {
-    const ch = row.choices[idx];
+    const ch = this.planChoice(row, idx); // SPEC "Plans": the sorry line costs what the row's No costs
     const cv = this.s.convo;
     const leadsOn = !!ch.next && (this.c.dialogue.get(row.npc) ?? []).some((r) => r.id === ch.next);
     return optionCharge(ch.effect, leadsOn, cv?.turns ?? 1, !!cv?.stayPaid);
@@ -1041,7 +1154,11 @@ export class Game {
 
   /** idx = authored index (0-based); shown = displayed position (1-based). The log keeps both. */
   private chooseDialogue(row: DialogueRow, idx: number, shown: number): void {
-    const ch = row.choices[idx];
+    const ch = this.planChoice(row, idx);
+    if (ch.hidden) {
+      console.info(`[dialogue] ${row.npc}/${row.id} option ${idx + 1}: not offered (invitation ${ch.declined})`);
+      return;
+    }
     const { charge, stay } = this.optionCharge(row, idx);
     if (charge > this.spendable()) {
       // the button is disabled; this covers anything that calls in directly
@@ -1053,13 +1170,17 @@ export class Game {
     this.spend(charge);
     const cv = this.s.convo;
     if (cv && stay) cv.stayPaid = true;
+    const invitesBefore = [...this.s.invites];
     const delta = this.effects(row.npc, ch.effect, `${row.npc}/${row.id}`);
     if (this.s.actions !== before) delta.actions = [before, this.s.actions];
     if (cv) cv.cost = (cv.cost ?? 0) + Math.max(0, before - this.s.actions);
     appendLog(this.s, {
       type: 'choice', target: row.npc, rule: row.id, choice: idx + 1, shown, delta, next: ch.next || undefined,
       ...(charge ? { charged: charge } : {}), ...(stay ? { stay: true } : {}),
+      // SPEC "Plans": the sorry line was taken in place of the invitation (taken as the row's No, no effects)
+      ...(ch.declined ? { declined: ch.declined, text: ch.text } : {}),
     });
+    this.logBookings(invitesBefore, row.npc, row.id);
     if (ch.next) {
       const nx = (this.c.dialogue.get(row.npc) ?? []).find((r) => r.id === ch.next);
       if (nx) {
@@ -1083,8 +1204,10 @@ export class Game {
   private chooseEvent(ev: EventRow, idx: number | null, shown?: number): void {
     if (idx !== null) {
       const ch = ev.choices[idx];
+      const invitesBefore = [...this.s.invites];
       const delta = this.effects(ev.npc || null, ch.effect, `event ${ev.id}`);
       appendLog(this.s, { type: 'choice', target: ev.npc || undefined, rule: ev.id, choice: idx + 1, shown, delta, event: true });
+      this.logBookings(invitesBefore, ev.npc || undefined, ev.id);
     }
     this.panel = { kind: 'idle' };
     this.save();
@@ -1107,6 +1230,12 @@ export class Game {
         appendLog(this.s, { type: 'hotspot', target: hs.id });
         return this.moveTo(String(a.to));
       case 'end_day':
+        // SPEC "Plans": no bed while a plan is still to come; a plan that is due fires now instead (render does it from idle)
+        if (this.planPending()) {
+          appendLog(this.s, { type: 'hotspot', target: hs.id, refused: 'plan' });
+          this.panel = this.duePlan() ? { kind: 'idle' } : { kind: 'bed', hs: hs.id };
+          return this.render();
+        }
         if (this.s.actions > 0) {
           // actions left: offer work or staying up before ending the day early
           this.panel = { kind: 'bed', hs: hs.id };
@@ -1138,6 +1267,7 @@ export class Game {
         const mod = a.module as ModuleId;
         if (mod === 'survey') {
           appendLog(this.s, { type: 'hotspot', target: hs.id });
+          if (this.planPending()) { this.panel = this.duePlan() ? { kind: 'idle' } : { kind: 'bed', hs: hs.id }; return this.render(); }
           return this.endDay();
         }
         if (mod === 'tv' && this.tvWatchedToday()) {
@@ -1301,6 +1431,14 @@ export class Game {
 
   endDay(): void {
     if (this.win?.module === 'survey' || this.surveyLoading) return; // already open: re-opening would reload the frame and wipe answers
+    // SPEC "Plans": attendance is forced; the day (and on day 5 the town hall) waits until today's plans have fired
+    if (this.planPending() && !this.townhallActive() && this.s.townhall?.stage !== 'done') {
+      console.info(`[plans] the day cannot end yet: ${(this.s.plans ?? []).map((p) => `${p.id}@${p.when}`).join(', ')} still to come`);
+      this.phoneOpen = false;
+      if (this.panel.kind === 'idle') this.panel = { kind: 'idle', note: this.planBedLine() };
+      this.render();
+      return;
+    }
     // SPEC "Town hall": on the last day, bed leads into the town hall; the survey follows once it is over
     if (this.s.day >= DEMO_DAYS && !this.s.townhall) return this.startTownhall();
     if (this.townhallActive()) return;
@@ -1414,9 +1552,10 @@ export class Game {
     const overlay = h('div', { class: 'win-overlay', role: 'dialog', 'aria-modal': 'true', 'aria-label': `${module} window` },
       h('div', { class: 'win-box' }, frame));
     frame.addEventListener('load', () => {
+      // SPEC "Plans": modules (Work, TV) are told the actions they may spend, not counting those kept back for plans
       frame.contentWindow?.postMessage({
         type: 'init',
-        payload: { day: this.s.day, actions: this.s.actions, wallet: this.s.wallet, condition: this.s.config.nationalLeader, homeCulture: this.s.player.homeCulture, content },
+        payload: { day: this.s.day, actions: this.available(), wallet: this.s.wallet, condition: this.s.config.nationalLeader, homeCulture: this.s.player.homeCulture, content },
       }, location.origin);
       frame.focus();
     });
@@ -1436,7 +1575,7 @@ export class Game {
   }
 
   private reply(type: string, extra: Record<string, unknown> = {}) {
-    this.win?.frame.contentWindow?.postMessage({ type, payload: { actions: this.s.actions, wallet: this.s.wallet, ...extra } }, location.origin);
+    this.win?.frame.contentWindow?.postMessage({ type, payload: { actions: this.available(), wallet: this.s.wallet, ...extra } }, location.origin);
   }
 
   private onMessage(e: MessageEvent): void {
@@ -1665,8 +1804,13 @@ export class Game {
   private renderTop(): void {
     const s = this.s;
     const phase = phaseOf(s.actions);
-    const dots = h('span', { class: 'dots', role: 'img', 'aria-label': `${this.str('ui.actions')}: ${s.actions} of ${DAY_ACTIONS}` });
-    for (let i = 0; i < DAY_ACTIONS; i++) dots.append(h('span', { class: i < s.actions ? 'dot on' : 'dot' }));
+    // SPEC "Plans": the free actions in amber, the ones kept back for today's plans in teal (the last of the day's actions)
+    const free = this.available();
+    const held = this.reservedNotes().join(' · ');
+    const dots = h('span', { class: 'dots', role: 'img', title: held || null, 'aria-label': `${this.str('ui.actions')}: ${free} of ${DAY_ACTIONS}${held ? `; ${held}` : ''}` });
+    for (let i = 0; i < DAY_ACTIONS; i++) {
+      dots.append(i < free ? h('span', { class: 'dot on' }) : i < s.actions ? h('span', { class: 'dot reserved', title: held }) : h('span', { class: 'dot' }));
+    }
     this.top.replaceChildren(
       h('div', { class: 'tb-left' },
         h('span', { class: 'tb-day', text: `${this.str('ui.day')} ${s.day} of ${DEMO_DAYS} · ${this.str(`ui.phase.${phase}`)}` }),
@@ -1682,14 +1826,43 @@ export class Game {
     );
   }
 
-  /** SPEC "Plans": today's accepted invitation and its time, in the top bar; the actions it needs are kept back. */
+  /** "2 actions reserved for Mr. Guo, this evening", one per plan still to come today. */
+  private reservedNotes(): string[] {
+    return this.plansByTime().map((p) => this.str('ui.plan.reserved', { n: this.costWords(p.ev.cost), name: this.planName(p.ev), when: this.str(`ui.plan.${p.when}`) }));
+  }
+
+  /**
+   * SPEC "Plans": every accepted invitation in the top bar: today's plans (with the actions kept back for them) and
+   * tomorrow's, "Plans: Mr. Guo, this evening (2 actions reserved) · Dr. Zhou, tomorrow morning".
+   */
   private planChip(): HTMLElement | null {
-    const list = this.plans();
-    if (!list.length) return null;
-    const p = list[0];
-    const who = p.ev.npc ? this.c.npcById.get(p.ev.npc)?.name ?? p.ev.npc : p.ev.id;
-    const text = this.str('ui.plan.chip', { name: who, when: this.str(`ui.plan.${p.when}`) });
-    return h('span', { class: 'tb-plan', title: `${text}. ${this.costWords(p.ev.cost)} kept back for it.`, text: `\u{1F4CC} ${text}` });
+    const today = this.plansByTime();
+    const order: Phase[] = ['morning', 'afternoon', 'evening'];
+    const tomorrow = this.s.invites.flatMap((id) => { const ev = this.c.events.find((e) => e.id === id); return ev ? [ev] : []; })
+      .sort((a, b) => (a.when ? order.indexOf(a.when) : -1) - (b.when ? order.indexOf(b.when) : -1));
+    if (!today.length && !tomorrow.length) return null;
+    const parts: (string | HTMLElement)[] = [];
+    const plain: string[] = [];
+    for (const p of today) {
+      const vars = { name: this.planName(p.ev), when: this.str(`ui.plan.${p.when}`), n: this.costWords(p.ev.cost) };
+      const item = this.str('ui.plan.item', vars);
+      const full = this.str('ui.plan.itemReserved', vars);
+      if (parts.length) parts.push(' · ');
+      // the reserved part in the reserved dots' colour
+      if (full.startsWith(item)) parts.push(item, h('span', { class: 'tb-res', text: full.slice(item.length) }));
+      else parts.push(full);
+      plain.push(full);
+    }
+    for (const ev of tomorrow) {
+      const item = this.str('ui.plan.item', { name: this.planName(ev), when: this.str(ev.when ? `ui.plan.tomorrow.${ev.when}` : 'ui.plan.tomorrow') });
+      if (parts.length) parts.push(' · ');
+      parts.push(item);
+      plain.push(item);
+    }
+    const label = this.str('ui.plan.chip', { list: plain.join(' · ') });
+    const at = label.indexOf(plain.join(' · '));
+    const tip = [label, ...this.reservedNotes()].join('\n');
+    return h('span', { class: 'tb-plan', title: tip, 'aria-label': tip, tabindex: 0 }, `\u{1F4CC} ${at >= 0 ? label.slice(0, at) : label}`, ...(at >= 0 ? parts : []));
   }
 
   /** "edited content" chip while a researcher override is active; the tooltip lists what changed and any rejection. */
@@ -1999,11 +2172,12 @@ export class Game {
         // a beat in progress: only Next (the choices come with the last beat)
         choices.append(h('button', { class: 'choice next', 'data-fk': 'ch:next', 'aria-label': this.str('ui.next'), title: this.str('ui.next'), onclick: () => this.nextBeat() }, h('span', { class: 'tri', 'aria-hidden': 'true', text: '\u25BE' })));
       } else {
-        this.choiceOrder(p.row.id, p.row.choices.length).forEach((i, pos) => {
-          const ch = p.row.choices[i];
+        // SPEC "Plans": a repeat or last-day invitation is not offered; a clashing one reads as the sorry line
+        this.choiceOrder(p.row.id, p.row.choices.length).filter((i) => !this.planChoice(p.row, i).hidden).forEach((i, pos) => {
+          const ch = this.planChoice(p.row, i);
           const { charge } = this.optionCharge(p.row, i);
           // the leave option (no `next`, no `cost N`) has charge 0, so it is never disabled by cost
-          choices.append(this.choiceBtn(i, this.t(ch.text), charge + this.choiceCost(ch.effect), () => this.chooseDialogue(p.row, i, pos + 1), charge > this.spendable()));
+          choices.append(this.choiceBtn(i, ch.text, charge + this.choiceCost(ch.effect), () => this.chooseDialogue(p.row, i, pos + 1), charge > this.spendable()));
         });
         if (!p.row.choices.length) {
           const ended = { npc: p.npc, emotion };
@@ -2023,6 +2197,7 @@ export class Game {
       const bts = this.beatsOf(p.row.line, p.beat);
       status = `rule ${p.row.id} · ${p.npc} · p${p.row.priority} s${p.row.specificity} · turn ${cv?.turns ?? 1}${cv?.stayPaid ? ' (stay paid)' : ''}${bts.beats.length > 1 ? ` · beat ${bts.at + 1}/${bts.beats.length}` : ''}${p.tie.length ? ` · TIE with ${p.tie.join(',')}` : ''}`;
     } else if (p.kind === 'event') {
+      if (p.note) body.append(h('p', { class: 'note plan-now', text: p.note }));
       if (via) body.append(h('h3', { class: 'text-title via', text: via }));
       const bt = this.beatsOf(p.ev.text, p.beat);
       body.append(...this.speech(bt.cur.text));
@@ -2041,17 +2216,19 @@ export class Game {
     } else if (p.kind === 'townhall') {
       status = this.renderTownhall(portrait, body, choices);
     } else if (p.kind === 'bed') {
-      body.append(h('p', { class: 'line', text: this.str('ui.bed.prompt', { actions: this.costWords(this.s.actions) }) }));
+      // SPEC "Plans": with a plan still to come there is no "Go to bed anyway"; waiting runs the clock to it instead
+      const held = this.plansByTime()[0];
+      body.append(h('p', { class: 'line', text: held ? this.planBedLine() : this.str('ui.bed.prompt', { actions: this.costWords(this.available()) }) }));
       const pick = (n: 1 | 2 | 3) => {
-        appendLog(this.s, { type: 'hotspot', target: p.hs, choice: n });
+        appendLog(this.s, { type: 'hotspot', target: p.hs, choice: n, ...(held ? { plan: held.id } : {}) });
         this.panel = { kind: 'idle' };
         if (n === 1) return this.moveTo('work');
-        if (n === 2) return this.bedtimeCall();
+        if (n === 2) return held ? this.waitForPlan() : this.bedtimeCall();
         this.render();
       };
       choices.append(
         h('button', { class: 'choice', 'data-fk': 'ch:0', onclick: () => pick(1), text: this.str('ui.bed.work') }),
-        h('button', { class: 'choice', 'data-fk': 'ch:1', onclick: () => pick(2), text: this.str('ui.bed.sleep') }),
+        h('button', { class: 'choice', 'data-fk': 'ch:1', onclick: () => pick(2), text: held ? this.str('ui.plan.wait', { when: this.str(`ui.plan.${held.when}`) }) : this.str('ui.bed.sleep') }),
         h('button', { class: 'choice', 'data-fk': 'ch:2', onclick: () => pick(3), text: this.str('ui.bed.stay') }));
     } else if (p.kind === 'text') {
       if (p.title) body.append(h('h3', { class: 'text-title', text: p.title }));
@@ -2098,7 +2275,7 @@ export class Game {
 
   /** Out of actions and the day not over: the end-of-day call is waiting to be answered. */
   private ringing(): boolean {
-    return (this.s.actions <= 0 || this.bedtime) && !this.s.finished && !this.win && !this.townhallActive();
+    return (this.s.actions <= 0 || this.bedtime) && !this.s.finished && !this.win && !this.townhallActive() && !this.plans().length;
   }
 
   /** "Go to bed anyway": the phone rings for a moment (so the call reads as a call) before the evening check-in opens. */
@@ -2115,7 +2292,9 @@ export class Game {
     el.hidden = !this.phoneOpen;
     if (!this.phoneOpen) return;
     if (this.s.player.profilePending) return this.renderProfile();
-    const callOk = this.s.actions <= 0;
+    // SPEC "Plans": the call ends the day, so it waits for today's plans too
+    const held = this.plans().length > 0;
+    const callOk = this.s.actions <= 0 && !held;
     const tabs: [typeof this.phoneTab, string, boolean][] = [
       ['journal', this.str('ui.phone.journal'), true],
       ['contacts', this.str('ui.phone.contacts'), true],
@@ -2127,7 +2306,7 @@ export class Game {
     for (const [id, label, enabled] of tabs) {
       tabBar.append(h('button', {
         class: `ph-tab${this.phoneTab === id ? ' on' : ''}`, role: 'tab', 'aria-selected': String(this.phoneTab === id),
-        'data-fk': `ph:${id}`, disabled: !enabled, title: enabled ? label : this.str('ui.phone.callLocked'),
+        'data-fk': `ph:${id}`, disabled: !enabled, title: enabled ? label : held ? this.planBedLine() : this.str('ui.phone.callLocked'),
         onclick: () => { this.phoneTab = id; this.renderPhone(); },
       }, label));
     }
@@ -2557,6 +2736,8 @@ export class Game {
         return { start: 0, turn: this.s.convo?.turns ?? 1, stayPaid: !!this.s.convo?.stayPaid, options: p.row.choices.map((_, i) => this.optionCharge(p.row, i).charge) };
       },
       endDay: () => this.endDay(),
+      /** SPEC "Plans": today's plans, tomorrow's accepted invitations, and the actions kept back / still free */
+      plans: () => ({ plans: this.s.plans ?? [], invites: [...this.s.invites], reserved: this.reserved(), available: this.available(), due: this.duePlan()?.id ?? null }),
       /** SPEC "Town hall": the state of the closing sequence, or start it now (dev) */
       townhall: () => this.s.townhall,
       startTownhall: () => this.startTownhall(),

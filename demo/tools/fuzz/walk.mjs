@@ -221,7 +221,7 @@ async function walk(seed) {
       // tour done: head for bed and sleep (or the ringing phone) so the next day's tour can start
       if (tour.done) for (const c of cands) { if (c.kind === 'phone' && /ringing/i.test(c.label)) c.w = 40; if (c.fk === 'hs:bed') c.w = 30; if (c.kind === 'hotspot' && c.fk !== 'hs:bed') c.w = 0.2; if (c.kind === 'exit' && !/^(?:exit|hub):home$/.test(c.fk || '')) c.w = 0.5; }
     }
-    if (TOUR && tour.done && snap.panel === 'bed') for (const c of cands) if (c.kind === 'choice' && /sleep|bed|turn in/i.test(c.label)) c.w = 40;
+    if (TOUR && tour.done && snap.panel === 'bed') for (const c of cands) if (c.kind === 'choice' && /sleep|bed|turn in|wait until/i.test(c.label)) c.w = 40; // SPEC "Plans": with a plan still to come, bed offers "Wait until ..." instead of sleeping
     if (false) {
     }
     const c = pickWeighted(rng, cands);

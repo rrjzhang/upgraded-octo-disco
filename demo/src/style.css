@@ -45,6 +45,8 @@ button { font-family: inherit; }
 .dots { display: inline-flex; gap: 6px; }
 .dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #b9b0a0; }
 .dot.on { background: var(--amber); border-color: var(--amber); }
+/* SPEC "Plans": actions kept back for today's plans; a cool teal beside the amber free dots and the hollow spent ones */
+.dot.reserved { background: #5fb3ad; border-color: #5fb3ad; cursor: help; }
 /* action cost symbol: one amber dot per action, same amber as the top-bar action dots */
 .cost { display: inline-flex; gap: 3px; margin-left: 6px; vertical-align: middle; flex: none; }
 .cost-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 0 1px rgba(31,29,26,.35); }
@@ -53,7 +55,9 @@ button { font-family: inherit; }
 .choice .cost { margin-left: 8px; }
 .tb-wallet { font-weight: 600; min-width: 48px; }
 /* SPEC "Plans": today's accepted invitation, in the top bar */
-.tb-plan { font-size: 13px; color: var(--amber); white-space: nowrap; }
+.tb-plan { font-size: 13px; color: var(--amber); white-space: nowrap; cursor: help; }
+.tb-plan .tb-res { color: #5fb3ad; }
+.plan-now { font-weight: 600; }
 .tb-room { color: #d8d1c2; font-family: ui-monospace, Menlo, monospace; }
 .tb-fx { background: #a3271f; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
 

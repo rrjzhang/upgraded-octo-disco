@@ -180,7 +180,7 @@
           (l.followup || (lastChoice && lastChoice.next === l.rule));
         if (cont) last.lines.push(l);
         else { const c = { kind: 'conv', target: l.target, lines: [l] }; loc.items.push(c); convs.push(c); }
-      } else if ((l.type === 'beat' && !l.event) || l.type === 'dev') {
+      } else if ((l.type === 'beat' && !l.event) || l.type === 'dev' || (l.type === 'plan' && l.op === 'book')) {
         // Next inside a line, or a dev step back: part of the open conversation
         if (last && last.kind === 'conv' && last.target === l.target) last.lines.push(l); else loc.items.push({ kind: 'line', line: l });
       } else if (l.type === 'beat' && l.event) {
@@ -240,7 +240,8 @@
             T(l.config?.seed != null ? `, seed ${l.config.seed}` : ''), T(l.content ? `, content ${l.content}` : '')];
         }
         return [T(`${String(l.target || '').replace(/^day/, 'Day ')} began with ${l.actions} actions`),
-          l.invites && l.invites.length ? T(`; queued: ${l.invites.map((id) => id).join(', ')}`) : null];
+          l.invites && l.invites.length ? T(`; queued: ${l.invites.map((id) => id).join(', ')}`) : null,
+          Array.isArray(l.plans) && l.plans.length ? T(`; plans: ${l.plans.map((p) => `${p.id} (${p.when})`).join(', ')}`) : null];
       case 'move':
         return [T(`Walked to ${sceneName(l.target)}`), l.from ? T(` from ${sceneName(l.from)}`) : null];
       case 'hotspot': {
@@ -297,6 +298,9 @@
         if (l.event) text = C.events.get(l.rule)?.[`choice${l.choice}`];
         else text = dRow(l.target, l.rule)?.[`choice${l.choice}`];
         const d = fmtDelta(l.delta);
+        // SPEC "Plans": the invitation was shown as the sorry line and taken as the row's No
+        if (l.declined) return [el('span', { class: 'chose' }, T('Chose: '), q(l.text || 'Sorry, I have to ...')),
+          el('span', { class: 'small' }, el('span', { class: 'id', text: `${l.rule} #${l.choice}` }), T(` · in place of ${text ? `“${fill(text)}”` : `option ${l.choice}`} (${l.declined === 'booked' ? 'already booked at that time' : l.declined}); no effect`), l.next ? T(` → ${l.next}`) : null)];
         return [el('span', { class: 'chose' }, T('Chose: '), text ? q(text) : T(`option ${l.choice}`)),
           el('span', { class: 'small' }, el('span', { class: 'id', text: `${l.rule} #${l.choice}` }), l.next ? T(` → ${l.next}`) : null,
             l.charged ? el('b', { text: ` · charged ${l.charged} action${l.charged === 1 ? '' : 's'}${l.stay ? ' (stayed past turn 3)' : ''}` }) : null, T(d ? ` · ${d}` : ' · no effect'))];
@@ -328,6 +332,10 @@
         return [el('span', { class: 'who', text: 'Profile: ' }), T(`heritage ${l.heritage || '?'} → pack ${l.pack || '?'}` + (l.variant && Object.keys(l.variant).length ? `, ${Object.entries(l.variant).map(([k, v]) => `${k} ${v}`).join(', ')}` : ', no variant'))];
       case 'beat':
         return [el('span', { class: 'who', text: 'Next: ' }), T(`beat ${l.beat} of the line`), el('span', { class: 'small' }, el('span', { class: 'id', text: l.rule }))];
+      case 'plan':
+        if (l.op === 'book') return [el('span', { class: 'who', text: 'Plan: ' }), T(`booked ${l.rule}${l.when ? ` for the ${l.when} of ${String(l.for || '').replace(/^day/, 'day ')}` : ` for ${String(l.for || '').replace(/^day/, 'day ')}`}`)];
+        if (l.op === 'wait') return [el('span', { class: 'who', text: 'Plan: ' }), T(`waited at home for ${l.rule} (${l.when})`), l.delta ? el('span', { class: 'small', text: ` · ${fmtDelta(l.delta)}` }) : null];
+        return [el('span', { class: 'who', text: 'Plan: ' }), T(`${l.op || ''} ${l.rule || ''}`)];
       case 'dev':
         return [el('span', { class: 'who', text: 'Dev: ' }), T(l.op === 'back' ? 'stepped back one choice or beat' : String(l.op || 'action')), el('span', { class: 'small' }, el('span', { class: 'id', text: l.rule || '' }))];
       default:
