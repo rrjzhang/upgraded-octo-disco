@@ -87,7 +87,8 @@ const PAGE_LIB = `window.__fz = (() => {
       for (const r of fd.querySelectorAll('input[type=radio]')) { if (!groups.has(r.name)) groups.set(r.name, []); groups.get(r.name).push(r); }
       const open = [...groups].filter(([, rs]) => !rs.some((r) => r.checked));
       if (open.length) out.push({ kind: 'radio', w: 8, sel: 'frame-all', idx: 0, label: 'answer ' + open.length + ' question(s)' });
-      for (const ta of fd.querySelectorAll('textarea')) if (!ta.value) out.push({ kind: 'text', w: 3, sel: 'frame-ta', idx: [...fd.querySelectorAll('textarea')].indexOf(ta), label: 'write ' + (ta.name || ta.id || 'text') });
+      const texts = [...fd.querySelectorAll('textarea, input[type=text]')].filter(vis);
+      for (const ta of texts) if (!ta.value) out.push({ kind: 'text', w: 3, sel: 'frame-ta', idx: texts.indexOf(ta), label: 'write ' + (ta.name || ta.id || 'text') });
       const btns = [...fd.querySelectorAll('button')].filter((b) => vis(b) && enabled(b));
       btns.forEach((b, i) => out.push({ kind: 'frame-btn', w: b.id === 'next' ? 4 : b.id === 'later' ? 0.3 : b.className.includes('bin') ? 3 : 1.5, sel: 'frame-btn', idx: [...fd.querySelectorAll('button')].indexOf(b), label: 'window: ' + label(b) }));
       return out;
@@ -126,7 +127,7 @@ const PAGE_LIB = `window.__fz = (() => {
       for (const [, rs] of groups) if (!rs.some((r) => r.checked)) rs[Math.floor(Math.random() * rs.length)].click();
       return true;
     }
-    if (c.sel === 'frame-ta') { const ta = fd.querySelectorAll('textarea')[c.idx]; ta.value = 'fine'; ta.dispatchEvent(new Event('input', { bubbles: true })); return true; }
+    if (c.sel === 'frame-ta') { const ta = [...fd.querySelectorAll('textarea, input[type=text]')].filter(vis)[c.idx]; if (!ta) return false; ta.value = ['fine', 'brick', 'cheese', 'river', 'door stop', 'paper'][Math.floor(Math.random() * 6)]; ta.dispatchEvent(new Event('input', { bubbles: true })); ta.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); return true; }
     if (c.sel === 'frame-btn') { fd.querySelectorAll('button')[c.idx].click(); return true; }
     if (c.sel === 'end') return false;
     const el = document.querySelectorAll(c.sel)[c.idx];

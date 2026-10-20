@@ -6,6 +6,10 @@ import { clamp } from './util';
 export const DAY_ACTIONS = 8;
 /** Wallet balance a new game starts with. */
 export const START_WALLET = 1500;
+/** SPEC "Work": a shift costs 2 actions and pays $25 whatever happens; each shift is one of these tasks (modules/work/<id>.js). */
+export const WORK_PAY = 25;
+export const WORK_COST = 2;
+export const WORK_TASKS = ['dat', 'aut', 'rat'] as const;
 export const DEMO_DAYS = 5;
 /** The bust expressions every roster character has (SPEC "Portraits"); the dialogue/event `emotion` column and beat tags accept exactly these. */
 export const EMOTIONS = ['neutral', 'warm', 'guarded', 'worried'] as const;

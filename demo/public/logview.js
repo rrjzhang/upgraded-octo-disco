@@ -316,6 +316,9 @@
         if (l.op === 'end') return [el('span', { class: 'who', text: 'Town hall: ' }), T(`over; ${(l.ratings || []).length} ratings, ${Object.keys(l.answers || {}).length} answers, dominant ${l.dominant}`)];
         return [el('span', { class: 'who', text: 'Town hall: ' }), T(String(l.op || ''))];
       }
+      case 'work':
+        return [el('span', { class: 'who', text: 'Work shift: ' }), T(`${l.target}${typeof l.shift === 'number' ? ` (shift ${l.shift + 1})` : ''}${l.score !== null && l.score !== undefined ? `, score ${l.score}` : ''}${l.ms ? `, ${Math.round(l.ms / 1000)} s` : ''}`),
+          el('span', { class: 'small', text: l.result && Array.isArray(l.result.responses) ? ' · ' + l.result.responses.slice(0, 12).map((r) => typeof r === 'string' ? r : (r.answer ?? r.text ?? r.response ?? JSON.stringify(r))).join(', ') : '' })];
       case 'whosaid':
         return [el('span', { class: 'who', text: 'Who said what: ' }), T(`${l.score} of ${l.n} right; ${l.within} within-community and ${l.between} between-community errors`),
           el('span', { class: 'small', text: Array.isArray(l.items) ? ' · ' + l.items.map((it) => `${npcName(it.speaker)} → ${it.chosen ? npcName(it.chosen) : '?'}${it.correct ? ' ✓' : ''}`).join(', ') : '' })];

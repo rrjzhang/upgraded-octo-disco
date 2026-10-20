@@ -4,6 +4,7 @@ import type {
   LeadPos, Phase, TownhallRow, TownhallState, TopicStance,
 } from './types';
 import { TOPIC_STANCES } from './types';
+import { WORK_PAY, WORK_COST, WORK_TASKS } from './rules';
 import {
   DAY_ACTIONS, DEFAULT_TALKS_PER_DAY, DEMO_DAYS, FEATURES, applyEffects, dayPhaseOf, eventMatches, leanOf, optionCharge, phaseOf, selectRow,
   DEFAULT_MAX_PRESENT, figureRect, figuresClash, type FigRect,
@@ -1086,10 +1087,17 @@ export class Game {
           this.s.tvWatched = { day: this.s.day, phase: phaseOf(this.s.actions), story: rule };
           this.s.tvWatchedDay = this.s.day;
         }
+        let hooks: Pick<OpenWindow, 'onSubmit' | 'onClose'> = {};
+        if (mod === 'work') {
+          // SPEC "Work": the shell draws one task per shift from the room seed; the responses come back as a `work` line
+          const day = this.s.day;
+          content = { seed: this.s.config.seed, day, shift: this.s.walletLog.filter((e) => e.day === day && e.why === 'work').length, pay: WORK_PAY, cost: WORK_COST, tasks: WORK_TASKS };
+          hooks = { onSubmit: (r) => appendLog(this.s, { type: 'work', target: typeof r.task === 'string' ? r.task : 'work', shift: r.shift, score: r.score ?? null, ms: r.ms, result: r }) };
+        }
         appendLog(this.s, { type: 'window', target: mod, rule, delta: before !== this.s.actions ? { actions: [before, this.s.actions] } : undefined });
         this.save();
         this.render();
-        return this.openWindow(mod, content);
+        return this.openWindow(mod, content, hooks);
       }
     }
     this.save();
