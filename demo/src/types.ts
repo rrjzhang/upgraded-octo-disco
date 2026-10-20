@@ -356,7 +356,8 @@ export interface GameState {
   tvWatched?: { day: number; phase: Phase; story?: string };
   /** SPEC "TV once a day": the day the TV was opened; it cannot be opened again that day and the room screens go black */
   tvWatchedDay?: number;
-  surveyDay?: number; // day whose end-of-day survey is open; a reload reopens it instead of dropping it
+  surveyDay?: number; // day whose end-of-day survey (or the memory test after it) is open; a reload reopens it instead of dropping it
+  surveyAnswered?: number; // day whose check-in has been submitted but whose night is not over yet (the memory test follows)
   /** SPEC "Who said what": the day whose nightly memory test was answered (asked once per day, before the survey) */
   whoSaidDay?: number;
   /** SPEC "Town hall": the day-5 closing sequence in progress or done; absent until bed on the last day */

@@ -1138,16 +1138,16 @@ export class Game {
 
   // ------------------------------------------------------------------ SPEC "Who said what" (nightly memory test, Taylor et al. 1978)
   /** A line as the player read it: beats joined, tags and stage directions dropped, placeholders filled, trimmed to a sentence or two. */
-  private cleanLine(line: string): string {
+  private cleanLine(line: string, max = 200): string {
     const parts = splitBeats(line).flatMap((b) => speechParts(this.t(b.text)).filter((p) => p.kind !== 'stage').map((p) => p.text));
     let text = parts.join(' ').replace(/\s+/g, ' ').trim();
-    if (text.length > 200) { const cut = text.slice(0, 200); const end = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('? '), cut.lastIndexOf('! ')); text = end > 60 ? cut.slice(0, end + 1) : cut.replace(/\s\S*$/, '') + '\u2026'; }
+    if (text.length > max) { const cut = text.slice(0, 200); const end = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('? '), cut.lastIndexOf('! ')); text = end > 60 ? cut.slice(0, end + 1) : cut.replace(/\s\S*$/, '') + '\u2026'; }
     return text;
   }
 
   /** NPC lines the player saw today (openers and follow-ups, from today's log), without the ones that name their speaker. */
-  private linesToday(): { npc: string; text: string }[] {
-    const out: { npc: string; text: string }[] = [];
+  private linesToday(): { npc: string; text: string; words: number }[] {
+    const out: { npc: string; text: string; words: number }[] = [];
     const seen = new Set<string>();
     for (const ln of readLog(this.s.room).split('\n')) {
       if (!ln.includes('"dialogue"') && !ln.includes('"choice"')) continue;
@@ -1168,18 +1168,21 @@ export class Game {
       if (text.split(/\s+/).length < 6) continue;
       const names = [...n.name.split(/\s+/), ...(n.called ? n.called.split(/\s+/) : [])].filter((w) => w.length > 2 && !/^(Mr|Mrs|Ms|Dr|Don|Sra)\.?$/i.test(w));
       if (names.some((w) => new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).test(text))) continue;
-      out.push({ npc: n.id, text });
+      out.push({ npc: n.id, text, words: this.cleanLine(row.line, Infinity).split(/\s+/).length });
     }
     return out;
   }
 
-  /** The nightly test: up to six of today's lines, each with the people met so far as the options (speakers from both communities). */
+  /**
+   * The nightly test: up to six of today's lines, the longest ones (length stands in for "remarkable"), each with the
+   * people met so far as the options (speakers from both communities).
+   */
   private whoSaidQuestionnaire(): (Questionnaire & { key: Record<string, string> }) | null {
     const lines = this.linesToday();
     if (lines.length < 2) return null;
     const rng = seeded(this.s.config.seed, 'whosaid', this.s.day);
     const shuffle = <T,>(a: T[]) => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
-    const picked = shuffle(lines).slice(0, 6);
+    const picked = shuffle(shuffle(lines).sort((a, b) => b.words - a.words).slice(0, 6)); // ties broken by the shuffle; shown in a drawn order
     const speakers = new Set(picked.map((x) => x.npc));
     const met = this.c.npcs.filter((n) => n.appearances.length && (speakers.has(n.id) || this.s.npcs[n.id]?.met === 'yes') && this.inRoster(n));
     // options: today's speakers plus other people met, so a wrong answer can land in either community; at most eight names
@@ -1223,20 +1226,8 @@ export class Game {
     if (this.townhallActive()) return;
     this.endConvo('day_end');
     this.phoneOpen = false;
-    // SPEC "Who said what": the nightly memory test comes before the check-in, once per day (closing it asks again next time)
-    if (this.s.whoSaidDay !== this.s.day) {
-      const q = this.whoSaidQuestionnaire();
-      if (!q) this.s.whoSaidDay = this.s.day; // nothing to ask tonight
-      else {
-        this.save();
-        this.render();
-        this.openWindow('survey', { ...q, day: this.s.day }, {
-          onSubmit: (answers) => { this.logWhoSaid(q, answers); this.s.whoSaidDay = this.s.day; this.closeWindow(false); this.endDay(); },
-          onClose: () => { this.save(); },
-        });
-        return;
-      }
-    }
+    // SPEC "Who said what": the check-in is already answered tonight; only the memory test is left
+    if (this.s.surveyAnswered === this.s.day) return this.afterSurvey();
     this.s.surveyDay = this.s.day;
     this.save();
     this.render();
@@ -1287,14 +1278,36 @@ export class Game {
       onSubmit: (answers) => {
         appendLog(this.s, { type: 'survey', target: q.id, source, answers });
         this.s.surveyDay = undefined;
+        this.s.surveyAnswered = this.s.day;
         this.closeWindow(false);
-        this.finishDay();
+        this.afterSurvey();
       },
       onClose: () => {
         this.s.surveyDay = undefined;
         this.save();
       },
     });
+  }
+
+  /** SPEC "Who said what": after the check-in comes the nightly memory test, once per day; then the day ends. */
+  private afterSurvey(): void {
+    if (this.s.whoSaidDay !== this.s.day) {
+      const q = this.whoSaidQuestionnaire();
+      if (q) {
+        this.s.surveyDay = this.s.day; // a reload comes back to the open test
+        this.save();
+        this.render();
+        this.openWindow('survey', { ...q, day: this.s.day }, {
+          onSubmit: (answers) => { this.logWhoSaid(q, answers); this.s.whoSaidDay = this.s.day; this.closeWindow(false); this.afterSurvey(); },
+          onClose: () => { this.s.surveyDay = undefined; this.save(); }, // bed asks the test again, not the check-in
+        });
+        return;
+      }
+      this.s.whoSaidDay = this.s.day; // nothing to ask tonight
+    }
+    this.s.surveyDay = undefined;
+    this.s.surveyAnswered = undefined;
+    this.finishDay();
   }
 
   private finishDay(): void {

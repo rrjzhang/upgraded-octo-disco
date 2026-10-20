@@ -27,7 +27,7 @@
 </div>
 <script src="bridge.js"></script>
 <script>
-  const SHIFT_COST = 2, SHIFT_PAY = 40, SHIFT_SECONDS = 20;
+  const SHIFT_COST = 2, SHIFT_PAY = 25, SHIFT_SECONDS = 20;
   const DISTRICTS = [
     { id: 0, name: 'North', streets: ['Elm St', 'Birch Ave', 'Oak Ct'], color: '#1F6F6B' },
     { id: 1, name: 'Central', streets: ['Main St', 'Market St', 'Union Sq'], color: '#B07A1E' },
@@ -44,7 +44,7 @@
   function intro(msg) {
     clearInterval(timer);
     main.replaceChildren(
-      el('p', { className: 'serif', style: 'font-size:20px;max-width:640px', textContent: 'Sort each letter into its district bin by street name. A shift lasts 20 seconds and pays $40 no matter how fast you are.' }),
+      el('p', { className: 'serif', style: 'font-size:20px;max-width:640px', textContent: 'Sort each letter into its district bin by street name. A shift lasts 20 seconds and pays $25 no matter how fast you are.' }),
       el('p', { className: 'muted' }, 'One shift costs', GV.costDots(SHIFT_COST), el('span', { className: 'sr', textContent: ` ${SHIFT_COST} actions` }), '.'),
       msg ? el('p', { className: 'err', role: 'alert', textContent: msg }) : '',
     );

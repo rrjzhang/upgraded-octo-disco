@@ -5,7 +5,7 @@ import { clamp } from './util';
 
 export const DAY_ACTIONS = 8;
 /** Wallet balance a new game starts with. */
-export const START_WALLET = 1000;
+export const START_WALLET = 1500;
 export const DEMO_DAYS = 5;
 /** The bust expressions every roster character has (SPEC "Portraits"); the dialogue/event `emotion` column and beat tags accept exactly these. */
 export const EMOTIONS = ['neutral', 'warm', 'guarded', 'worried'] as const;

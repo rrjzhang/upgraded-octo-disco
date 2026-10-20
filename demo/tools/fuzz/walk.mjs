@@ -253,6 +253,7 @@ async function walk(seed) {
       case 'hotspot': tr.push(`- looks at ${l.target}`); break;
       case 'window': tr.push(`- window ${l.target}${l.op ? ' ' + l.op : ''}`); break;
       case 'survey': tr.push(`- survey ${l.target} answered`); break;
+      case 'whosaid': tr.push(`- who said what: ${l.score}/${l.n} right (${l.within} within, ${l.between} between)`); break;
       case 'day_end': tr.push(`- day ends (wallet $${l.wallet})`); break;
       default: break;
     }
