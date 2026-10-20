@@ -303,6 +303,15 @@ export class Game {
     return el;
   }
 
+  /**
+   * What clicking a hotspot costs. The TV and the newspaper are free (SPEC "TV and newspaper are free", 2026-10-19),
+   * whatever the data says; other windows (survey) default to 1, work carries `cost: 0` (the shell charges per shift).
+   */
+  private hotspotCost(a: Hotspot['action']): number {
+    if (a.type === 'news' || (a.type === 'window' && a.module === 'tv')) return 0;
+    return a.cost ?? (a.type === 'window' ? 1 : 0);
+  }
+
   /** Extra actions a dialogue/event choice spends through an `actions -N` effect. */
   private choiceCost(effect: string): number {
     let n = 0;
@@ -1024,7 +1033,7 @@ export class Game {
   private hotspot(hs: Hotspot): void {
     const a = hs.action;
     if (a.type !== 'talk' && a.type !== 'end_day' && !(a.type === 'window' && a.module === 'survey')) this.endConvo('left');
-    const cost = a.cost ?? (a.type === 'window' || a.type === 'news' ? 1 : 0);
+    const cost = this.hotspotCost(a);
     if (cost > this.spendable()) {
       this.panel = { kind: 'idle', note: this.str('ui.notEnough') };
       return this.render();
@@ -1060,7 +1069,7 @@ export class Game {
         } else {
           this.panel = { kind: 'text', title: this.str('ui.newsTitle'), text: this.str('ui.noNews') };
         }
-        appendLog(this.s, { type: 'hotspot', target: hs.id, rule: story?.id, delta: { actions: [before, this.s.actions] } });
+        appendLog(this.s, { type: 'hotspot', target: hs.id, rule: story?.id, delta: before !== this.s.actions ? { actions: [before, this.s.actions] } : undefined });
         break;
       }
       case 'window': {
@@ -1396,7 +1405,7 @@ export class Game {
           this.s.seenNews.push(m.story);
           this.s.tvWatched = { day: this.s.day, phase: phaseOf(this.s.actions), story: m.story };
         }
-        appendLog(this.s, { type: 'window', target: w.module, op: 'spend', rule: typeof m.story === 'string' ? m.story : undefined, delta: { actions: [before, this.s.actions] } });
+        appendLog(this.s, { type: 'window', target: w.module, op: 'spend', rule: typeof m.story === 'string' ? m.story : undefined, delta: before !== this.s.actions ? { actions: [before, this.s.actions] } : undefined });
         this.save();
         this.renderTop();
         this.reply('state', { ok: true });
@@ -1712,7 +1721,7 @@ export class Game {
       const talkNpc = a.type === 'talk' ? present.find((p) => p.npc.id === a.npc && p.slot === null)?.npc : undefined;
       if (a.type === 'talk' && !talkNpc) continue;
       if (a.type === 'move' && !this.openToPlayer(String(a.to))) continue; // another pack's scene
-      const cost = talkNpc ? 0 : a.cost ?? (a.type === 'window' || a.type === 'news' ? 1 : 0); // starting a conversation is free
+      const cost = talkNpc ? 0 : this.hotspotCost(a); // starting a conversation is free; TV and newspaper are free
       const blockedMove = a.type === 'move' && this.moveBlocked(String(a.to));
       const speaking = !!talkNpc && ((this.panel.kind === 'dialogue' && this.panel.npc === talkNpc.id) || (this.panel.kind === 'event' && this.panel.ev.npc === talkNpc.id));
       // another conversation is on screen: this person waits (SPEC "Conversation end")

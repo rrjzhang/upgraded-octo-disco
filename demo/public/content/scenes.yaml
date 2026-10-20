@@ -31,11 +31,11 @@ scenes:
       - id: tv
         label: "TV"
         zone: { x: 0.04, y: 0.09, w: 0.19, h: 0.29 }   # the wall-mounted TV generated into bg_home_tv_day/eve (Round 2, files 46/47)
-        action: { type: window, module: tv, cost: 1 }
+        action: { type: window, module: tv }                # free (SPEC "TV and newspaper are free")
       - id: newspaper
         label: "Newspaper"
         zone: { x: 0.46, y: 0.62, w: 0.10, h: 0.07 }
-        action: { type: news, cost: 1 }
+        action: { type: news }                            # free
       - id: bookshelf
         label: "Bookshelf"
         zone: { x: 0.28, y: 0.10, w: 0.10, h: 0.48 }
@@ -112,11 +112,11 @@ scenes:
       - id: tv
         label: "TV"
         zone: { x: 0.03, y: 0.02, w: 0.14, h: 0.17 }   # the corner TV generated into bg_clinic_tv_day (Round 2, file 48)
-        action: { type: window, module: tv, cost: 1 }
+        action: { type: window, module: tv }                # free (SPEC "TV and newspaper are free")
       - id: magazines
         label: "Magazines and local paper"
         zone: { x: 0.36, y: 0.51, w: 0.28, h: 0.06 }
-        action: { type: news, cost: 1 }
+        action: { type: news }                            # free
       - id: reception
         label: "Reception desk"
         zone: { x: 0.84, y: 0.30, w: 0.16, h: 0.38 }
@@ -152,7 +152,7 @@ scenes:
       - id: newspaper
         label: "Newspapers on the table"
         zone: { x: 0.56, y: 0.46, w: 0.07, h: 0.05 }
-        action: { type: news, cost: 1 }
+        action: { type: news }                            # free
       - id: board
         label: "Bulletin board"
         zone: { x: 0.00, y: 0.03, w: 0.07, h: 0.46 }

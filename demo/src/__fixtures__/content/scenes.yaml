@@ -16,11 +16,11 @@ scenes:
       - id: tv
         label: "TV"
         zone: { x: 0.06, y: 0.10, w: 0.16, h: 0.18 }
-        action: { type: window, module: tv, cost: 1 }
+        action: { type: window, module: tv }
       - id: newspaper
         label: "Newspaper"
         zone: { x: 0.45, y: 0.62, w: 0.12, h: 0.08 }
-        action: { type: news, cost: 1 }
+        action: { type: news }
       - id: laptop
         label: "Laptop (work shift)"
         zone: { x: 0.30, y: 0.40, w: 0.10, h: 0.10 }

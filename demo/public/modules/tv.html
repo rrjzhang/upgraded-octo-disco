@@ -31,14 +31,14 @@
 <script>
   let p = null, idx = 0, st = { actions: 0, wallet: 0 }, waiting = false;
   const main = document.getElementById('main'), more = document.getElementById('more'), meta = document.getElementById('meta');
-  GV.costLabel(more, 'Keep watching', 1);
+  // the TV is free (SPEC "TV and newspaper are free"): Keep watching shows no cost dots and spends 0 actions
   const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, attrs); kids.forEach((k) => e.append(k)); return e; };
   document.getElementById('close').onclick = () => GV.send({ type: 'close' });
   more.onclick = () => {
     const s = p.content.stories[idx + 1];
     if (!s || waiting || p.content.keepWatching !== true) return;
     waiting = true; more.disabled = true;
-    GV.send({ type: 'spend', actions: 1, story: s.id });
+    GV.send({ type: 'spend', actions: 0, story: s.id });
   };
   function show() {
     const stories = (p.content && p.content.stories) || [];
@@ -63,7 +63,7 @@
       el('p', { className: 'body', textContent: s.body })));
     // "Keep watching" is behind the host's FEATURES.tvKeepWatching (off for the study: one story a day)
     more.hidden = p.content.keepWatching !== true || !stories[idx + 1];
-    more.disabled = st.actions < 1;
+    more.disabled = false;
     (more.hidden || more.disabled ? document.getElementById('close') : more).focus();
   }
   GV.on('init', (payload) => { p = payload; st = { actions: p.actions ?? 0, wallet: p.wallet ?? 0 }; show(); });
