@@ -2405,6 +2405,7 @@ export class Game {
   private renderTownhall(portrait: HTMLElement, body: HTMLElement, choices: HTMLElement): string {
     const th = this.s.townhall!;
     const md = this.c.townhall.moderator;
+    body.classList.add('th-text'); // style.css: the town hall text box scrolls in place above the choices
     const speaker = this.townhallSpeaker();
     const moderatorSays = (text: string, vars: Record<string, string> = {}) => {
       portrait.classList.add('moderator');

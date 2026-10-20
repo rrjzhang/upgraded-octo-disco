@@ -247,7 +247,19 @@ button { font-family: inherit; }
   font: 600 10px var(--ui); letter-spacing: .12em; text-transform: uppercase; color: var(--amber); background: rgba(31,29,26,.72); padding: 3px 8px; border-radius: 3px;
 }
 .desc { font: italic 16px/1.45 var(--serif); color: var(--muted); margin: 18px 0 8px; }
-.dialogue { min-height: 40px; }
+/* the right panel is one vertical flow: nothing in it shrinks below its content, so a long text pushes the choices down
+   and the panel scrolls (town hall overlap bug, 2026-10-19: `min-height: 40px` on .dialogue let the flex column squeeze
+   it while its text kept painting over the buttons). In the town hall (`th-text`, no dev boxes there) the text box
+   instead scrolls in place, with shadows at the scrolled edges, so the rating row and the options stay on screen. */
+.right > * { flex-shrink: 0; }
+.right > .dialogue.th-text {
+  flex: 0 1 auto; min-height: 2.75em; overflow-y: auto; overscroll-behavior: contain;
+  background:
+    linear-gradient(var(--panel) 30%, rgba(244,241,234,0)) top / 100% 28px no-repeat local,
+    linear-gradient(rgba(244,241,234,0), var(--panel) 70%) bottom / 100% 28px no-repeat local,
+    radial-gradient(farthest-side at 50% 0, rgba(31,29,26,.22), rgba(31,29,26,0)) top / 100% 10px no-repeat scroll,
+    radial-gradient(farthest-side at 50% 100%, rgba(31,29,26,.22), rgba(31,29,26,0)) bottom / 100% 10px no-repeat scroll;
+}
 .line { font: 19px/1.5 var(--serif); margin: 6px 0; }
 .headline { font: 600 21px/1.35 var(--serif); margin: 6px 0; }
 .text-title { font: 600 13px var(--ui); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 8px 0 0; }
@@ -255,7 +267,7 @@ button { font-family: inherit; }
 .choices { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
 .choice {
   text-align: left; padding: 11px 14px; border: 1.5px solid #cfc7b6; background: #fff; border-radius: 8px;
-  font: 15px/1.4 var(--ui); color: var(--ink); cursor: pointer;
+  font: 15px/1.4 var(--ui); color: var(--ink); cursor: pointer; white-space: normal; overflow-wrap: break-word;
 }
 .choice:hover:not(:disabled), .choice:focus-visible {
   border-color: var(--accent); background: rgba(31,111,107,.08); box-shadow: inset 3px 0 0 var(--accent); transform: translateX(2px); outline: none;
@@ -403,10 +415,13 @@ th { color: var(--muted); font-weight: 500; }
 .dev-edit-btns .choice { flex: 1; font-size: 14px; border-style: dashed; }
 
 /* SPEC "Town hall" (2026-10-19): the moderator has no bust; the 1..7 scale; the topic board */
-.portrait.moderator { background: linear-gradient(180deg, var(--panel2), var(--panel)); }
+/* no bust to show: a short name plate, so the prompt and the options get the height */
+/* a topic (moderator plate + its title): the question and its options need the room more than the scene description */
+.right:has(> .portrait.moderator):has(> .dialogue > .text-title) > .desc { display: none; }
+.portrait.moderator { height: 140px; background: linear-gradient(180deg, var(--panel2), var(--panel)); }
 .portrait.moderator .who { left: 50%; bottom: 50%; transform: translate(-50%, 50%); font-size: 18px; letter-spacing: .02em; }
 .scale7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-.scale7 .choice.rate { text-align: center; padding: 12px 0; font-variant-numeric: tabular-nums; font-weight: 600; }
+.scale7 .choice.rate { min-width: 0; text-align: center; padding: 12px 0; font-variant-numeric: tabular-nums; font-weight: 600; }
 .scale7-ends { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); padding: 0 4px; margin-top: -4px; }
 .choice.topic { display: flex; align-items: center; gap: 10px; }
 .choice.topic .topic-mark { display: inline-flex; width: 24px; height: 24px; align-items: center; justify-content: center; border-radius: 50%; border: 1.5px solid var(--line, var(--muted)); font-size: 13px; color: var(--muted); flex: none; }
@@ -415,3 +430,17 @@ th { color: var(--muted); font-weight: 500; }
 .choice.picked { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
 .choice.sit { font-weight: 600; }
 \n\n/* researcher.html: backup and restore (2026-10-19) */\n.backup { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line, #cfc7b6); }\n.backup h2 { font-size: 17px; margin: 0 0 6px; }\n.backup-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }\n.backup-row input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }\n.backup-row label.btn { cursor: pointer; }\n
+.astra-sentinel {} /* absorbs a stray token left at the end of the line above (literal \n), so the rules below parse */
+/* dev only: a second writer's copy of the row on screen (SPEC "Astra drafts (dev only)") */
+.astra { margin-top: 14px; padding: 10px 12px 8px; border: 1.5px dashed var(--accent); border-radius: 8px; background: rgba(31,111,107,.05); }
+.astra-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font: 600 12px/1.3 var(--ui); text-transform: uppercase; letter-spacing: .06em; color: var(--accent); margin-bottom: 6px; }
+.astra-head .astra-id { font: 11px ui-monospace, Menlo, monospace; text-transform: none; letter-spacing: 0; color: var(--muted); }
+.astra-beat { margin: 4px 0 8px; }
+.astra .chip { position: static; display: inline-block; font-size: 11px; padding: 1px 8px; margin-bottom: 2px; text-transform: none; }
+.astra-line { font: 16px/1.45 var(--serif); margin: 2px 0; }
+.astra-line.direction { font-style: italic; color: var(--muted); font-size: 15px; }
+.astra-choices { margin: 4px 0 2px; padding-left: 22px; font: 14px/1.4 var(--ui); color: var(--ink); }
+.astra-choices li { margin: 2px 0; }
+.astra-note { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+/* the draft box never squeezes the real line: the right column scrolls instead */
+.right > .astra { flex: none; }
