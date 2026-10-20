@@ -353,6 +353,91 @@ export class Game {
     return n.pack === 'shared' || n.pack === this.s.player.pack;
   }
 
+  /**
+   * The rolled cut-out figures of a (non-hidden) scene appended to `out` (which may already hold painted people).
+   * SPEC "Guaranteed lead presence": the two current leads' candidates sort before everyone else's (so a lead is never
+   * bumped by an ordinary NPC's lower roll, the cap or a clash), and `forced` (npc id -> scene -> slot) adds a lead's
+   * forced appearance with roll 0.
+   */
+  private placeRolled(sc: Scene, out: Presence[], forced: Map<string, Map<string, string>>): void {
+    const leadIds = new Set([this.leadOf('us')?.id, this.leadOf('home')?.id].filter((x): x is string => !!x));
+    const cands: { npc: Npc; slot: Slot; roll: number; lead: boolean; figure?: string }[] = [];
+    for (const n of this.c.npcs) {
+      if (!this.inRoster(n)) continue;
+      const force = forced.get(n.id)?.get(sc.id);
+      for (const a of n.appearances) {
+        if (a.scene !== sc.id) continue;
+        let roll = seeded(this.s.config.seed, 'presence', this.s.day, sc.id, n.id, a.slot)();
+        if (force === a.slot) roll = 0;
+        else if (roll >= a.chance) continue;
+        const slot = sc.slots.find((x) => x.id === a.slot);
+        if (slot) cands.push({ npc: n, slot, roll, lead: leadIds.has(n.id), figure: a.figure });
+      }
+    }
+    cands.sort((a, b) => Number(b.lead) - Number(a.lead) || a.roll - b.roll || (a.npc.id < b.npc.id ? -1 : a.npc.id > b.npc.id ? 1 : 0));
+    const used = new Set<string>();
+    const max = this.maxPresentIn(sc);
+    const placed: { y: number; rect: FigRect }[] = [];
+    for (const cd of cands) {
+      if (placed.length >= max) break;
+      if (used.has(cd.slot.id) || out.some((p) => p.npc.id === cd.npc.id)) continue;
+      const box = { y: cd.slot.y, rect: this.figureBox(sc, cd.slot, cd.npc, cd.figure) };
+      if (placed.some((p) => figuresClash(p, box))) continue;
+      used.add(cd.slot.id);
+      placed.push(box);
+      out.push({ npc: cd.npc, slot: cd.slot, figure: cd.figure });
+    }
+  }
+
+  /** SPEC "Leads" spawning rule: heritage anti lead never in the library or park; US anti lead never in a heritage center. */
+  private leadMayStand(n: Npc, sc: Scene): boolean {
+    if (sc.hidden || !this.openToPlayer(sc.id)) return false;
+    if (n.lead === 'anti' && n.pack !== 'shared' && (sc.id === 'library' || sc.id === 'park')) return false;
+    if (n.lead === 'anti' && n.pack === 'shared' && !!sc.pack) return false;
+    return true;
+  }
+
+  private forcedCache: { key: string; forced: Map<string, Map<string, string>> } | null = null;
+
+  /**
+   * SPEC "Guaranteed lead presence" (2026-10-19): per day, each current lead who would not be placed anywhere gets one
+   * forced appearance, drawn seeded (room seed, day, npc) among the appearances they may take today, keeping only a draw
+   * that actually places them without unseating the other lead. Computed once per (seed, pack, day, leads) and cached.
+   */
+  private forcedLeads(): Map<string, Map<string, string>> {
+    const leads = [this.leadOf('us'), this.leadOf('home')].filter((x): x is Npc => !!x && this.inRoster(x));
+    const key = [this.s.config.seed, this.s.player.pack, this.s.day, ...leads.map((n) => n.id)].join('|');
+    if (this.forcedCache?.key === key) return this.forcedCache.forced;
+    const forced = new Map<string, Map<string, string>>();
+    const placedIn = (sc: Scene): Set<string> => {
+      const out: Presence[] = [];
+      if (this.paintedActive(sc)) for (const id of sc.painted!.npcs) out.push({ npc: this.c.npcById.get(id)!, slot: null });
+      this.placeRolled(sc, out, forced);
+      return new Set(out.map((p) => p.npc.id));
+    };
+    const scenesOf = (n: Npc): Scene[] => [...new Set(n.appearances.map((a) => a.scene))]
+      .map((id) => this.c.sceneById.get(id)).filter((sc): sc is Scene => !!sc && this.leadMayStand(n, sc));
+    const isPlaced = (n: Npc): boolean => scenesOf(n).some((sc) => placedIn(sc).has(n.id));
+    for (const n of leads) {
+      if (isPlaced(n)) continue;
+      const opts = n.appearances.filter((a) => {
+        const sc = this.c.sceneById.get(a.scene);
+        return !!sc && this.leadMayStand(n, sc) && sc.slots.some((x) => x.id === a.slot);
+      });
+      const rng = seeded(this.s.config.seed, 'leadforce', this.s.day, n.id);
+      const order = opts.map((a) => ({ a, r: rng() })).sort((x, y) => x.r - y.r).map((x) => x.a);
+      const others = leads.filter((o) => o !== n && isPlaced(o));
+      for (const a of order) {
+        const prev = forced.get(n.id);
+        forced.set(n.id, new Map([[a.scene, a.slot]]));
+        if (isPlaced(n) && others.every(isPlaced)) break;
+        if (prev) forced.set(n.id, prev); else forced.delete(n.id);
+      }
+    }
+    this.forcedCache = { key, forced };
+    return forced;
+  }
+
   /** The painted background variant applies when its asset exists and every painted NPC is in the roster. */
   private paintedActive(sc: Scene): boolean {
     const p = sc.painted;
@@ -380,30 +465,7 @@ export class Game {
     }
     const out: Presence[] = [];
     if (this.paintedActive(sc)) for (const id of sc.painted!.npcs) out.push({ npc: this.c.npcById.get(id)!, slot: null });
-    const cands: { npc: Npc; slot: Slot; roll: number; figure?: string }[] = [];
-    for (const n of this.c.npcs) {
-      if (!this.inRoster(n)) continue;
-      for (const a of n.appearances) {
-        if (a.scene !== sceneId) continue;
-        const roll = seeded(this.s.config.seed, 'presence', this.s.day, sceneId, n.id, a.slot)();
-        if (roll >= a.chance) continue;
-        const slot = sc.slots.find((x) => x.id === a.slot);
-        if (slot) cands.push({ npc: n, slot, roll, figure: a.figure });
-      }
-    }
-    cands.sort((a, b) => a.roll - b.roll || (a.npc.id < b.npc.id ? -1 : a.npc.id > b.npc.id ? 1 : 0));
-    const used = new Set<string>();
-    const max = this.maxPresentIn(sc);
-    const placed: { y: number; rect: FigRect }[] = [];
-    for (const cd of cands) {
-      if (placed.length >= max) break;
-      if (used.has(cd.slot.id) || out.some((p) => p.npc.id === cd.npc.id)) continue;
-      const box = { y: cd.slot.y, rect: this.figureBox(sc, cd.slot, cd.npc, cd.figure) };
-      if (placed.some((p) => figuresClash(p, box))) continue;
-      used.add(cd.slot.id);
-      placed.push(box);
-      out.push({ npc: cd.npc, slot: cd.slot, figure: cd.figure });
-    }
+    this.placeRolled(sc, out, this.forcedLeads());
     if (dev) for (const pl of this.devPlaced.get(sceneId) ?? []) {
       const n = this.c.npcById.get(pl.npc);
       const slot = sc.slots.find((x) => x.id === pl.slot);
@@ -2498,6 +2560,8 @@ export class Game {
       townhall: () => this.s.townhall,
       startTownhall: () => this.startTownhall(),
       leads: () => ({ ...this.leads(), us: this.leadOf('us')?.id, home: this.leadOf('home')?.id }),
+      /** SPEC "Guaranteed lead presence": today's forced lead appearances (npc -> scene@slot); empty when both leads rolled in on their own */
+      forcedLeads: () => Object.fromEntries([...this.forcedLeads()].map(([id, m]) => [id, [...m].map(([sc, sl]) => `${sc}@${sl}`).join(', ')])),
     };
   }
 }
