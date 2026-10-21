@@ -14,6 +14,13 @@ const WORDS = [
   'acorn', 'basil', 'clover', 'dune', 'falcon', 'garnet', 'heron', 'indigo', 'jasper', 'lotus', 'meadow', 'otter',
 ];
 
+const COLUMNS: [string, string | null][] = [
+  ['Code', null], ['Password', null], ['Settings', 'National leader condition, which local leader leads on each side, conversations per person per day'],
+  ['Note', null], ['Created', 'Time the room was created (UTC)'],
+  ['Status', 'Not started; or the in-game day reached and actions left that day; or finished'],
+  ['Log lines', 'Events recorded so far: one line each in the exported .jsonl'], ['', null],
+];
+
 const rnd = (n: number) => Math.floor(Math.random() * n);
 const pick = <T,>(a: T[]): T => a[rnd(a.length)];
 
@@ -28,6 +35,43 @@ function mintCode(): string {
 
 // pack display names, as the home-culture choice reads them (main.ts culture radios: China / Mexico / India)
 const PACK_NAMES: Record<string, string> = { shared: 'Shared', cn: 'Chinese', mx: 'Mexican', in: 'Indian' };
+
+/** The game opened in a room, code and password filled in (SPEC "Study administration"). Built with appUrl so it carries
+ *  the base path ('/upgraded-octo-disco/' on GitHub Pages); `href` is what goes in a link, `full` what is shown and copied. */
+function gameLink(code: string, password: string): { href: string; full: string } {
+  const href = appUrl(`?room=${encodeURIComponent(code)}&pw=${encodeURIComponent(password)}${isFixtures ? '&fixtures=1' : ''}`);
+  return { href, full: new URL(href, location.href).href };
+}
+
+/** A muted help line under a form field. */
+const help = (id: string, text: string) => h('span', { id, class: 'muted field-help', text });
+/** A form control with its help line under it, as the right-hand cell of the form grid. */
+const field = (control: HTMLElement, id: string, text: string) => {
+  control.setAttribute('aria-describedby', id);
+  return h('div', { class: 'field' }, control, help(id, text));
+};
+
+/** The walkthrough at the top of the page, for reviewers who have not seen it before. */
+function howTo(): HTMLElement {
+  const li = (...c: (Node | string)[]) => h('li', {}, ...c);
+  const b = (t: string) => h('strong', { text: t });
+  return h('section', { class: 'card wide how-to' },
+    h('h1', { text: 'How to use this page' }),
+    h('p', { class: 'muted', text: 'This page sets up study sessions ("rooms") for The Great Vote and collects their logs. There is no server yet: everything is kept in this browser.' }),
+    h('ol', { class: 'help-steps' },
+      li(b('Create a room. '), 'The settings below are already randomised; keep them or change any of them, then press "Create room". You get a room code and a password.'),
+      li(b('Open the game in the room. '), 'Press the "Open the game in room …" button that appears; it opens the game in a new tab with the code and password filled in, so one press of Enter starts. ',
+        'Rooms live in this browser only, so create and play on the same computer and the same browser. To move rooms to another browser, use "Backup and restore" further down.'),
+      li(b('The participant plays. '), 'The game runs five in-game days of eight actions each. Every evening there is the end-of-day survey and the who-said-what test. ',
+        'A game in progress resumes where it left off; the room can be re-entered later with "Continue in room" on the game\'s first screen.'),
+      li(b('Collect the log. '), 'Come back here and press "Export log" (a .jsonl file, one line per event) or "View log" to read it in the browser. ',
+        h('strong', { text: 'The exported log is the only copy of the data' }), ': export it before clearing browser data or switching browsers.')),
+    h('p', { class: 'muted', style: 'margin-top:8px' },
+      h('strong', { text: 'Where things live. ' }),
+      'The GitHub Pages site and a local dev server are the development build: there, ?dev=1 on the game opens a test room with every debugging aid. ',
+      'The public site (Cloudflare Pages) asks for an email login first and is the build participants get; ?dev=1 does nothing there. ',
+      'Each site, and each browser, keeps its own rooms.'));
+}
 
 async function main(): Promise<void> {
   let candidates: Record<string, string[]> = {};
@@ -52,7 +96,7 @@ async function main(): Promise<void> {
   const seed = h('input', { id: 'seed', type: 'number', min: 0, step: 1 });
   const note = h('input', { id: 'note', type: 'text', placeholder: 'optional, e.g. session or participant group' });
   // SPEC "Conversation limit": conversations a participant may have with each person per day
-  const talks = h('input', { id: 'talks', type: 'number', min: 1, max: 8, step: 1, value: '1', 'aria-describedby': 'talks-help' });
+  const talks = h('input', { id: 'talks', type: 'number', min: 1, max: 8, step: 1, value: '1' });
   // The questionnaire JSON / URL inputs were removed 2026-10-18 pending a backend (request + webhook). RoomConfig's
   // `questionnaire` and `questionnaireUrl` are still honoured by the engine (server -> room -> bundled), so a room
   // config made elsewhere keeps working; this page just does not offer them.
@@ -105,7 +149,7 @@ async function main(): Promise<void> {
   const renderRooms = () => {
     table.replaceChildren();
     const rooms = listRooms();
-    if (!rooms.length) table.append(h('tr', {}, h('td', { colspan: 7, class: 'muted', text: 'No rooms on this computer yet.' })));
+    if (!rooms.length) table.append(h('tr', {}, h('td', { colspan: 8, class: 'muted', text: 'No rooms on this computer yet.' })));
     for (const r of rooms) {
       const st = loadState(r.code);
       const status = !st ? 'not started' : st.finished ? `finished (day ${st.day})` : `day ${st.day}, ${st.actions} actions left`;
@@ -113,12 +157,16 @@ async function main(): Promise<void> {
       table.append(h('tr', {},
         h('td', { class: 'mono', text: r.code }),
         h('td', { class: 'mono', text: r.password }),
-        h('td', { text: `${r.config.nationalLeader} · ${r.config.maxTalksPerNpcPerDay ?? 1} talk/day` }),
+        h('td', { text: `${r.config.nationalLeader} · US lead ${r.config.usLead ?? 'pro'} · heritage lead ${r.config.homeLead ?? 'pro'} · ${r.config.maxTalksPerNpcPerDay ?? 1} talk/day` }),
+        h('td', { text: r.config.note ?? '' }),
         h('td', { text: (r.config.created ?? '').slice(0, 16).replace('T', ' ') }),
         h('td', { text: status }),
         h('td', { text: String(lines) }),
-        h('td', { class: 'r-actions' }, h('button', {
-          class: 'btn small', disabled: lines === 0, 'aria-label': `Export log for room ${r.code}`,
+        h('td', { class: 'r-actions' }, h('a', {
+          class: 'r-open', href: gameLink(r.code, r.password).href, target: '_blank', rel: 'noopener',
+          'aria-label': `Open the game in room ${r.code} (new tab)`, text: 'Open',
+        }), h('button', {
+          class: 'btn small', style: 'margin-left:12px', disabled: lines === 0, 'aria-label': `Export log for room ${r.code}`,
           onclick: () => downloadText(`greatvote_${r.code}.jsonl`, readLog(r.code)), text: 'Export log',
         }), h('a', { class: 'r-view', href: appUrl(`logview.html?room=${encodeURIComponent(r.code)}`), 'aria-label': `View log for room ${r.code}`, text: 'View log' }))));
     }
@@ -169,21 +217,26 @@ async function main(): Promise<void> {
 
   const form = h('form', { class: 'card wide' },
     h('h1', { text: 'Create a room' }),
-    h('p', { class: 'muted', text: 'Values are randomized; every field can be edited before creating.' + (isFixtures ? ' (fixtures manifest)' : '') }),
+    h('p', { class: 'muted', text: 'Values are randomised; every field can be edited before creating. "Re-randomise" draws a fresh set.' + (isFixtures ? ' (fixtures manifest)' : '') }),
     h('div', { class: 'grid2' },
-      h('label', { for: 'leader', text: 'National leader condition' }), leader,
-      h('label', { for: 'uslead', text: 'US local leader who leads (first among equals)' }), usLead,
-      h('label', { for: 'homelead', text: 'Heritage community leader who leads' }), homeLead,
-      h('label', { for: 'seed', text: 'Event seed' }), seed,
-      h('label', { for: 'note', text: 'Note' }), note,
+      h('label', { for: 'leader', text: 'National leader condition' }),
+      field(leader, 'leader-help', 'Which president the participant sees on TV: the enforcement one or the inclusive one. This is the main experimental condition.'),
+      h('label', { for: 'uslead', text: 'US local leader who leads (first among equals)' }),
+      field(usLead, 'uslead-help', 'The town has two US local leaders, one pro- and one anti-integration. This picks which of them leads; the other is still in town.'),
+      h('label', { for: 'homelead', text: 'Heritage community leader who leads' }),
+      field(homeLead, 'homelead-help', 'The same for the two leaders of the participant\'s heritage community.'),
+      h('label', { for: 'seed', text: 'Event seed' }),
+      field(seed, 'seed-help', 'Makes the random events reproducible: the same seed with the same settings gives the same days.'),
+      h('label', { for: 'note', text: 'Note' }),
+      field(note, 'note-help', 'Free text for your own records, shown in the rooms table below. The participant never sees it.'),
       h('label', { for: 'talks', text: 'Conversations per person per day' }),
-      h('div', {}, talks, h('span', { id: 'talks-help', class: 'muted', text: ' Default 1. After that many, the person shows "Talked already today". Run the checker with --talks N to match.' }))),
+      field(talks, 'talks-help', 'How many times a day the participant can talk to the same character. Default 1; after that the character shows "Talked already today". Run the checker with --talks N to match.')),
     Object.keys(picks).length ? h('h2', { text: 'Roster candidates' }) : null,
-    Object.keys(picks).length ? h('p', { class: 'muted', text: 'Candidates are alternative generated reference sheets for the same character; the pick is per room.' }) : null,
+    Object.keys(picks).length ? h('p', { class: 'muted', text: 'Candidates are alternative portraits (generated reference sheets) for the same character. Leave "Random" for a random pick per room, or choose one; the choice is fixed when the room is created.' }) : null,
     pickRows,
     formErr,
     h('div', { class: 'row' },
-      h('button', { class: 'btn ghost', type: 'button', onclick: randomize, text: 'Re-randomize' }),
+      h('button', { class: 'btn ghost', type: 'button', onclick: randomize, text: 'Re-randomise' }),
       h('button', { class: 'btn', type: 'submit', text: 'Create room' })),
     result);
 
@@ -197,7 +250,8 @@ async function main(): Promise<void> {
       return;
     }
     const code = mintCode();
-    const password = `${pick(WORDS)}-${pick(WORDS)}`;
+    const w1 = pick(WORDS);
+    const password = `${w1}-${pick(WORDS.filter((w) => w !== w1))}`;
     const config: RoomConfig = {
       code, password,
       nationalLeader: leader.value as Leader,
@@ -211,10 +265,12 @@ async function main(): Promise<void> {
     };
     const rec: RoomRecord = { code, password, config };
     saveRoom(rec);
-    const link = `${location.origin}/?room=${code}${isFixtures ? '&fixtures=1' : ''}`;
+    const link = gameLink(code, password);
     result.replaceChildren(
       h('p', {}, 'Room ', h('strong', { class: 'mono', text: code }), ' password ', h('strong', { class: 'mono', text: password })),
-      h('p', { class: 'muted' }, 'Participant link: ', h('a', { href: link, text: link })));
+      h('a', { class: 'btn open-game', href: link.href, target: '_blank', rel: 'noopener', text: `Open the game in room ${code}` }),
+      h('p', { class: 'muted' }, 'Participant link (opens the game with code and password filled in; works only in this browser): ',
+        h('a', { class: 'mono link-text', href: link.href, target: '_blank', rel: 'noopener', text: link.full })));
     randomize();
     renderRooms();
   });
@@ -232,12 +288,17 @@ async function main(): Promise<void> {
     h('p', { class: 'muted', text: 'Interactables button and H key, the rule / lean / phase line under the dialogue, rapport and last-talk valence in Contacts, and the figure-size guides. Applies to every game opened in this browser; ?dev=1 always shows them.' }));
 
   app.replaceChildren(h('div', { class: 'researcher' },
+    howTo(),
     form,
     h('section', { class: 'card wide' },
       h('h1', { text: 'Rooms on this computer' }),
       h('div', { class: 'table-wrap' }, h('table', {},
-        h('thead', {}, h('tr', {}, ...['Code', 'Password', 'Leader', 'Created', 'Status', 'Log lines', ''].map((t) => h('th', { text: t })))),
+        h('thead', {}, h('tr', {}, ...COLUMNS.map(([t, tip]) => h('th', { text: t, title: tip })))),
         table)),
+      h('p', { class: 'muted' },
+        h('strong', { text: 'Status' }), ': not started, the day reached and actions left that day, or finished. ',
+        h('strong', { text: 'Log lines' }), ': events recorded so far (one line each in the exported .jsonl). ',
+        h('strong', { text: 'Open' }), ' opens the game in that room in a new tab.'),
       h('p', { class: 'muted', text: 'Rooms, saves and logs live in this browser\'s localStorage until a server is added.' }),
       backup),
     settings));

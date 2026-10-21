@@ -78,8 +78,11 @@ function setupForm(content: Content, room: RoomRecord): void {
 }
 
 function roomForm(content: Content): void {
-  const code = h('input', { id: 'rcode', type: 'text', maxlength: 4, autocomplete: 'off', value: params.get('room') ?? '', style: 'text-transform:uppercase' });
-  const pw = h('input', { id: 'rpw', type: 'text', autocomplete: 'off' });
+  // ?room=CODE&pw=word-word (the researcher page's "Open the game" link) fills both fields; nothing is submitted, so the
+  // reviewer sees the form and the Enter press is the gesture full screen needs
+  const code = h('input', { id: 'rcode', type: 'text', maxlength: 4, autocomplete: 'off', value: (params.get('room') ?? '').trim().toUpperCase(), style: 'text-transform:uppercase' });
+  const pw = h('input', { id: 'rpw', type: 'text', autocomplete: 'off', value: (params.get('pw') ?? '').trim() });
+  const enterBtn = h('button', { class: 'btn', type: 'submit', text: 'Enter' });
   const err = h('p', { class: 'err', role: 'alert' });
   const form = h('form', { class: 'card' },
     h('h1', { text: 'The Great Vote' }),
@@ -87,12 +90,15 @@ function roomForm(content: Content): void {
     h('label', { for: 'rcode', text: 'Room code' }), code,
     h('label', { for: 'rpw', text: 'Password' }), pw,
     err,
-    h('button', { class: 'btn', type: 'submit', text: 'Enter' }));
+    enterBtn);
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const c = code.value.trim().toUpperCase();
     const room = getRoom(c);
-    if (!room) { err.textContent = `No room "${c}" on this computer.`; return; }
+    if (!room) {
+      err.textContent = `No room "${c}" on this computer. Rooms are kept in the browser that created them: open the game from the researcher page in this same browser.`;
+      return;
+    }
     if (room.password.trim().toLowerCase() !== pw.value.trim().toLowerCase()) { err.textContent = 'Wrong password.'; return; }
     goFullscreen();
     enter(content, room);
@@ -104,7 +110,7 @@ function roomForm(content: Content): void {
       h('button', { class: 'btn ghost', type: 'button', text: `Continue in room ${last}`, onclick: () => { goFullscreen(); enter(content, getRoom(last)!); } })));
   }
   app.replaceChildren(h('div', { class: 'form-page' }, form));
-  (code.value ? pw : code).focus();
+  (code.value && pw.value ? enterBtn : code.value ? pw : code).focus();
 }
 
 const LOGIN_KEY = 'gv:login';
@@ -161,7 +167,9 @@ async function main(): Promise<void> {
   // a refresh in the same tab goes straight back into the room (SPEC "Study administration")
   let remembered: string | null = null;
   try { remembered = sessionStorage.getItem(LOGIN_KEY); } catch { /* private mode */ }
-  if (remembered && getRoom(remembered)) { fullscreenOnFirstClick(); enter(content, getRoom(remembered)!); return; }
+  // ...unless the address names another room (an "Open the game" link for a different room): then the form, prefilled
+  const asked = (params.get('room') ?? '').trim().toUpperCase();
+  if (remembered && getRoom(remembered) && (!asked || asked === remembered)) { fullscreenOnFirstClick(); enter(content, getRoom(remembered)!); return; }
   roomForm(content);
 }
 

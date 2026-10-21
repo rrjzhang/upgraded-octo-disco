@@ -433,8 +433,12 @@ th { color: var(--muted); font-weight: 500; }
 .choice.topic.done { color: var(--muted); }
 .choice.picked { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
 .choice.sit { font-weight: 600; }
-\n\n/* researcher.html: backup and restore (2026-10-19) */\n.backup { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line, #cfc7b6); }\n.backup h2 { font-size: 17px; margin: 0 0 6px; }\n.backup-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }\n.backup-row input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }\n.backup-row label.btn { cursor: pointer; }\n
-.astra-sentinel {} /* absorbs a stray token left at the end of the line above (literal \n), so the rules below parse */
+/* researcher.html: backup and restore (2026-10-19) */
+.backup { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line, #cfc7b6); }
+.backup h2 { font-size: 17px; margin: 0 0 6px; }
+.backup-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.backup-row input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.backup-row label.btn { cursor: pointer; }
 /* dev only: a second writer's copy of the row on screen (SPEC "Astra drafts (dev only)") */
 .astra { margin-top: 14px; padding: 10px 12px 8px; border: 1.5px dashed var(--accent); border-radius: 8px; background: rgba(31,111,107,.05); }
 .astra-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font: 600 12px/1.3 var(--ui); text-transform: uppercase; letter-spacing: .06em; color: var(--accent); margin-bottom: 6px; }
@@ -448,3 +452,15 @@ th { color: var(--muted); font-weight: 500; }
 .astra-note { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
 /* the draft box never squeezes the real line: the right column scrolls instead */
 .right > .astra { flex: none; }
+
+/* researcher.html: help card and field help (2026-10-20) */
+.help-steps { margin: 4px 0 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; line-height: 1.45; }
+.field-help { display: block; font-size: 13px; line-height: 1.35; margin-top: 3px; }
+.grid2 > .field { display: flex; flex-direction: column; align-items: flex-start; }
+.grid2 > .field > input, .grid2 > .field > select { max-width: 100%; }
+.result .btn.open-game { font-size: 17px; padding: 12px 20px; text-decoration: none; display: inline-block; }
+.result .link-text { word-break: break-all; }
+.r-open { margin-left: 12px; color: var(--accent); font-size: 14px; font-weight: 600; }
+th[title] { text-decoration: underline dotted; cursor: help; }
+.grid2 > .field > #note { width: min(420px, 100%); }
+td.mono { white-space: nowrap; }
