@@ -69,7 +69,7 @@ function howTo(): HTMLElement {
     h('p', { class: 'muted', style: 'margin-top:8px' },
       h('strong', { text: 'Where things live. ' }),
       'The GitHub Pages site and a local dev server are the development build: there, ?dev=1 on the game opens a test room with every debugging aid. ',
-      'The public site (Cloudflare Pages) asks for an email login first and is the build participants get; ?dev=1 does nothing there. ',
+      'The public site (Cloudflare Pages) is the build participants get: open to anyone with the link, no debugging aids, and ?dev=1 does nothing there. ',
       'Each site, and each browser, keeps its own rooms.'));
 }
 
