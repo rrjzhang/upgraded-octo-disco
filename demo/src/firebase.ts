@@ -18,6 +18,8 @@ const CONFIG = {
 };
 
 /** Lines not yet acknowledged by Firestore, each with its per-browser sequence number. */
+/** which way the frontend is served: the Vite dev server, the plain build (GitHub Pages) or the public build (Cloudflare) */
+const BUILD = import.meta.env.DEV ? 'dev-server' : import.meta.env.VITE_PUBLIC === '1' ? 'public' : 'plain';
 const QUEUE_KEY = 'gv:fb:queue';
 /** Next sequence number to hand out. */
 const SEQ_KEY = 'gv:fb:seq';
@@ -148,7 +150,7 @@ async function flush(): Promise<void> {
     if (!q.length) return;
     const { uid, db, fs } = await connect();
     if (!sessionWritten) {
-      const doc: Record<string, unknown> = { ...(meta ?? { room: q[q.length - 1].line.room }), userAgent: navigator.userAgent, site: location.host, updated: fs.serverTimestamp() };
+      const doc: Record<string, unknown> = { ...(meta ?? { room: q[q.length - 1].line.room }), userAgent: navigator.userAgent, site: location.host, origin: location.origin, path: location.pathname, build: BUILD, updated: fs.serverTimestamp() };
       if (lsGet<string>(STARTED_KEY, '') !== uid) doc.started = fs.serverTimestamp();
       await fs.setDoc(fs.doc(db, 'sessions', uid), doc, { merge: true });
       lsSet(STARTED_KEY, uid);
