@@ -17,9 +17,12 @@ const CONFIG = {
   appId: '1:449587037652:web:11ce886569612bfcb88241',
 };
 
-/** Lines not yet acknowledged by Firestore, each with its per-browser sequence number. */
 /** which way the frontend is served: the Vite dev server, the plain build (GitHub Pages) or the public build (Cloudflare) */
 const BUILD = import.meta.env.DEV ? 'dev-server' : import.meta.env.VITE_PUBLIC === '1' ? 'public' : 'plain';
+/** Free public-IP lookup; the value is self-reported and can be faked, which is acceptable for the proof of concept. */
+const IP_URL = 'https://api.ipify.org?format=json';
+const IP_TIMEOUT_MS = 3000;
+/** Lines not yet acknowledged by Firestore, each with its per-browser sequence number. */
 const QUEUE_KEY = 'gv:fb:queue';
 /** Next sequence number to hand out. */
 const SEQ_KEY = 'gv:fb:seq';
@@ -49,6 +52,7 @@ let warned = false;
 let sessionWritten = false;
 let listening = false;
 let api: Promise<Api> | null = null;
+let ipLookup: Promise<string> | null = null;
 
 type Api = {
   uid: string;
@@ -124,6 +128,14 @@ function firestoreSafe(v: unknown, inArray = false): unknown {
   return v;
 }
 
+/** The player's public IP, looked up once per page load; 'unknown' when the service fails or takes over 3 s. */
+function publicIp(): Promise<string> {
+  ipLookup ??= fetch(IP_URL, { signal: AbortSignal.timeout(IP_TIMEOUT_MS) })
+    .then((r) => r.json())
+    .then((d: { ip?: unknown }) => (typeof d.ip === 'string' && d.ip ? d.ip : 'unknown'), () => 'unknown');
+  return ipLookup;
+}
+
 function connect(): Promise<Api> {
   if (!api) {
     api = (async () => {
@@ -148,9 +160,10 @@ async function flush(): Promise<void> {
   try {
     let q = lsGet<Queued[]>(QUEUE_KEY, []);
     if (!q.length) return;
+    const ip = sessionWritten ? null : publicIp(); // in parallel with sign-in
     const { uid, db, fs } = await connect();
     if (!sessionWritten) {
-      const doc: Record<string, unknown> = { ...(meta ?? { room: q[q.length - 1].line.room }), userAgent: navigator.userAgent, site: location.host, origin: location.origin, path: location.pathname, build: BUILD, updated: fs.serverTimestamp() };
+      const doc: Record<string, unknown> = { ...(meta ?? { room: q[q.length - 1].line.room }), userAgent: navigator.userAgent, site: location.host, origin: location.origin, path: location.pathname, build: BUILD, ip: await ip, updated: fs.serverTimestamp() };
       if (lsGet<string>(STARTED_KEY, '') !== uid) doc.started = fs.serverTimestamp();
       await fs.setDoc(fs.doc(db, 'sessions', uid), doc, { merge: true });
       lsSet(STARTED_KEY, uid);
