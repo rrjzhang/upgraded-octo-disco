@@ -3,7 +3,7 @@
 //      src/obscure.ts and prefixed "GVZ1" (the game decodes it, see src/obscure.ts);
 //   2. every script (dist/_app/*.js, dist/logview.js, dist/modules/**/*.js) and every inline <script> in
 //      dist/*.html and dist/modules/*.html is run through javascript-obfuscator;
-//   3. the content editor page and the markdown notes are dropped from the deploy.
+//   3. the content editor page, the dialogue reader (normally not even built under VITE_PUBLIC) and the markdown notes are dropped.
 // Usage: node tools/obscure/build.mjs [dist]   (after `vite build`); idempotent on already-obscured files.
 import { readFileSync, writeFileSync, readdirSync, statSync, rmSync, existsSync } from 'node:fs';
 import { join, extname } from 'node:path';
@@ -61,6 +61,6 @@ for (const f of htmlFiles) {
 }
 
 // 3. drop what the public does not need
-for (const p of [join(dist, 'editor.html'), ...walk(dist).filter((f) => f.endsWith('.md'))]) { rmSync(p, { force: true }); }
+for (const p of [join(dist, 'editor.html'), join(dist, 'reader.html'), ...walk(join(dist, '_app')).filter((f) => /[\\/]reader-[^\\/]*\.(js|css)$/.test(f)), ...walk(dist).filter((f) => f.endsWith('.md'))]) { rmSync(p, { force: true }); }
 
-console.log(`obscured ${nText} text files (${(before / 1024).toFixed(0)} KB -> ${(after / 1024).toFixed(0)} KB), ${nJs} scripts, ${nInline} inline scripts; editor.html and *.md removed`);
+console.log(`obscured ${nText} text files (${(before / 1024).toFixed(0)} KB -> ${(after / 1024).toFixed(0)} KB), ${nJs} scripts, ${nInline} inline scripts; editor.html, reader.html and *.md removed`);
