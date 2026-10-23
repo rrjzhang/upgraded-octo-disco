@@ -2,6 +2,7 @@
 import './style.css';
 import { effectivePack, getSource, loadContent } from './content';
 import { Game } from './game';
+import { fbBoot } from './firebase';
 import { appendLog, getRoom, loadState, logKey, newState, saveRoom, saveState, stateKey, type RoomRecord } from './store';
 import type { Content, CultureId, Leader, LeadPos, PlayerInfo, RoomConfig } from './types';
 import { h, isDev, isFixtures, isoNow, params } from './util';
@@ -173,6 +174,7 @@ async function main(): Promise<void> {
   roomForm(content);
 }
 
+fbBoot();
 main().catch((e) => {
   console.error(e);
   fatal(String(e?.message ?? e));

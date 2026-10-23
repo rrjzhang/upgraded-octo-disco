@@ -50,6 +50,10 @@ Every push to `master` runs `.github/workflows/pages.yml`, which builds with `BA
 
 **The Pages build is a static demo.** There is no server: `/api/log` and `/api/questionnaire` answer 404 (the game falls back silently), and rooms, saves, action logs, settings and researcher overrides live only in the browser's `localStorage` / IndexedDB. A participant and a researcher using the same browser on the same computer share that state; nobody else sees it, and logs must be exported from the researcher page on the machine where the game was played.
 
+## Firebase log upload (proof of concept)
+
+Each action-log line is also sent to Cloud Firestore (project `the-great-vote-8571`) under an anonymous Firebase user, one `sessions/<uid>` document per browser with the log in `chunks` (SPEC "Firebase log upload"). It is on by default on the dev server and both builds; `?dev=1` turns it off (so `npm run fuzz` never writes) unless `?fb=1` is added; `?fb=0` turns it off anywhere. Failures are silent apart from one `[fb]` console warning, and the lines are retried later. To see the data: Firebase console → the project → Firestore Database → `sessions`. The database rules are in `firestore.rules` at the repo root; publish them with `firebase deploy --only firestore:rules` (or paste them into the console's Rules tab). Until then every write is refused.
+
 ## Editor
 
 `/editor.html` lets a researcher edit content in the browser without a rebuild (SPEC "Researcher editing, overrides and casting").

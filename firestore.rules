@@ -1,0 +1,19 @@
+rules_version = '2';
+
+// Firebase log upload, proof of concept (demo/SPEC.md "Firebase log upload"). Each anonymous player may write only
+// under their own uid; nobody reads through the client SDK (project members read in the Firebase console, which
+// bypasses these rules). Nothing may be deleted. Everything else is denied.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /sessions/{uid} {
+      allow create, update: if request.auth != null && request.auth.uid == uid;
+
+      match /chunks/{chunkId} {
+        // update is allowed so that a resend after a lost acknowledgement can rewrite the same chunk
+        allow create, update: if request.auth != null && request.auth.uid == uid
+          && request.resource.data.lines is list
+          && request.resource.data.lines.size() <= 500;
+      }
+    }
+  }
+}

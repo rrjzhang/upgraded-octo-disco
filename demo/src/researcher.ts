@@ -179,7 +179,8 @@ async function main(): Promise<void> {
     const items: Record<string, string> = {};
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
-      if (k && k.startsWith('gv:')) items[k] = localStorage.getItem(k) ?? '';
+      // gv:fb:* is this browser's Firebase upload queue (SPEC "Firebase log upload"): not carried to another browser
+      if (k && k.startsWith('gv:') && !k.startsWith('gv:fb:')) items[k] = localStorage.getItem(k) ?? '';
     }
     const stamp = isoNow().slice(0, 16).replace(/[:T]/g, '-');
     downloadText(`greatvote_backup_${stamp}.json`, JSON.stringify({ app: 'great-vote', version: 1, exported: isoNow(), origin: location.origin, items }, null, 1), 'application/json');
@@ -194,7 +195,7 @@ async function main(): Promise<void> {
       if (data?.app !== 'great-vote' || !data.items || typeof data.items !== 'object') throw new Error('not a Great Vote backup');
       let n = 0, skipped = 0;
       for (const [k, v] of Object.entries(data.items as Record<string, string>)) {
-        if (!k.startsWith('gv:') || typeof v !== 'string') { skipped++; continue; }
+        if (!k.startsWith('gv:') || k.startsWith('gv:fb:') || typeof v !== 'string') { skipped++; continue; }
         // a room's log is appended to, so the longer of the two copies wins; everything else is replaced
         if (k.startsWith('gv:log:')) { const mine = localStorage.getItem(k) ?? ''; if (mine.length > v.length) { skipped++; continue; } }
         localStorage.setItem(k, v);

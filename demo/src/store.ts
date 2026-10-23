@@ -2,6 +2,7 @@
 import type { Content, GameState, PlayerInfo, RoomConfig } from './types';
 import { DAY_ACTIONS, START_WALLET, leanOf } from './rules';
 import { appUrl, isDev, isoNow, lsGet, lsSet } from './util';
+import { fbLog } from './firebase';
 
 /** Per-browser settings, written by the researcher page (SPEC "Debug toggle"). */
 export const SETTINGS_KEY = 'gv:settings';
@@ -131,5 +132,6 @@ export function appendLog(s: GameState, line: Omit<LogLine, 't' | 'room' | 'day'
   try {
     fetch(appUrl('api/log'), { method: 'POST', body: json, keepalive: true, headers: { 'content-type': 'application/json' } }).catch(() => {});
   } catch { /* ignore */ }
+  fbLog(s, full);
   return full;
 }

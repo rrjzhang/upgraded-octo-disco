@@ -14,6 +14,8 @@ export default defineConfig({
         researcher: resolve(__dirname, 'researcher.html'),
         editor: resolve(__dirname, 'editor.html'),
       },
+      // the Firebase SDK (SPEC "Firebase log upload"), loaded lazily, gets its own _app/firebase-*.js chunk
+      output: { manualChunks: (id) => ((/node_modules\/@?firebase\//.test(id) || id.endsWith('/src/firebase-sdk.ts')) ? 'firebase' : undefined) },
     },
   },
   server: { port: 5173 },

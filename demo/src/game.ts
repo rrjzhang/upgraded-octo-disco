@@ -11,6 +11,7 @@ import {
   type Delta,
 } from './rules';
 import { appendLog, debugEnabled, getRoom, readLog, saveState } from './store';
+import { fbEnabled, fbSent } from './firebase';
 import {
   assetEntry, dialogueCsvFromRows, effectivePack, figureHeight, isSeatedFigure, leadNpc, liveSource, overrideForWrite, overrideIds, parseDialogueQuiet,
   patchDialogueRow, packVars, questionnaireProblems, rowInPack, sceneInPack, storeOverride,
@@ -2254,7 +2255,7 @@ export class Game {
       status = `lean ${leanOf(this.s.spent)} · ${dayPhaseOf(this.s.day)}`;
     }
 
-    this.right.replaceChildren(portrait, desc, body, choices, this.debug ? h('div', { class: 'status', text: status }) : '');
+    this.right.replaceChildren(portrait, desc, body, choices, this.debug ? h('div', { class: 'status', text: fbEnabled ? `${status}${status ? ' · ' : ''}fb: ${fbSent()} sent` : status }) : '');
   }
 
   /** `unaffordable`: the option costs more than the actions left; disabled, with the no-actions wording. */
