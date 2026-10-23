@@ -439,19 +439,6 @@ th { color: var(--muted); font-weight: 500; }
 .backup-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .backup-row input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
 .backup-row label.btn { cursor: pointer; }
-/* dev only: a second writer's copy of the row on screen (SPEC "Astra drafts (dev only)") */
-.astra { margin-top: 14px; padding: 10px 12px 8px; border: 1.5px dashed var(--accent); border-radius: 8px; background: rgba(31,111,107,.05); }
-.astra-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font: 600 12px/1.3 var(--ui); text-transform: uppercase; letter-spacing: .06em; color: var(--accent); margin-bottom: 6px; }
-.astra-head .astra-id { font: 11px ui-monospace, Menlo, monospace; text-transform: none; letter-spacing: 0; color: var(--muted); }
-.astra-beat { margin: 4px 0 8px; }
-.astra .chip { position: static; display: inline-block; font-size: 11px; padding: 1px 8px; margin-bottom: 2px; text-transform: none; }
-.astra-line { font: 16px/1.45 var(--serif); margin: 2px 0; }
-.astra-line.direction { font-style: italic; color: var(--muted); font-size: 15px; }
-.astra-choices { margin: 4px 0 2px; padding-left: 22px; font: 14px/1.4 var(--ui); color: var(--ink); }
-.astra-choices li { margin: 2px 0; }
-.astra-note { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
-/* the draft box never squeezes the real line: the right column scrolls instead */
-.right > .astra { flex: none; }
 
 /* researcher.html: help card and field help (2026-10-20) */
 .help-steps { margin: 4px 0 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; line-height: 1.45; }
