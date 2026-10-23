@@ -1,0 +1,10 @@
+const e=`id,met,rapport,lastValence,nationalLeader,playerLean,dayPhase,priority,emotion,line,choice1,effect1,next1,choice2,effect2,next2,choice3,effect3,next3
+D01,no,,,,,,0,neutral,"Hi, I'm Dana. You must be the new tenant in 4B.","Nice to meet you, I'm {playerName}.",met yes;rapport +1;lastValence positive,D06,"Sorry, in a hurry.",met yes;lastValence negative,,,,
+D02,yes,,,,,,0,warm,"Back again? The library has a free tax clinic Thursdays.",Good to know.,rapport +1;lastValence positive,,Not interested.,lastValence negative,,,,
+D03,yes,2+,,,,,0,warm,"Honestly, it's nice having someone on the floor who says hello.",Same here.,rapport +1,,,,,,,
+D04,yes,,,enforcement,,,0,worried,"Did you see {leaderName} on TV last night? People at work are nervous.",It worries me too.,lastValence positive,,I try not to watch.,,,,,
+D05,yes,,,,home-leaning,,0,guarded,"I never see you around the plaza anymore.",Busy at the center.,lastValence negative,,I'll come by more.,rapport +1,,,,
+D06,,,,,,,-1,warm,"Here's my number. Text me if the boiler acts up.",Thanks.,money +5,,,,,,,
+D07,yes,,negative,,,,0,guarded,"Oh. Hi.",Sorry about last time.,rapport +1;lastValence positive,,Hi.,,,,,
+D99,,,,,,,0,neutral,"Dana nods at you.",,,,,,,,,
+`;export{e as default};

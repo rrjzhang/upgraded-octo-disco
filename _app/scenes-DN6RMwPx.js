@@ -1,0 +1,64 @@
+const e=`# FIXTURE world for ?fixtures=1 only: 2 art scenes + the street hub.
+scenes:
+  - id: home
+    name: Home
+    community: neutral
+    background: bg_fx_home_day
+    lighting: warm_indoor
+    description: "A small apartment. The TV is still on from last night."
+    exits:
+      - { to: street, label: "Front door" }
+    props:
+      - { asset: prop_fx_tv, x: 0.06, y: 0.10, w: 0.16 }
+    screens:   # the fixture TV prop's glass (a flat rectangle; the real scenes give a perspective quad)
+      - { id: tv, quad: [[0.0733, 0.144], [0.2067, 0.144], [0.2067, 0.264], [0.0733, 0.264]] }
+    hotspots:
+      - id: tv
+        label: "TV"
+        zone: { x: 0.06, y: 0.10, w: 0.16, h: 0.18 }
+        action: { type: window, module: tv }
+      - id: newspaper
+        label: "Newspaper"
+        zone: { x: 0.45, y: 0.62, w: 0.12, h: 0.08 }
+        action: { type: news }
+      - id: laptop
+        label: "Laptop (work shift)"
+        zone: { x: 0.30, y: 0.40, w: 0.10, h: 0.10 }
+        action: { type: window, module: work, cost: 0 }
+      - id: photo
+        label: "Family photo"
+        zone: { x: 0.62, y: 0.18, w: 0.08, h: 0.12 }
+        action: { type: look, text: "A photo from {homeCulture} New Year, {playerName} in the middle." }
+      - id: bed
+        label: "Bed"
+        zone: { x: 0.80, y: 0.45, w: 0.18, h: 0.30 }
+        action: { type: end_day }
+    slots:
+      - { id: by_door, x: 0.88, y: 0.92, scale: 0.55 }
+
+  - id: street
+    name: Street
+    community: neutral
+    background: none
+    description: "Your block. The bus stops at the corner."
+    exits:
+      - { to: home, label: "Home" }
+      - { to: plaza, label: "Plaza" }
+
+  - id: plaza
+    name: Plaza
+    community: us
+    background: bg_fx_plaza_day   # deliberately absent from the fixture manifest: flat panel expected
+    lighting: outdoor
+    description: "A paved square with benches and a chess table."
+    exits:
+      - { to: street, label: "Back to the street" }
+    hotspots:
+      - id: notice
+        label: "Notice board"
+        zone: { x: 0.05, y: 0.20, w: 0.14, h: 0.25 }
+        action: { type: look, text: "Flyers: a tenants' meeting, a lost cat, {leaderName}'s town hall." }
+    slots:
+      - { id: bench_left, x: 0.30, y: 0.88, scale: 0.50 }
+      - { id: chess, x: 0.65, y: 0.85, scale: 0.40 }
+`;export{e as default};

@@ -1,0 +1,8 @@
+const e=`id,channel,nationalLeader,dayMin,valence,headline,body
+TV_E1,tv,enforcement,1,negative,{leaderName} announces stricter enforcement,"The President said new checkpoints will begin next month."
+TV_E2,tv,enforcement,1,negative,Enforcement funding passes,"Congress approved the package late last night."
+TV_I1,tv,inclusive,1,positive,{leaderName} expands community grants,"The President said centers serving immigrant families will receive new funding."
+TV_I2,tv,inclusive,2,positive,Language access bill advances,"Clinics would be required to offer interpreters."
+PR_1,print,,1,positive,Library extends weekend hours,"The branch will now open at 9 on Saturdays."
+PR_2,print,enforcement,2,negative,Neighbors split on checkpoint plan,"Letters to the editor this week were evenly divided."
+`;export{e as default};

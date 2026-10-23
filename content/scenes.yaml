@@ -1,0 +1,389 @@
+# Great Vote demo scenes. Zones, props and slots are fractions of the 1536 x 1024 background, origin top-left.
+# Slot x,y = feet anchor (for seated figures: bottom of the stool or bench). y may run past 1.0 (up to 1.25): the feet are
+# below the frame and the legs are cropped, as in a photo taken closer. Figure height comes from the scene's perspective:
+#   height / image height = (y - horizon) * personHeight / cameraHeight     (person 1.70 m standing, 1.30 m seated)
+# so a standing adult's head lands just above the horizon at any depth. `horizon` is the eye-level line, read off each
+# background from vanishing lines and from objects of known height (doors 2.1 m, tables 0.75 m, chair backs 0.9 m):
+#   horizon = floor_y - (cameraHeight / objectHeight) * (floor_y - top_y)  for an object standing on the floor at floor_y.
+# `cameraHeight` defaults to 1.6 m. An explicit slot `scale` (figure height / image height) still overrides the formula.
+# Every scene has a `near` slot (feet at or just below the bottom edge) for the person the player is clearly there to talk to;
+# overheard or incidental people use the smaller slots further back, or are painted into the background (`painted`).
+# Prop x,y = top-left of the prop image; w = fraction of image width; height follows the prop's aspect
+# unless an optional h is given (used only for the chessboard, which must be foreshortened onto the table top).
+scenes:
+  - id: home
+    name: Home
+    community: neutral
+    background: bg_home_day
+    lighting: warm_indoor
+    horizon: 0.29        # rug edges meet at y 0.29; sofa back, coffee table and the hall doorway all put the camera near 1.0 m
+    cameraHeight: 1.0    # a low, seated-eye-level shot: standing people in this room are tall in frame and the head leaves the top quickly
+    # SPEC "Content schemas" byPack: gentle per-pack edits of the culture-neutral room (image_generation 194-199: three
+    # small objects each, TV untouched). Used once the asset exists; the TV quads below apply through the base replaced.
+    byPack:
+      cn: { background: bg_home_cn_day, evening: bg_home_cn_eve }   # blue-and-white bowl of mandarins, lidded tea cup, red knot
+      mx: { background: bg_home_mx_day, evening: bg_home_mx_eve }   # Talavera-style bowl, striped woven blanket, barro negro vase
+      in: { background: bg_home_in_day, evening: bg_home_in_eve }   # unlit brass diya, block-print cushion, tulsi plant
+    description: "Your living room. The radiator ticks. The TV on the far wall is still on from last night."
+    exits:
+      - { to: street, label: "Front door" }
+    hotspots:
+      - id: tv
+        label: "TV"
+        zone: { x: 0.04, y: 0.09, w: 0.19, h: 0.29 }   # the wall-mounted TV generated into bg_home_tv_day/eve (Round 2, files 46/47)
+        action: { type: window, module: tv }                # free (SPEC "TV and newspaper are free")
+      - id: newspaper
+        label: "Newspaper"
+        zone: { x: 0.46, y: 0.62, w: 0.10, h: 0.07 }
+        action: { type: news }                            # free
+      - id: bookshelf
+        label: "Bookshelf"
+        zone: { x: 0.28, y: 0.10, w: 0.10, h: 0.48 }
+        action:
+          type: look
+          text: "Paperbacks, a rice cooker manual you keep meaning to throw out, and a photo of your parents at someone's wedding."
+          textByPack:   # SPEC "Content schemas": names the objects the pack's living room adds (requests 194-199)
+            cn: "Paperbacks, a rice cooker manual you keep meaning to throw out, the little red knot your mother tied hanging off the middle shelf, and a photo of your parents at someone's wedding."
+            mx: "Paperbacks, a small black clay vase your aunt carried up from Oaxaca wrapped in three sweaters, and a photo of your parents at someone's wedding."
+            in: "Paperbacks, a small brass oil lamp your mother packed for you, still unlit, and a photo of your parents at someone's wedding."
+      - id: window
+        label: "Window"
+        zone: { x: 0.63, y: 0.00, w: 0.17, h: 0.35 }
+        action: { type: look, text: "Brick buildings across the street. Someone on the second floor is drying laundry on a rack by the window." }
+      - id: bed
+        label: "Bedroom (go to bed)"
+        zone: { x: 0.89, y: 0.12, w: 0.08, h: 0.46 }
+        action: { type: end_day }
+    screens:
+      # TV glass corners (TL, TR, BR, BL) measured on bg_home_day. bg_home_eve was generated separately and its TV sits a
+      # little higher on the left: [[0.049, 0.085], [0.233, 0.137], [0.233, 0.350], [0.049, 0.371]] (`byBackground`, for
+      # the engine to pick up; the engine currently reads only `quad`).
+      - id: tv
+        quad: [[0.050, 0.100], [0.232, 0.138], [0.232, 0.352], [0.050, 0.377]]
+        byBackground:
+          bg_home_eve: [[0.049, 0.085], [0.233, 0.137], [0.233, 0.350], [0.049, 0.371]]
+    # SPEC 2026-10-18: nobody is at home at wake-up, so these slots are only for staging/tests. The camera is low (1.0 m),
+    # so a standing adult is taller than the camera: the head lands at 0.29 - 0.7 * (y - 0.29) and leaves the top of the
+    # frame for feet below y 0.70. Open floor exists only on the rug and the parquet in front of the coffee table.
+    slots:
+      - { id: near, x: 0.82, y: 0.68 }     # on the rug right of the coffee table, the sofa's right arm behind; clear of the
+                                           # table, the newspaper and the bedroom door. Head at about 0.02 (low camera).
+      - { id: by_hall, x: 0.935, y: 0.52 } # on the hallway floor seen through the bedroom doorway (do not use: covers the bed hotspot)
+      - { id: by_sofa, x: 0.34, y: 0.64 }  # on the rug's back-left corner in front of the basket and the sofa's left arm,
+                                           # left of the coffee table (overlaps only the bookshelf look-zone)
+
+  - id: work
+    name: Work
+    community: neutral
+    background: bg_work_day
+    lighting: cool_indoor
+    horizon: 0.22        # file cabinet (1.1 m) gives 0.24, desk (0.73 m) gives 0.18; desk-row lines meet near 0.22
+    description: "The logistics office on the fourth floor. Someone has written 'Q3!!' on the whiteboard and nothing else."
+    exits:
+      - { to: street, label: "Elevator down" }
+    hotspots:
+      - id: computer
+        label: "Your computer (start a shift)"
+        zone: { x: 0.485, y: 0.30, w: 0.15, h: 0.14 }
+        action: { type: window, module: work, cost: 0 }   # the shift itself is charged inside the window
+      - id: whiteboard
+        label: "Whiteboard"
+        zone: { x: 0.38, y: 0.10, w: 0.26, h: 0.24 }
+        action: { type: look, text: "'Q3!!' in green marker. Under it, smaller, in someone else's handwriting: 'who took my stapler'." }
+      - id: window
+        label: "Window"
+        zone: { x: 0.87, y: 0.00, w: 0.13, h: 0.38 }
+        action: { type: look, text: "The back of the clinic on Fifth, and past it the water towers along Grand." }
+    slots:
+      - { id: near, x: 0.24, y: 1.0 }      # on the carpet in the foreground left, in front of the left desk row; feet on the bottom edge, head at about 0.17
+      - { id: desk_left, x: 0.34, y: 0.68 }   # on the open carpet between the left desk row and the centre desk, clear of the computer
+      - { id: by_cabinet, x: 0.78, y: 0.74 }  # on the carpet in front of the low wooden cabinet by the window
+
+  - id: clinic
+    name: Fifth Street Clinic
+    community: us
+    background: bg_clinic_day
+    lighting: warm_indoor
+    horizon: 0.24        # coffee-table rug edges meet at y 0.24; water cooler (1.5 m) and chair backs put the camera at about 1.45 m
+    description: "The waiting room smells of hand sanitizer. A TV in the corner plays the news with captions on."
+    exits:
+      - { to: street, label: "Back to the street" }
+    hotspots:
+      - id: tv
+        label: "TV"
+        zone: { x: 0.03, y: 0.02, w: 0.14, h: 0.17 }   # the corner TV generated into bg_clinic_tv_day (Round 2, file 48)
+        action: { type: window, module: tv }                # free (SPEC "TV and newspaper are free")
+      - id: magazines
+        label: "Magazines and local paper"
+        zone: { x: 0.36, y: 0.51, w: 0.28, h: 0.06 }
+        action: { type: news }                            # free
+      - id: reception
+        label: "Reception desk"
+        zone: { x: 0.84, y: 0.30, w: 0.16, h: 0.38 }
+        action: { type: look, text: "A clipboard with the intake form. The language line card is taped to the counter, a little curled at the corners." }
+      - id: water
+        label: "Water cooler"
+        zone: { x: 0.01, y: 0.23, w: 0.08, h: 0.40 }
+        action: { type: look, text: "Paper cones, the kind that go soft if you hold them too long." }
+    screens:
+      - id: tv              # glass of the corner TV, measured on bg_clinic_day (left side panel and bezel excluded)
+        quad: [[0.052, 0.024], [0.170, 0.071], [0.160, 0.193], [0.042, 0.171]]
+    # Open floor: the wooden floor in the foreground, the rug around the coffee table (not the strip behind it, where the
+    # table would have to hide the legs), and the floor in front of the reception counter. Nothing stands in front of the
+    # coffee table: the figure would cover the magazines.
+    slots:
+      - { id: near, x: 0.22, y: 1.0 }      # on the wooden floor in the left foreground, left of the coffee table; head at about 0.19
+      - { id: front_desk, x: 0.86, y: 0.80 }  # on the floor in front of the reception counter, facing it (over the reception look-zone only)
+      - { id: by_cooler, x: 0.13, y: 0.74 }   # on the floor in front of the potted plant, right of the water cooler
+      - { id: by_chairs, x: 0.72, y: 0.70 }   # on the rug's right end, right of the coffee table, the right-hand waiting chairs behind
+      - { id: by_table, x: 0.31, y: 0.62 }    # on the rug beside the coffee table's left end, the waiting chairs behind
+      - { id: waiting_seat, x: 0.73, y: 0.535, seated: true }   # on the right-most waiting chair (stool base at the chair legs)
+
+  - id: library
+    name: Elm Street Library
+    community: us
+    background: bg_library_day
+    lighting: warm_indoor
+    horizon: 0.33        # counter top/base lines meet at 0.33; near table (0.75 m) gives 0.33; camera about 1.6 m
+    description: "The main reading room. Green lamps on the long tables, a sign-up sheet for the Thursday potluck by the desk."
+    exits:
+      - { to: street, label: "Back to the street" }
+    hotspots:
+      - id: newspaper
+        label: "Newspapers on the table"
+        zone: { x: 0.56, y: 0.46, w: 0.07, h: 0.05 }
+        action: { type: news }                            # free
+      - id: board
+        label: "Bulletin board"
+        zone: { x: 0.00, y: 0.03, w: 0.07, h: 0.46 }
+        action: { type: look, text: "ESL Tuesdays 6pm. Citizenship class, Room 3. A lost cat named Biscuit. A flyer for the Thursday potluck in English and three other languages." }
+      - id: desk
+        label: "Circulation desk"
+        zone: { x: 0.75, y: 0.48, w: 0.25, h: 0.12 }
+        action: { type: look, text: "A bell nobody rings and a jar of pencils. The holds shelf has a book with your name on it." }
+      - id: window
+        label: "Windows"
+        zone: { x: 0.32, y: 0.12, w: 0.39, h: 0.30 }
+        action: { type: look, text: "Bare trees and the church steeple on Grand. It looks colder out there than it is." }
+    # Open floor: the wooden aisle down the left, the rug under the reading tables, the rug in front of the circulation desk.
+    slots:
+      - { id: near, x: 0.30, y: 1.08 }     # on the aisle floor in the foreground, feet just below the frame; head at about 0.28
+                                           # (x 0.30 with by_shelves 0.17 and armchair 0.41: the three never hide one another's heads)
+      - { id: desk, x: 0.56, y: 0.87 }     # on the left end of the patterned rug in front of the circulation desk (left of
+                                           # reading_table, so a figure here no longer stands in front of one there)
+      - { id: reading_table, x: 0.68, y: 0.67 }   # on the rug right of the long table, by the potted plant; clear of the newspapers
+      - { id: by_shelves, x: 0.20, y: 0.70 }      # on the aisle floor between the low bookcase and the tall shelves, browsing (x 0.20: feet clear of the low bookcase's right end at x 0.13)
+      - { id: armchair, x: 0.41, y: 0.56 }        # standing on the floor right of the green armchair, at the rug's back-left corner
+      - { id: armchair_seat, x: 0.29, y: 0.515, seated: true }   # in the green armchair under the reading lamp
+      - { id: reading_seat, x: 0.49, y: 0.645, seated: true }    # on the chair at the near-left corner of the long table
+
+  - id: park
+    name: Riverside Park
+    community: neutral
+    background: bg_park_day
+    # Round 2 variant with the two chess players painted into the image. Used automatically once the asset exists
+    # (and both players are in the roster); the two `talk` zones below then stand for them. Otherwise the plain
+    # park is shown and the cut-out figures sit in chess_left / chess_right as before.
+    painted:
+      background: bg_park_chess_day
+      npcs: [cn_stranger_a, us_stranger_a]
+    # The chess game in progress (bg_park_board_day_A, request 193) is drawn only while someone present sits at the board;
+    # otherwise the plain park with its empty inlaid board (bg_park_empty_day_A, request 240; until then bg_park_day_A).
+    occupied:
+      background: bg_park_game_day
+      slots: [chess_left, chess_right]
+    lighting: outdoor
+    horizon: 0.31        # the three stone tables (0.75 m) at three depths give 0.30, 0.30, 0.32
+    description: "The chess tables by the path. Leaves on the paving, a lamppost, regulars who nod but don't say much."
+    exits:
+      - { to: street, label: "Back to the street" }
+    # No props: the chess game is baked into the park photo (bg_park_board_day_A, image request 193) and shown through
+    # `occupied` above; the empty board is part of the plain photo.
+    hotspots:
+      - id: chess_left_player
+        label: "Mr. Lin"
+        zone: { x: 0.12, y: 0.41, w: 0.16, h: 0.45 }   # measured on bg_park_chess_day (Round 2, file 49)
+        action: { type: talk, npc: cn_stranger_a }
+      - id: chess_right_player
+        label: "Walt"
+        zone: { x: 0.37, y: 0.42, w: 0.17, h: 0.45 }
+        action: { type: talk, npc: us_stranger_a }
+      - id: chess_table
+        label: "Chess table"
+        zone: { x: 0.17, y: 0.53, w: 0.29, h: 0.30 }
+        action: { type: look, text: "A chessboard inlaid in the stone top. The squares in the middle are worn pale where everyone's hands go." }
+      - id: lamppost
+        label: "Lamppost"
+        zone: { x: 0.74, y: 0.16, w: 0.03, h: 0.27 }
+        action: { type: look, text: "A flyer taped to it: 'Neighborhood Association meeting, 2nd Tuesday. Keep the Fifth Street lot as parking.'" }
+      - id: path
+        label: "Path"
+        zone: { x: 0.80, y: 0.42, w: 0.18, h: 0.50 }
+        action: { type: look, text: "Joggers, a woman pushing a stroller with a dog in it, a man practising tai chi under the far trees." }
+    slots:
+      # Open ground: the hexagonal paving around the tables and the asphalt path on the right. The fence line behind the
+      # tables is planted or hidden behind benches, so nobody stands right at it.
+      - { id: chess_left, x: 0.19, y: 0.86, seated: true }    # on the near-left bench of the nearest table (where Mr. Lin sits in bg_park_chess_day)
+      - { id: chess_right, x: 0.47, y: 0.86, seated: true }   # on the near-right bench of the nearest table (where Walt sits in bg_park_chess_day)
+      - { id: path, x: 0.89, y: 0.82 }      # on the asphalt path, right of the cobble edge
+      - { id: by_tables, x: 0.725, y: 0.67 } # on the paving right of the middle table's near bench, before the cobbles
+      - { id: by_lamp, x: 0.795, y: 0.555 }  # on the paving right of the lamppost, behind the far table's right bench
+      - { id: by_fence, x: 0.62, y: 0.74 }  # on the paving in front of the middle table's near bench (table and fence behind)
+      - { id: path_far, x: 0.95, y: 0.60 }  # on the asphalt path where it bends away
+
+  - id: center_cn
+    name: Grand Avenue Community Center
+    community: home
+    pack: cn
+    background: bg_center_cn_day
+    lighting: warm_indoor
+    horizon: 0.28        # kitchen door (2.1 m) gives 0.27, long table (0.75 m) gives 0.29; camera about 1.6 m
+    description: "The main hall. Folding chairs stacked by the windows, lanterns left up from spring, something with ginger cooking in the kitchen."
+    exits:
+      - { to: street, label: "Back to the street" }
+    hotspots:
+      - id: board
+        label: "Notice board"
+        zone: { x: 0.675, y: 0.22, w: 0.135, h: 0.14 }
+        action: { type: look, text: "Seniors' tablet class moved to Wednesdays. Mid-Autumn committee: volunteers needed. Free blood pressure checks Saturday with Dr. Zhou. Saturday school fees due." }
+      - id: scroll
+        label: "Scroll painting"
+        zone: { x: 0.35, y: 0.13, w: 0.31, h: 0.17 }
+        action: { type: look, text: "Mountains and a lake in ink. A small card underneath says it was donated by the Wu family in 1997." }
+      - id: table
+        label: "Long table"
+        zone: { x: 0.36, y: 0.39, w: 0.27, h: 0.11 }
+        action: { type: look, text: "A sign-in sheet for the seniors' lunch, a box of red envelopes left over from New Year, and somebody's reading glasses." }
+      - id: kitchen
+        label: "Kitchen"
+        zone: { x: 0.85, y: 0.21, w: 0.14, h: 0.28 }
+        action: { type: look, text: "Two big pots on the stove. A handwritten sign: 'Wash your own bowl. This means you.'" }
+    slots:
+      # The hall is open floor everywhere below y 0.50. There is no free seating in the image (the folding chairs are
+      # stacked), so the one seated slot is a stool pulled up to the long table; the seated figures bring their stool.
+      - { id: near, x: 0.24, y: 1.04 }     # on the floor in front of the stacked folding chairs, feet just below the frame; head at about 0.23
+      - { id: by_table, x: 0.40, y: 0.58 } # on the floor just in front of the long table's left end (table behind)
+      - { id: by_board, x: 0.74, y: 0.64 } # on the floor in front of the notice board and the potted plant
+      - { id: by_kitchen, x: 0.88, y: 0.60 }   # on the floor at the kitchen doorway
+      - { id: mid_right, x: 0.56, y: 0.90 }    # on the open floor, centre right, in the foreground
+      - { id: seated_hall, x: 0.57, y: 0.66, seated: true }   # on a stool pulled up in front of the long table's right half
+
+  - id: center_mx
+    name: San José Parish Hall
+    community: home
+    pack: mx
+    background: bg_center_mx_day
+    lighting: warm_indoor
+    horizon: 0.36        # long table (0.75 m, floor 0.59, top 0.49) gives 0.38, kitchen door (2.1 m, floor 0.60, top 0.275) gives 0.35;
+                         # the floor/wall line runs at 0.595. Camera about 1.6 m
+    cameraHeight: 1.6
+    description: "The hall behind San José. Papel picado left up from September, folding chairs stacked by the windows, coffee going in the kitchen."
+    exits:
+      - { to: street, label: "Back to the street" }
+    hotspots:
+      - id: papel_picado
+        label: "Paper banners"
+        zone: { x: 0.15, y: 0.00, w: 0.85, h: 0.17 }
+        action: { type: look, text: "Papel picado strung wall to wall, left up from the September fiesta. One string has come loose over the kitchen door and nobody tall enough has been in since." }
+      - id: mural
+        label: "Mural"
+        zone: { x: 0.27, y: 0.20, w: 0.55, h: 0.26 }
+        action: { type: look, text: "Mountains, agave, a white church and a big sun. The youth group painted it in 2004. When the hall was redone they painted over the names in the corner, all but one 'Beto' nobody had the heart to cover." }
+      - id: table
+        label: "Long table"
+        zone: { x: 0.40, y: 0.47, w: 0.30, h: 0.12 }
+        action: { type: look, text: "A striped cloth, sunflowers in a clay jug, a sign-up sheet for the Saturday food pantry, and a raffle book for the roof fund: five dollars a ticket, first prize a set of tires." }
+      - id: kitchen
+        label: "Kitchen"
+        zone: { x: 0.85, y: 0.28, w: 0.12, h: 0.32 }
+        action: { type: look, text: "Two coffee urns, a stack of foil trays and a whiteboard with the pantry shifts. Someone has written 'NO' next to 'Thursday 6am'." }
+    slots:
+      # Open floor everywhere below the wall line (y 0.595) except the stacked folding chairs on the left (x < 0.23 down to
+      # y 0.73). No free seating in the image (the chairs are stacked), so the one seated slot is a stool in front of the
+      # long table, as in center_cn; the seated figures bring their stool.
+      - { id: near, x: 0.22, y: 1.04 }       # on the floor in the left foreground, below the stacked chairs, feet just below the frame; head at about 0.33
+      - { id: by_chairs, x: 0.35, y: 0.72 }  # on the open floor right of the stacked folding chairs, the potted plant behind
+      - { id: by_table, x: 0.43, y: 0.635 }  # on the floor in front of the long table's left end (table and mural behind)
+      - { id: by_kitchen, x: 0.84, y: 0.65 } # on the floor just left of the kitchen doorway, under the mural's right end
+      - { id: mid_right, x: 0.66, y: 0.86 }  # on the open floor, centre right, in the foreground
+      - { id: by_window, x: 0.07, y: 0.90 }  # on the floor in the left foreground by the windows, the stacked chairs behind
+      - { id: seated_hall, x: 0.56, y: 0.665, seated: true }   # on a stool pulled up in front of the long table's middle
+
+  - id: center_in
+    name: India Association Hall
+    community: home
+    pack: in
+    background: bg_center_in_day
+    lighting: warm_indoor
+    horizon: 0.28        # kitchen door (2.1 m, floor 0.42, top 0.24) gives 0.28; stage front (about 0.8 m, floor 0.44, top 0.37) gives 0.30;
+                         # the floor/wall line runs at 0.44. Camera about 1.6 m
+    cameraHeight: 1.6
+    description: "The main hall. A small stage with marigolds along its edge, chairs stacked on trolleys by the windows, a rangoli by the door."
+    exits:
+      - { to: street, label: "Back to the street" }
+    hotspots:
+      - id: stage
+        label: "Stage"
+        zone: { x: 0.24, y: 0.11, w: 0.45, h: 0.33 }
+        action: { type: look, text: "A brass lamp and a wooden lectern, marigold garlands still fresh along the edge. Last night's dance practice left a hair clip on the steps." }
+      - id: board
+        label: "Notice board"
+        zone: { x: 0.70, y: 0.25, w: 0.07, h: 0.11 }
+        action: { type: look, text: "Language school Sundays 10am. Free tax help in February, ask for Anil. Cricket league: need one more for Saturday. Lost: one steel tiffin, blue lid." }
+      - id: kitchen
+        label: "Kitchen"
+        zone: { x: 0.785, y: 0.24, w: 0.055, h: 0.19 }
+        action: { type: look, text: "Big steel pots and a rice cooker the size of a bucket. A sign-up sheet for who brings chai on Sundays. The Tuesday column is empty." }
+      - id: rangoli
+        label: "Rangoli"
+        zone: { x: 0.86, y: 0.56, w: 0.14, h: 0.07 }
+        action: { type: look, text: "Coloured powder in petals and a lamp, orange, yellow and green. Someone has put masking tape around it with 'please walk around' written on it." }
+    slots:
+      # Open floor everywhere below the wall line (y 0.44) except the chair trolleys on the left (x < 0.17 down to y 0.52),
+      # the doormat and the rangoli by the entrance on the right. No free seating (the chairs are on trolleys), so the one
+      # seated slot is a stool on the floor in front of the stage.
+      - { id: near, x: 0.24, y: 1.04 }       # on the floor in the left foreground, feet just below the frame; head at about 0.23
+      - { id: by_chairs, x: 0.11, y: 0.60 }  # on the open floor just in front of the stacked chair trolleys (left of near's head)
+      - { id: by_stage, x: 0.40, y: 0.50 }   # on the floor in front of the stage's left half (stage and garlands behind)
+      - { id: by_board, x: 0.63, y: 0.52 }   # on the floor in front of the stage's right steps, left of the notice board
+      - { id: by_door, x: 0.93, y: 0.50 }    # just inside the entrance, on the floor between the brass planter and the glass doors,
+                                             # behind the doormat (clear of the rangoli, the board and the kitchen doorway)
+      - { id: mid_right, x: 0.51, y: 0.86 }  # on the open floor, centre, in the foreground (left of by_board, clear of the board)
+      - { id: seated_hall, x: 0.52, y: 0.53, seated: true }   # on a stool pulled up in front of the stage's middle
+
+  # SPEC "Town hall" (added 2026-10-19): the day-5 closing scene. `hidden: true` = the player never walks here; the
+  # engine enters it from bed on the last day and leaves it for the end-of-day call. One slot: the person at the podium.
+  - id: townhall
+    name: Town Hall
+    community: neutral
+    hidden: true
+    background: bg_townhall_eve
+    lighting: warm_indoor
+    horizon: 0.36        # a school gym or library meeting room seen from a seat in the second row; the podium a little above eye level
+    description: "The library's meeting room, every folding chair taken. A flag hangs behind the podium, pinned a little crooked. Someone's phone keeps buzzing."
+    exits: []
+    hotspots: []
+    # the podium is cut out of this very background by the asset build (prop_podium, fractions in tools/assets/build.mjs) and
+    # drawn in front of the figures (`over`), so the speaker stands behind it: feet hidden by it, head and shoulders above
+    props:
+      - { asset: prop_podium, x: 0.452, y: 0.290, w: 0.104, over: true }
+    slots:
+      - { id: podium, x: 0.503, y: 0.50, scale: 0.33 }   # behind the podium (feet under its base at y 0.53); scale = a 1.7 m person against the 1.2 m podium
+
+  - id: street
+    name: Street
+    community: neutral
+    background: none
+    lighting: outdoor
+    description: "Fifth Street and Grand Avenue. Everything you need is a short walk away."
+    exits:
+      - { to: home, label: "Home" }
+      - { to: work, label: "Work" }
+      - { to: clinic, label: "Fifth Street Clinic" }
+      - { to: library, label: "Elm Street Library" }
+      - { to: park, label: "Riverside Park" }
+      - { to: center_cn, label: "Grand Avenue Community Center" }
+      - { to: center_mx, label: "San José Parish Hall" }
+      - { to: center_in, label: "India Association Hall" }
+    hotspots: []
+    slots: []

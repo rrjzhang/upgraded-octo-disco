@@ -1,0 +1,8 @@
+const e=`id,met,rapport,lastValence,nationalLeader,playerLean,dayPhase,priority,emotion,line,choice1,effect1,next1,choice2,effect2,next2,choice3,effect3,next3
+L01,no,,,,,,0,neutral,"Chess? I'm Lin. I play here every afternoon after my grandson's school pickup.",Sure.,met yes;rapport +1,,No thanks.,met yes,,,,
+L02,yes,,,,,,0,neutral,"Your move.",Push a pawn.,rapport +1,L03,Resign.,actions -1,,,,
+L03,,,,,,,-1,warm,"Good. Patience is most of it.",Continue.,,,,,,,,
+L04,yes,2+,,,home-leaning,,1,warm,"We're planning the Mid-Autumn table at the center. Come tomorrow morning.",I'll be there.,invite EV_INV,,,,,,,
+L05,yes,,,inclusive,,,0,neutral,"The new grant for community centers is real money. We may finally fix the heating.",Good news.,,,,,,,,
+L99,,,,,,,0,neutral,"Mr. Lin studies the board.",,,,,,,,,
+`;export{e as default};

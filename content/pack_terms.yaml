@@ -1,0 +1,104 @@
+# Culture-pack keywords for the checker's PACK_LEAK lint (SPEC "Culture packs" and "Checker").
+# Text that every pack sees (events.csv / news.csv rows with a blank pack and no pack-only npc or scene, the shared
+# dialogue sheets us_* and nat_*, shared scenes, strings, the questionnaire) must not use these words; text that only
+# one pack sees must not use another pack's words. Lowercase; matched as whole words or phrases, case-insensitive,
+# with an optional plural s. {placeholders} are skipped (pack.<pack>.<name> strings fill them per pack).
+# Writers may extend the lists. Deliberately absent: "grand avenue" alone and "grand" (the street the player lives on
+# is shared; only the center on it is cn), "ortiz" (Dana's neighbour and the inclusive president are shared people),
+# "tai chi" and "tea" (ordinary in any US park or kitchen), "guatemalan" (an "other" community, shared).
+cn:
+  - chinese
+  - china
+  - mandarin
+  - cantonese
+  - zongzi
+  - mooncake
+  - dumpling
+  - xiangqi
+  - mahjong
+  - lunar new year
+  - mid-autumn
+  - chengdu
+  - sichuan
+  - hong kong
+  - guangzhou
+  - fujian
+  - fuzhou
+  - shanghai
+  - beijing
+  - grand avenue center
+  - grand avenue community center
+  - center on grand
+  - egg tart
+  - lazy susan
+  - golden wheat
+  - chen
+  - lin
+  - zhou
+  - guo
+  - jia
+mx:
+  - mexican
+  - mexico
+  - spanish
+  - tamale
+  - tortilla
+  - quinceañera
+  - pan dulce
+  - birria
+  - pozole
+  - posada
+  - día de muertos
+  - jalisco
+  - oaxaca
+  - oaxacan
+  - guadalajara
+  - michoacán
+  - puebla
+  - san josé
+  - parish hall
+  - notario
+  - abuela
+  - abuelo
+  - mole
+  - reyes
+  - ernesto
+  - aurelio
+  - mendoza
+  - pilar
+  - ochoa
+  - treviño
+in:
+  - indian
+  - india
+  - hindi
+  - punjabi
+  - gujarati
+  - tamil
+  - telugu
+  - malayalam
+  - marathi
+  - diwali
+  - holi
+  - onam
+  - navratri
+  - tiffin
+  - cricket
+  - samosa
+  - chai
+  - sambar
+  - payasam
+  - puran poli
+  - diya
+  - kerala
+  - delhi
+  - mumbai
+  - nair
+  - harjit
+  - karthik
+  - anil
+  - meena
+  - deshpande
+# Deliberate uses inside one pack's own text (each needs a reason; an entry that no longer matches is reported).
+allow:
+  - { file: dialogue/in_neighbor.csv, row: LN05, term: spanish, why: "Mrs. Nair, a nurse, takes a Spanish class for her patients; a cross-community detail, not a leak" }

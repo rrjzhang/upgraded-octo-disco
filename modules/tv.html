@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>TV</title>
+<link rel="stylesheet" href="module.css" />
+<style>
+  main { display: grid; grid-template-columns: 640px 1fr; gap: 28px; align-items: start; }
+  .screen { width: 640px; height: 360px; background: #111; border-radius: 10px; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; color: #8f8676; }
+  .screen img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .live { position: absolute; left: 12px; top: 12px; background: #a3271f; color: #fff; font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 3px; letter-spacing: .05em; }
+  .ticker { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(20,18,16,.85); color: #fff; padding: 10px 14px; font-weight: 600; font-size: 16px; }
+  h2 { font-family: 'Source Serif 4', Georgia, serif; font-size: 28px; line-height: 1.25; margin: 0 0 12px; }
+  .body { font-family: 'Source Serif 4', Georgia, serif; font-size: 19px; line-height: 1.55; }
+  .pending { position: absolute; right: 8px; top: 8px; font-size: 10px; background: rgba(31,29,26,.75); color: #f4f1ea; padding: 2px 6px; border-radius: 3px; }
+  .ph-screen { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #d9a441; background: rgba(31,29,26,.72); padding: 4px 10px; border-radius: 3px; }
+  .lower { position: absolute; left: 12px; bottom: 52px; background: rgba(31,111,107,.92); color: #fff; font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 3px; }
+  .count { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><h1>Channel 4 Evening News</h1><span class="meta" id="meta"></span></header>
+  <main id="main"><p class="muted">Tuning in…</p></main>
+  <footer>
+    <button class="btn" id="more" hidden>Keep watching</button>
+    <button class="btn ghost" id="close">Turn off</button>
+  </footer>
+</div>
+<script src="bridge.js"></script>
+<script>
+  let p = null, idx = 0, st = { actions: 0, wallet: 0 }, waiting = false;
+  const main = document.getElementById('main'), more = document.getElementById('more'), meta = document.getElementById('meta');
+  // the TV is free (SPEC "TV and newspaper are free"): Keep watching shows no cost dots and spends 0 actions
+  const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, attrs); kids.forEach((k) => e.append(k)); return e; };
+  document.getElementById('close').onclick = () => GV.send({ type: 'close' });
+  more.onclick = () => {
+    const s = p.content.stories[idx + 1];
+    if (!s || waiting || p.content.keepWatching !== true) return;
+    waiting = true; more.disabled = true;
+    GV.send({ type: 'spend', actions: 0, story: s.id });
+  };
+  function show() {
+    const stories = (p.content && p.content.stories) || [];
+    meta.textContent = `Day ${p.day} · Actions left ${st.actions}`;
+    const s = stories[idx];
+    if (!s) { main.replaceChildren(el('p', { className: 'muted', textContent: 'Nothing but reruns right now.' })); more.hidden = true; return; }
+    const screen = el('div', { className: 'screen' });
+    // a story with a cast `figure` shows that person's still; figureName is the leader otherwise
+    const who = s.figureName || p.content.leaderName || 'The President';
+    if (s.image) {
+      const img = el('img', { src: s.image, alt: `${who} on screen` });
+      img.onerror = () => img.replaceWith(el('span', { textContent: 'PLACEHOLDER' }));
+      screen.append(img);
+    } else screen.append(el('span', { className: 'ph-screen', textContent: s.pendingNote ? `PLACEHOLDER · ${s.pendingNote}` : 'PLACEHOLDER' }));
+    screen.append(el('span', { className: 'live', textContent: 'LIVE' }), el('div', { className: 'ticker', textContent: s.headline }));
+    const pending = s.placeholder !== undefined ? s.placeholder : p.content.placeholder;
+    if (pending && s.image) screen.append(el('span', { className: 'pending', textContent: s.pendingNote ? `PLACEHOLDER · ${s.pendingNote}` : 'PLACEHOLDER' }));
+    if (s.figure && s.figureName) screen.append(el('span', { className: 'lower', textContent: s.figureRole ? `${s.figureName} · ${s.figureRole}` : s.figureName }));
+    main.replaceChildren(screen, el('div', {},
+      stories.length > 1 ? el('div', { className: 'count', textContent: `Story ${idx + 1} of ${stories.length}` }) : el('div', { className: 'count', textContent: 'Tonight' }),
+      el('h2', { textContent: s.headline }),
+      el('p', { className: 'body', textContent: s.body })));
+    // "Keep watching" is behind the host's FEATURES.tvKeepWatching (off for the study: one story a day)
+    more.hidden = p.content.keepWatching !== true || !stories[idx + 1];
+    more.disabled = false;
+    (more.hidden || more.disabled ? document.getElementById('close') : more).focus();
+  }
+  GV.on('init', (payload) => { p = payload; st = { actions: p.actions ?? 0, wallet: p.wallet ?? 0 }; show(); });
+  GV.on('state', (s) => {
+    st.actions = s.actions ?? st.actions;
+    if (waiting) { waiting = false; if (s.ok) idx++; }
+    show();
+  });
+  GV.fallback({ day: 1, content: { leaderName: 'President (preview)', stories: [
+    { id: 'demo1', headline: 'Preview headline one', body: 'Opened outside the game: this is demo text.', image: null },
+    { id: 'demo2', headline: 'Preview headline two', body: 'A second story for Keep watching.', image: null } ] } });
+</script>
+</body>
+</html>

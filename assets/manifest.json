@@ -1,0 +1,1147 @@
+{
+  "generated": "2026-10-19T08:00:09.664Z",
+  "source": "image_generation/out (_A set)",
+  "backgrounds": {
+    "bg_home_day": {
+      "file": "bg/bg_home_day.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "warm_indoor",
+      "source": "bg_home_tv_day_A"
+    },
+    "bg_home_eve": {
+      "file": "bg/bg_home_eve.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "warm_indoor",
+      "source": "bg_home_tv_eve_A"
+    },
+    "bg_center_cn_day": {
+      "file": "bg/bg_center_cn_day.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "warm_indoor",
+      "source": "bg_center_cn_day_A"
+    },
+    "bg_center_mx_day": {
+      "file": "bg/bg_center_mx_day.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "warm_indoor",
+      "source": "bg_center_mx_day_A"
+    },
+    "bg_center_in_day": {
+      "file": "bg/bg_center_in_day.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "warm_indoor",
+      "source": "bg_center_in_day_A"
+    },
+    "bg_townhall_eve": {
+      "file": "bg/bg_townhall_eve.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "warm_indoor",
+      "source": "bg_townhall_eve_A_v2"
+    },
+    "bg_library_day": {
+      "file": "bg/bg_library_day.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "warm_indoor",
+      "source": "bg_library_day_A"
+    },
+    "bg_clinic_day": {
+      "file": "bg/bg_clinic_day.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "cool_indoor",
+      "source": "bg_clinic_tv_day_A"
+    },
+    "bg_work_day": {
+      "file": "bg/bg_work_day.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "cool_indoor",
+      "source": "bg_work_day_A"
+    },
+    "bg_park_day": {
+      "file": "bg/bg_park_day.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "outdoor",
+      "source": "bg_park_empty_day_A"
+    },
+    "bg_park_chess_day": {
+      "file": "bg/bg_park_chess_day.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "outdoor",
+      "source": "bg_park_chess_day_A"
+    },
+    "bg_park_game_day": {
+      "file": "bg/bg_park_game_day.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "outdoor",
+      "source": "bg_park_board_day_A_v2"
+    },
+    "bg_home_cn_day": {
+      "file": "bg/bg_home_cn_day.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "warm_indoor",
+      "source": "bg_home_cn_day_A"
+    },
+    "bg_home_cn_eve": {
+      "file": "bg/bg_home_cn_eve.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "warm_indoor",
+      "source": "bg_home_cn_eve_A"
+    },
+    "bg_home_mx_day": {
+      "file": "bg/bg_home_mx_day.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "warm_indoor",
+      "source": "bg_home_mx_day_A"
+    },
+    "bg_home_mx_eve": {
+      "file": "bg/bg_home_mx_eve.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "warm_indoor",
+      "source": "bg_home_mx_eve_A"
+    },
+    "bg_home_in_day": {
+      "file": "bg/bg_home_in_day.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "warm_indoor",
+      "source": "bg_home_in_day_A"
+    },
+    "bg_home_in_eve": {
+      "file": "bg/bg_home_in_eve.jpg",
+      "w": 1536,
+      "h": 1024,
+      "lighting": "warm_indoor",
+      "source": "bg_home_in_eve_A"
+    }
+  },
+  "portraits": {
+    "us_neighbor": {
+      "neutral": "portrait/us_neighbor_neutral.png",
+      "warm": "portrait/us_neighbor_warm.png",
+      "guarded": "portrait/us_neighbor_guarded.png",
+      "worried": "portrait/us_neighbor_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_us_neighbor_neutral_A",
+        "ch_us_neighbor_warm_A",
+        "ch_us_neighbor_guarded_A",
+        "ch_us_neighbor_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 617308,
+        "warm": 597868,
+        "guarded": 642047,
+        "worried": 609263
+      }
+    },
+    "us_stranger_a": {
+      "neutral": "portrait/us_stranger_a_neutral.png",
+      "warm": "portrait/us_stranger_a_warm.png",
+      "guarded": "portrait/us_stranger_a_guarded.png",
+      "worried": "portrait/us_stranger_a_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_us_stranger_a_neutral_A",
+        "ch_us_stranger_a_warm_A",
+        "ch_us_stranger_a_guarded_A",
+        "ch_us_stranger_a_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 632155,
+        "warm": 724385,
+        "guarded": 689422,
+        "worried": 690122
+      }
+    },
+    "us_stranger_b": {
+      "neutral": "portrait/us_stranger_b_neutral.png",
+      "warm": "portrait/us_stranger_b_warm.png",
+      "guarded": "portrait/us_stranger_b_guarded.png",
+      "worried": "portrait/us_stranger_b_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_us_stranger_b_neutral_A",
+        "ch_us_stranger_b_warm_A",
+        "ch_us_stranger_b_guarded_A",
+        "ch_us_stranger_b_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 610210,
+        "warm": 551460,
+        "guarded": 359238,
+        "worried": 708767
+      }
+    },
+    "us_super": {
+      "neutral": "portrait/us_super_neutral.png",
+      "warm": null,
+      "guarded": "portrait/us_super_guarded.png",
+      "worried": "portrait/us_super_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_us_super_neutral_A",
+        "ch_us_super_guarded_A",
+        "ch_us_super_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 767522,
+        "guarded": 770312,
+        "worried": 711106
+      }
+    },
+    "us_leader_int": {
+      "neutral": "portrait/us_leader_int_neutral.png",
+      "warm": "portrait/us_leader_int_warm.png",
+      "guarded": "portrait/us_leader_int_guarded.png",
+      "worried": "portrait/us_leader_int_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_us_leader_int_neutral_A",
+        "ch_us_leader_int_warm_A",
+        "ch_us_leader_int_guarded_A",
+        "ch_us_leader_int_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 660463,
+        "warm": 680813,
+        "guarded": 706658,
+        "worried": 615444
+      }
+    },
+    "us_leader_seg": {
+      "neutral": "portrait/us_leader_seg_neutral.png",
+      "warm": "portrait/us_leader_seg_warm.png",
+      "guarded": "portrait/us_leader_seg_guarded.png",
+      "worried": "portrait/us_leader_seg_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_us_leader_seg_neutral_A",
+        "ch_us_leader_seg_warm_A",
+        "ch_us_leader_seg_guarded_A",
+        "ch_us_leader_seg_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 687035,
+        "warm": 668492,
+        "guarded": 672998,
+        "worried": 624995
+      }
+    },
+    "nat_enforcement": {
+      "neutral": "portrait/nat_enforcement_neutral.png",
+      "warm": "portrait/nat_enforcement_warm.png",
+      "guarded": "portrait/nat_enforcement_guarded.png",
+      "worried": "portrait/nat_enforcement_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_nat_anti_neutral_A",
+        "ch_nat_anti_warm_A",
+        "ch_nat_anti_guarded_A",
+        "ch_nat_anti_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 743089,
+        "warm": 700848,
+        "guarded": 688403,
+        "worried": 677706
+      }
+    },
+    "nat_inclusive": {
+      "neutral": "portrait/nat_inclusive_neutral.png",
+      "warm": "portrait/nat_inclusive_warm.png",
+      "guarded": "portrait/nat_inclusive_guarded.png",
+      "worried": "portrait/nat_inclusive_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "cast_president_inclusive_bust_A_v2",
+        "cast_president_inclusive_warm_A",
+        "cast_president_inclusive_guarded_A",
+        "cast_president_inclusive_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 614273,
+        "warm": 591705,
+        "guarded": 567449,
+        "worried": 549406
+      }
+    },
+    "cn_neighbor": {
+      "neutral": "portrait/cn_neighbor_neutral.png",
+      "warm": "portrait/cn_neighbor_warm.png",
+      "guarded": "portrait/cn_neighbor_guarded.png",
+      "worried": "portrait/cn_neighbor_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_cn_neighbor_neutral_A",
+        "ch_cn_neighbor_warm_A_v2",
+        "ch_cn_neighbor_guarded_A",
+        "ch_cn_neighbor_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 576636,
+        "warm": 637878,
+        "guarded": 487421,
+        "worried": 656185
+      }
+    },
+    "cn_stranger_a": {
+      "neutral": "portrait/cn_stranger_a_neutral.png",
+      "warm": "portrait/cn_stranger_a_warm.png",
+      "guarded": "portrait/cn_stranger_a_guarded.png",
+      "worried": "portrait/cn_stranger_a_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_cn_stranger_a_neutral_A",
+        "ch_cn_stranger_a_warm_A",
+        "ch_cn_stranger_a_guarded_A",
+        "ch_cn_stranger_a_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 847465,
+        "warm": 756995,
+        "guarded": 720401,
+        "worried": 729548
+      }
+    },
+    "cn_stranger_b": {
+      "neutral": "portrait/cn_stranger_b_neutral.png",
+      "warm": "portrait/cn_stranger_b_warm.png",
+      "guarded": "portrait/cn_stranger_b_guarded.png",
+      "worried": "portrait/cn_stranger_b_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_cn_stranger_b_neutral_A_v2",
+        "ch_cn_stranger_b_warm_A",
+        "ch_cn_stranger_b_guarded_A",
+        "ch_cn_stranger_b_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 745491,
+        "warm": 503564,
+        "guarded": 518806,
+        "worried": 660606
+      }
+    },
+    "cn_leader_int": {
+      "neutral": "portrait/cn_leader_int_neutral.png",
+      "warm": "portrait/cn_leader_int_warm.png",
+      "guarded": "portrait/cn_leader_int_guarded.png",
+      "worried": "portrait/cn_leader_int_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_cn_leader_int_neutral_A",
+        "ch_cn_leader_int_warm_A_v2",
+        "ch_cn_leader_int_guarded_A_v2",
+        "ch_cn_leader_int_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 560055,
+        "warm": 669219,
+        "guarded": 709236,
+        "worried": 744854
+      }
+    },
+    "cn_leader_sep": {
+      "neutral": "portrait/cn_leader_sep_neutral.png",
+      "warm": "portrait/cn_leader_sep_warm.png",
+      "guarded": "portrait/cn_leader_sep_guarded.png",
+      "worried": "portrait/cn_leader_sep_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_cn_leader_sep_neutral_A",
+        "ch_cn_leader_sep_warm_A",
+        "ch_cn_leader_sep_guarded_A_v2",
+        "ch_cn_leader_sep_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 682466,
+        "warm": 700910,
+        "guarded": 784029,
+        "worried": 656032
+      },
+      "candidates": [
+        "ch_cn_leader_sep_ref_A_1",
+        "ch_cn_leader_sep_ref_A_2",
+        "ch_cn_leader_sep_ref_A_3"
+      ]
+    },
+    "us_leader_asm": {
+      "neutral": "portrait/us_leader_asm_neutral.png",
+      "warm": "portrait/us_leader_asm_warm.png",
+      "guarded": "portrait/us_leader_asm_guarded.png",
+      "worried": "portrait/us_leader_asm_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_us_leader_asm_neutral_A",
+        "ch_us_leader_asm_warm_A_v2",
+        "ch_us_leader_asm_guarded_A",
+        "ch_us_leader_asm_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 703877,
+        "warm": 748189,
+        "guarded": 690815,
+        "worried": 661365
+      }
+    },
+    "cn_leader_asm": {
+      "neutral": "portrait/cn_leader_asm_neutral.png",
+      "warm": "portrait/cn_leader_asm_warm.png",
+      "guarded": "portrait/cn_leader_asm_guarded.png",
+      "worried": "portrait/cn_leader_asm_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_cn_leader_asm_neutral_A_v2",
+        "ch_cn_leader_asm_warm_A_v2",
+        "ch_cn_leader_asm_guarded_A",
+        "ch_cn_leader_asm_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 880485,
+        "warm": 851688,
+        "guarded": 614795,
+        "worried": 721564
+      }
+    },
+    "mx_neighbor": {
+      "neutral": "portrait/mx_neighbor_neutral.png",
+      "warm": "portrait/mx_neighbor_warm.png",
+      "guarded": "portrait/mx_neighbor_guarded.png",
+      "worried": "portrait/mx_neighbor_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_mx_neighbor_neutral_A",
+        "ch_mx_neighbor_warm_A",
+        "ch_mx_neighbor_guarded_A",
+        "ch_mx_neighbor_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 734709,
+        "warm": 706470,
+        "guarded": 720111,
+        "worried": 715635
+      }
+    },
+    "mx_stranger_a": {
+      "neutral": "portrait/mx_stranger_a_neutral.png",
+      "warm": "portrait/mx_stranger_a_warm.png",
+      "guarded": "portrait/mx_stranger_a_guarded.png",
+      "worried": "portrait/mx_stranger_a_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_mx_stranger_a_neutral_A",
+        "ch_mx_stranger_a_warm_A",
+        "ch_mx_stranger_a_guarded_A",
+        "ch_mx_stranger_a_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 661391,
+        "warm": 639425,
+        "guarded": 489595,
+        "worried": 662896
+      }
+    },
+    "mx_stranger_b": {
+      "neutral": "portrait/mx_stranger_b_neutral.png",
+      "warm": "portrait/mx_stranger_b_warm.png",
+      "guarded": "portrait/mx_stranger_b_guarded.png",
+      "worried": "portrait/mx_stranger_b_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_mx_stranger_b_neutral_A_v2",
+        "ch_mx_stranger_b_warm_A",
+        "ch_mx_stranger_b_guarded_A",
+        "ch_mx_stranger_b_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 824234,
+        "warm": 709718,
+        "guarded": 717937,
+        "worried": 689258
+      }
+    },
+    "mx_leader_asm": {
+      "neutral": "portrait/mx_leader_asm_neutral.png",
+      "warm": "portrait/mx_leader_asm_warm.png",
+      "guarded": "portrait/mx_leader_asm_guarded.png",
+      "worried": "portrait/mx_leader_asm_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_mx_leader_asm_neutral_A_v2",
+        "ch_mx_leader_asm_warm_A",
+        "ch_mx_leader_asm_guarded_A",
+        "ch_mx_leader_asm_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 745791,
+        "warm": 661527,
+        "guarded": 662809,
+        "worried": 640841
+      }
+    },
+    "mx_leader_int": {
+      "neutral": "portrait/mx_leader_int_neutral.png",
+      "warm": "portrait/mx_leader_int_warm.png",
+      "guarded": "portrait/mx_leader_int_guarded.png",
+      "worried": "portrait/mx_leader_int_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_mx_leader_int_neutral_A_v2",
+        "ch_mx_leader_int_warm_A_v2",
+        "ch_mx_leader_int_guarded_A_v2",
+        "ch_mx_leader_int_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 580727,
+        "warm": 633004,
+        "guarded": 423001,
+        "worried": 509769
+      }
+    },
+    "mx_leader_sep": {
+      "neutral": "portrait/mx_leader_sep_neutral.png",
+      "warm": "portrait/mx_leader_sep_warm.png",
+      "guarded": "portrait/mx_leader_sep_guarded.png",
+      "worried": "portrait/mx_leader_sep_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_mx_leader_sep_neutral_A_v2",
+        "ch_mx_leader_sep_warm_A_v2",
+        "ch_mx_leader_sep_guarded_A_v2",
+        "ch_mx_leader_sep_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 663478,
+        "warm": 660936,
+        "guarded": 652593,
+        "worried": 622316
+      }
+    },
+    "in_neighbor": {
+      "neutral": "portrait/in_neighbor_neutral.png",
+      "warm": "portrait/in_neighbor_warm.png",
+      "guarded": "portrait/in_neighbor_guarded.png",
+      "worried": "portrait/in_neighbor_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_in_neighbor_neutral_A",
+        "ch_in_neighbor_warm_A",
+        "ch_in_neighbor_guarded_A",
+        "ch_in_neighbor_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 708317,
+        "warm": 719961,
+        "guarded": 600026,
+        "worried": 643231
+      }
+    },
+    "in_stranger_a": {
+      "neutral": "portrait/in_stranger_a_neutral.png",
+      "warm": "portrait/in_stranger_a_warm.png",
+      "guarded": "portrait/in_stranger_a_guarded.png",
+      "worried": "portrait/in_stranger_a_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_in_stranger_a_neutral_A",
+        "ch_in_stranger_a_warm_A",
+        "ch_in_stranger_a_guarded_A",
+        "ch_in_stranger_a_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 693266,
+        "warm": 710195,
+        "guarded": 686939,
+        "worried": 678576
+      }
+    },
+    "in_stranger_b": {
+      "neutral": "portrait/in_stranger_b_neutral.png",
+      "warm": "portrait/in_stranger_b_warm.png",
+      "guarded": "portrait/in_stranger_b_guarded.png",
+      "worried": "portrait/in_stranger_b_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_in_stranger_b_neutral_A_v2",
+        "ch_in_stranger_b_warm_A",
+        "ch_in_stranger_b_guarded_A",
+        "ch_in_stranger_b_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 837916,
+        "warm": 764452,
+        "guarded": 741666,
+        "worried": 760042
+      }
+    },
+    "in_leader_asm": {
+      "neutral": "portrait/in_leader_asm_neutral.png",
+      "warm": "portrait/in_leader_asm_warm.png",
+      "guarded": "portrait/in_leader_asm_guarded.png",
+      "worried": "portrait/in_leader_asm_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_in_leader_asm_neutral_A",
+        "ch_in_leader_asm_warm_A",
+        "ch_in_leader_asm_guarded_A_v2",
+        "ch_in_leader_asm_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 692612,
+        "warm": 693119,
+        "guarded": 740583,
+        "worried": 659292
+      }
+    },
+    "in_leader_int": {
+      "neutral": "portrait/in_leader_int_neutral.png",
+      "warm": "portrait/in_leader_int_warm.png",
+      "guarded": "portrait/in_leader_int_guarded.png",
+      "worried": "portrait/in_leader_int_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_in_leader_int_neutral_A_v2",
+        "ch_in_leader_int_warm_A",
+        "ch_in_leader_int_guarded_A_v2",
+        "ch_in_leader_int_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 835669,
+        "warm": 551668,
+        "guarded": 743890,
+        "worried": 674605
+      }
+    },
+    "in_leader_sep": {
+      "neutral": "portrait/in_leader_sep_neutral.png",
+      "warm": "portrait/in_leader_sep_warm.png",
+      "guarded": "portrait/in_leader_sep_guarded.png",
+      "worried": "portrait/in_leader_sep_worried.png",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "ch_in_leader_sep_neutral_A",
+        "ch_in_leader_sep_warm_A",
+        "ch_in_leader_sep_guarded_A",
+        "ch_in_leader_sep_worried_A"
+      ],
+      "dehazed": {
+        "neutral": 722025,
+        "warm": 669285,
+        "guarded": 707219,
+        "worried": 702891
+      }
+    }
+  },
+  "aliases": {
+    "ch_us_neighbor": "us_neighbor",
+    "ch_us_stranger_a": "us_stranger_a",
+    "ch_us_stranger_b": "us_stranger_b",
+    "ch_us_super": "us_super",
+    "ch_us_leader_int": "us_leader_int",
+    "ch_us_leader_seg": "us_leader_seg",
+    "ch_nat_enforcement": "nat_enforcement",
+    "ch_nat_anti": "nat_enforcement",
+    "ch_nat_inclusive": "nat_inclusive",
+    "cast_president_inclusive": "nat_inclusive",
+    "ch_cn_neighbor": "cn_neighbor",
+    "ch_cn_stranger_a": "cn_stranger_a",
+    "ch_cn_stranger_b": "cn_stranger_b",
+    "ch_cn_leader_int": "cn_leader_int",
+    "ch_cn_leader_sep": "cn_leader_sep",
+    "ch_us_leader_asm": "us_leader_asm",
+    "ch_cn_leader_asm": "cn_leader_asm",
+    "ch_mx_neighbor": "mx_neighbor",
+    "ch_mx_stranger_a": "mx_stranger_a",
+    "ch_mx_stranger_b": "mx_stranger_b",
+    "ch_mx_leader_asm": "mx_leader_asm",
+    "ch_mx_leader_int": "mx_leader_int",
+    "ch_mx_leader_sep": "mx_leader_sep",
+    "ch_in_neighbor": "in_neighbor",
+    "ch_in_stranger_a": "in_stranger_a",
+    "ch_in_stranger_b": "in_stranger_b",
+    "ch_in_leader_asm": "in_leader_asm",
+    "ch_in_leader_int": "in_leader_int",
+    "ch_in_leader_sep": "in_leader_sep"
+  },
+  "figures": {
+    "ch_us_neighbor_fig_stand": {
+      "file": "figure/ch_us_neighbor_fig_stand.png",
+      "w": 206,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_us_neighbor_fig_stand_A"
+    },
+    "ch_us_stranger_a_fig_sit": {
+      "file": "figure/ch_us_stranger_a_fig_sit.png",
+      "w": 336,
+      "h": 700,
+      "seated": true,
+      "placeholder": false,
+      "source": "ch_us_stranger_a_fig_sit_A"
+    },
+    "ch_us_stranger_a_fig_stand": {
+      "file": "figure/ch_us_stranger_a_fig_stand.png",
+      "w": 249,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_us_stranger_a_fig_stand_A"
+    },
+    "ch_us_stranger_b_fig_stand": {
+      "file": "figure/ch_us_stranger_b_fig_stand.png",
+      "w": 249,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_us_stranger_b_fig_stand_A"
+    },
+    "ch_us_super_fig_stand": {
+      "file": "figure/ch_us_super_fig_stand.png",
+      "w": 277,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_us_super_fig_stand_A"
+    },
+    "ch_us_leader_int_fig_stand": {
+      "file": "figure/ch_us_leader_int_fig_stand.png",
+      "w": 205,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_us_leader_int_fig_stand_A"
+    },
+    "ch_us_leader_seg_fig_stand": {
+      "file": "figure/ch_us_leader_seg_fig_stand.png",
+      "w": 247,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_us_leader_seg_fig_stand_A"
+    },
+    "ch_cn_neighbor_fig_stand": {
+      "file": "figure/ch_cn_neighbor_fig_stand.png",
+      "w": 205,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_cn_neighbor_fig_stand_A"
+    },
+    "ch_cn_stranger_a_fig_sit": {
+      "file": "figure/ch_cn_stranger_a_fig_sit.png",
+      "w": 338,
+      "h": 700,
+      "seated": true,
+      "placeholder": false,
+      "source": "ch_cn_stranger_a_fig_sit_A"
+    },
+    "ch_cn_stranger_a_fig_stand": {
+      "file": "figure/ch_cn_stranger_a_fig_stand.png",
+      "w": 202,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_cn_stranger_a_fig_stand_A"
+    },
+    "ch_cn_stranger_b_fig_stand": {
+      "file": "figure/ch_cn_stranger_b_fig_stand.png",
+      "w": 194,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_cn_stranger_b_fig_stand_A"
+    },
+    "ch_cn_leader_int_fig_stand": {
+      "file": "figure/ch_cn_leader_int_fig_stand.png",
+      "w": 200,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_cn_leader_int_fig_stand_A"
+    },
+    "ch_cn_leader_sep_fig_stand": {
+      "file": "figure/ch_cn_leader_sep_fig_stand.png",
+      "w": 221,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_cn_leader_sep_fig_stand_A"
+    },
+    "ch_us_leader_asm_fig_stand": {
+      "file": "figure/ch_us_leader_asm_fig_stand.png",
+      "w": 245,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_us_leader_asm_fig_stand_A"
+    },
+    "ch_cn_leader_asm_fig_stand": {
+      "file": "figure/ch_cn_leader_asm_fig_stand.png",
+      "w": 197,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_cn_leader_asm_fig_stand_A"
+    },
+    "ch_mx_neighbor_fig_stand": {
+      "file": "figure/ch_mx_neighbor_fig_stand.png",
+      "w": 208,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_mx_neighbor_fig_stand_A"
+    },
+    "ch_mx_stranger_a_fig_stand": {
+      "file": "figure/ch_mx_stranger_a_fig_stand.png",
+      "w": 214,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_mx_stranger_a_fig_stand_A"
+    },
+    "ch_mx_stranger_b_fig_stand": {
+      "file": "figure/ch_mx_stranger_b_fig_stand.png",
+      "w": 247,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_mx_stranger_b_fig_stand_A"
+    },
+    "ch_mx_leader_asm_fig_stand": {
+      "file": "figure/ch_mx_leader_asm_fig_stand.png",
+      "w": 234,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_mx_leader_asm_fig_stand_A"
+    },
+    "ch_mx_leader_int_fig_stand": {
+      "file": "figure/ch_mx_leader_int_fig_stand.png",
+      "w": 210,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_mx_leader_int_fig_stand_A_v2"
+    },
+    "ch_mx_leader_sep_fig_stand": {
+      "file": "figure/ch_mx_leader_sep_fig_stand.png",
+      "w": 242,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_mx_leader_sep_fig_stand_A_v2"
+    },
+    "ch_in_neighbor_fig_stand": {
+      "file": "figure/ch_in_neighbor_fig_stand.png",
+      "w": 197,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_in_neighbor_fig_stand_A"
+    },
+    "ch_in_stranger_a_fig_stand": {
+      "file": "figure/ch_in_stranger_a_fig_stand.png",
+      "w": 221,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_in_stranger_a_fig_stand_A"
+    },
+    "ch_in_stranger_b_fig_stand": {
+      "file": "figure/ch_in_stranger_b_fig_stand.png",
+      "w": 217,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_in_stranger_b_fig_stand_A"
+    },
+    "ch_in_leader_asm_fig_stand": {
+      "file": "figure/ch_in_leader_asm_fig_stand.png",
+      "w": 206,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_in_leader_asm_fig_stand_A"
+    },
+    "ch_in_leader_int_fig_stand": {
+      "file": "figure/ch_in_leader_int_fig_stand.png",
+      "w": 222,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_in_leader_int_fig_stand_A"
+    },
+    "ch_in_leader_sep_fig_stand": {
+      "file": "figure/ch_in_leader_sep_fig_stand.png",
+      "w": 210,
+      "h": 700,
+      "seated": false,
+      "placeholder": false,
+      "source": "ch_in_leader_sep_fig_stand_A"
+    },
+    "placeholder_stand": {
+      "file": "figure/placeholder_stand.png",
+      "w": 260,
+      "h": 700,
+      "seated": false,
+      "placeholder": true
+    },
+    "placeholder_sit": {
+      "file": "figure/placeholder_sit.png",
+      "w": 300,
+      "h": 700,
+      "seated": true,
+      "placeholder": true
+    }
+  },
+  "props": {
+    "prop_tv": {
+      "file": "prop/prop_tv.png",
+      "w": 600,
+      "h": 342
+    },
+    "prop_chessboard": {
+      "file": "prop/prop_chessboard.png",
+      "w": 600,
+      "h": 515
+    },
+    "prop_radio": {
+      "file": "prop/prop_radio.png",
+      "w": 600,
+      "h": 576
+    },
+    "prop_podium": {
+      "file": "prop/prop_podium.png",
+      "w": 160,
+      "h": 243,
+      "source": "bg_townhall_eve_A_v2",
+      "cropOf": "bg_townhall_eve_A",
+      "crop": {
+        "x": 0.452,
+        "y": 0.29,
+        "w": 0.104,
+        "h": 0.237
+      }
+    }
+  },
+  "tv": {
+    "nat_enforcement": [
+      "tv/nat_enforcement_1.jpg"
+    ],
+    "nat_inclusive": [
+      "tv/nat_inclusive_1.jpg"
+    ]
+  },
+  "candidates": {
+    "cn_leader_sep": [
+      "ch_cn_leader_sep_ref_A_1",
+      "ch_cn_leader_sep_ref_A_2",
+      "ch_cn_leader_sep_ref_A_3"
+    ]
+  },
+  "candidateThumbs": {
+    "cn_leader_sep": {
+      "ch_cn_leader_sep_ref_A_1": "portrait/cn_leader_sep_candidate_1.png",
+      "ch_cn_leader_sep_ref_A_2": "portrait/cn_leader_sep_candidate_2.png",
+      "ch_cn_leader_sep_ref_A_3": "portrait/cn_leader_sep_candidate_3.png"
+    }
+  },
+  "tvMeta": {
+    "nat_enforcement": {
+      "placeholder": false,
+      "w": 1280,
+      "h": 720
+    },
+    "nat_inclusive": {
+      "placeholder": false,
+      "w": 1280,
+      "h": 720
+    }
+  },
+  "cast": {
+    "cast_president_inclusive": {
+      "name": "President Lena Ortiz",
+      "role": "President of the United States (inclusive condition)",
+      "bust": "cast/cast_president_inclusive_bust.png",
+      "tv": "cast/cast_president_inclusive_tv.jpg",
+      "ref": "cast/cast_president_inclusive_ref.jpg",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "cast_president_inclusive_ref_A",
+        "cast_president_inclusive_bust_A",
+        "cast_president_inclusive_tv_A"
+      ],
+      "dehazed": 614273
+    },
+    "cast_governor": {
+      "name": "Governor Dale Whitaker",
+      "role": "State governor",
+      "bust": "cast/cast_governor_bust.png",
+      "tv": "cast/cast_governor_tv.jpg",
+      "ref": "cast/cast_governor_ref.jpg",
+      "placeholder": false,
+      "fromReference": true,
+      "sources": [
+        "cast_governor_ref_A",
+        "cast_governor_tv_A"
+      ]
+    },
+    "cast_judge_ramos": {
+      "name": "Judge Daniel Ramos",
+      "role": "Federal district judge",
+      "bust": "cast/cast_judge_ramos_bust.png",
+      "tv": "cast/cast_judge_ramos_tv.jpg",
+      "ref": "cast/cast_judge_ramos_ref.jpg",
+      "placeholder": false,
+      "fromReference": true,
+      "sources": [
+        "cast_judge_ramos_ref_A",
+        "cast_judge_ramos_tv_A"
+      ]
+    },
+    "cast_mayor": {
+      "name": "Mayor Denise Caldwell",
+      "role": "Mayor",
+      "bust": "cast/cast_mayor_bust.png",
+      "tv": "cast/cast_mayor_tv.jpg",
+      "ref": "cast/cast_mayor_ref.jpg",
+      "placeholder": false,
+      "fromReference": true,
+      "sources": [
+        "cast_mayor_ref_A",
+        "cast_mayor_tv_A"
+      ]
+    },
+    "cast_police_chief": {
+      "name": "Chief Ray Kowalski",
+      "role": "Police chief",
+      "bust": "cast/cast_police_chief_bust.png",
+      "tv": "cast/cast_police_chief_tv.jpg",
+      "ref": "cast/cast_police_chief_ref.jpg",
+      "placeholder": false,
+      "fromReference": true,
+      "sources": [
+        "cast_police_chief_ref_A",
+        "cast_police_chief_tv_A"
+      ]
+    },
+    "cast_principal": {
+      "name": "Principal Karen Novak",
+      "role": "Principal, PS 21",
+      "bust": "cast/cast_principal_bust.png",
+      "tv": null,
+      "ref": "cast/cast_principal_ref.jpg",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "cast_principal_ref_A",
+        "cast_principal_bust_A"
+      ],
+      "dehazed": 564626
+    },
+    "cast_clinic_director": {
+      "name": "Dr. Nadia Haddad",
+      "role": "Director, Fifth Street Clinic",
+      "bust": "cast/cast_clinic_director_bust.png",
+      "tv": "cast/cast_clinic_director_tv.jpg",
+      "ref": "cast/cast_clinic_director_ref.jpg",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "cast_clinic_director_ref_A",
+        "cast_clinic_director_bust_A",
+        "cast_clinic_director_tv_A"
+      ],
+      "dehazed": 683894
+    },
+    "cast_agency_spokesperson": {
+      "name": "Craig Mullins",
+      "role": "Spokesperson, federal immigration agency",
+      "bust": "cast/cast_agency_spokesperson_bust.png",
+      "tv": "cast/cast_agency_spokesperson_tv.jpg",
+      "ref": "cast/cast_agency_spokesperson_ref.jpg",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "cast_agency_spokesperson_ref_A",
+        "cast_agency_spokesperson_bust_A",
+        "cast_agency_spokesperson_tv_A"
+      ],
+      "dehazed": 746040
+    },
+    "cast_council_member": {
+      "name": "Councilmember Kevin Tran",
+      "role": "City council member, Fifth Street district",
+      "bust": "cast/cast_council_member_bust.png",
+      "tv": "cast/cast_council_member_tv.jpg",
+      "ref": "cast/cast_council_member_ref.jpg",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "cast_council_member_ref_A",
+        "cast_council_member_bust_A",
+        "cast_council_member_tv_A"
+      ],
+      "dehazed": 742688
+    },
+    "cast_anchor": {
+      "name": "Jasmine Porter",
+      "role": "Local TV news anchor",
+      "bust": "cast/cast_anchor_bust.png",
+      "tv": "cast/cast_anchor_tv.jpg",
+      "ref": "cast/cast_anchor_ref.jpg",
+      "placeholder": false,
+      "fromReference": false,
+      "sources": [
+        "cast_anchor_ref_A",
+        "cast_anchor_bust_A",
+        "cast_anchor_tv_A"
+      ],
+      "dehazed": 215055
+    }
+  }
+}

@@ -1,0 +1,6 @@
+const e=`id,source,target,valence,proximity,trigger,scene,npc,minRapport,playerLean,nationalLeader,chance,cost,emotion,text,choice1,effect1,choice2,effect2
+EV_ENTER,us,home,positive,proximal,enter,plaza,fx_dana,,,,1,0,warm,"Dana waves you over: ""Saving you a seat.""",Sit down.,met yes;rapport +1,Wave back.,met yes
+EV_OVER,us,home,negative,proximal,enter,plaza,fx_lin,,,,1,0,worried,"Overheard: two men at the next bench argue about whether 'people like Lin' should get the grant.",,,,
+EV_DAY,other,home,negative,distal,day_start,,,,,enforcement,1,0,neutral,"Your phone buzzes: a news alert about new checkpoints downtown.",Read it.,,Ignore it.,
+EV_INV,home,home,positive,proximal,invite,,fx_lin,,home-leaning|balanced,,1,0,warm,"You help Mr. Lin set out mooncakes at the center. He introduces you to everyone.",Stay for tea.,rapport +1;lastValence positive;actions -1,Head out early.,
+`;export{e as default};

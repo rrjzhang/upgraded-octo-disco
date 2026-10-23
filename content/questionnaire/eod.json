@@ -1,0 +1,199 @@
+{
+  "id": "eod-biis2-v2",
+  "title": "Evening check-in",
+  "intro": "A short call before bed. Think about how you see yourself as someone with both {H} and {M} cultures, and mark how much you agree with each statement. There are no right or wrong answers.",
+  "instrument": {
+    "id": "biis2-4",
+    "name": "Bicultural Identity Integration Scale, Version 2 (BIIS-2), 4-item short form (items 3, 10, 14, 17)",
+    "citation": "Huynh, Q.-L., Benet-Martínez, V., & Nguyen, A.-M. D. (2018). Measuring variations in bicultural identity across U.S. ethnic and generational groups: Development and validation of the BIIS-2. Psychological Assessment. doi:10.1037/pas0000606",
+    "placeholders": {
+      "H": {
+        "byHomeCulture": {
+          "cn": "Chinese",
+          "mx": "Mexican",
+          "in": "Indian"
+        },
+        "fallback": "heritage"
+      },
+      "M": {
+        "value": "American"
+      }
+    },
+    "scoring": {
+      "reverse": "6 - x",
+      "subscales": {
+        "harmony": "mean of the 2 harmony items (biis2_03, biis2_10) after reversing",
+        "blendedness": "mean of the 2 blendedness items (biis2_14, biis2_17) after reversing"
+      },
+      "rawHalves": {
+        "harmonyRaw": "harmony",
+        "conflictRaw": "conflict",
+        "blendRaw": "blend",
+        "compRaw": "comp"
+      },
+      "referenceMeans": {
+        "all": {
+          "harmony": 3.63,
+          "blendedness": 4.0
+        }
+      },
+      "note": "Short form: each subscale mean rests on 2 items and each raw half on 1 item, so scores are not comparable to the full 17-item BIIS-2 scores logged by eod-biis2-v1."
+    }
+  },
+  "pages": [
+    {
+      "items": [
+        {
+          "id": "biis2_10",
+          "type": "likert",
+          "text": "I feel caught between {H} and {M} cultures.",
+          "scale": {
+            "min": 1,
+            "max": 5,
+            "minLabel": "Strongly disagree",
+            "maxLabel": "Strongly agree",
+            "labels": [
+              "Strongly disagree",
+              "Disagree",
+              "Neutral",
+              "Agree",
+              "Strongly agree"
+            ]
+          },
+          "instrument": "biis2",
+          "n": 10,
+          "subscale": "harmony",
+          "reverse": true,
+          "facet": "conflict"
+        },
+        {
+          "id": "biis2_03",
+          "type": "likert",
+          "text": "I find it easy to balance both {H} and {M} cultures.",
+          "scale": {
+            "min": 1,
+            "max": 5,
+            "minLabel": "Strongly disagree",
+            "maxLabel": "Strongly agree",
+            "labels": [
+              "Strongly disagree",
+              "Disagree",
+              "Neutral",
+              "Agree",
+              "Strongly agree"
+            ]
+          },
+          "instrument": "biis2",
+          "n": 3,
+          "subscale": "harmony",
+          "reverse": false,
+          "facet": "harmony"
+        },
+        {
+          "id": "biis2_14",
+          "type": "likert",
+          "text": "I feel {H}-{M}.",
+          "scale": {
+            "min": 1,
+            "max": 5,
+            "minLabel": "Strongly disagree",
+            "maxLabel": "Strongly agree",
+            "labels": [
+              "Strongly disagree",
+              "Disagree",
+              "Neutral",
+              "Agree",
+              "Strongly agree"
+            ]
+          },
+          "instrument": "biis2",
+          "n": 14,
+          "subscale": "blendedness",
+          "reverse": false,
+          "facet": "blend"
+        },
+        {
+          "id": "biis2_17",
+          "type": "likert",
+          "text": "I keep {H} and {M} cultures separate.",
+          "scale": {
+            "min": 1,
+            "max": 5,
+            "minLabel": "Strongly disagree",
+            "maxLabel": "Strongly agree",
+            "labels": [
+              "Strongly disagree",
+              "Disagree",
+              "Neutral",
+              "Agree",
+              "Strongly agree"
+            ]
+          },
+          "instrument": "biis2",
+          "n": 17,
+          "subscale": "blendedness",
+          "reverse": true,
+          "facet": "comp"
+        }
+      ]
+    },
+    {
+      "items": [
+        {
+          "id": "fit_community",
+          "type": "scale",
+          "text": "How much do you feel like you fit in with your local community?",
+          "min": 1,
+          "max": 5,
+          "anchors": {
+            "1": "Not at all",
+            "3": "Somewhat",
+            "5": "Very much"
+          }
+        },
+        {
+          "id": "feel_today",
+          "type": "scale",
+          "text": "How do you feel today?",
+          "min": 0,
+          "max": 9,
+          "anchors": {
+            "0": "Very bad",
+            "5": "Neutral",
+            "9": "Very good"
+          }
+        },
+        {
+          "id": "mood",
+          "type": "choice",
+          "text": "Which word comes closest to how today felt?",
+          "options": [
+            "Calm",
+            "Busy",
+            "Torn",
+            "Lonely",
+            "Good"
+          ]
+        },
+        {
+          "id": "belong_today",
+          "type": "choice",
+          "text": "Where did you feel most like yourself today?",
+          "options": [
+            "At home",
+            "At work",
+            "At the community center",
+            "At the library or clinic",
+            "In the park",
+            "Nowhere in particular"
+          ]
+        },
+        {
+          "id": "note",
+          "type": "text",
+          "text": "Anything from today you want to remember? (optional)"
+        }
+      ]
+    }
+  ]
+}

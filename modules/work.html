@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Work: a shift</title>
+<link rel="stylesheet" href="module.css" />
+<style>
+  .center { display: flex; flex-direction: column; align-items: center; gap: 18px; text-align: center; }
+  .task { width: 100%; max-width: 860px; text-align: left; display: flex; flex-direction: column; gap: 14px; }
+  .task .center { text-align: center; }
+  .timer { font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .timer.low { color: #8a2a1f; }
+  .score { font-size: 16px; color: var(--muted); }
+  .task input[type=text], .task textarea { font: inherit; font-size: 20px; padding: 10px 14px; border: 1.5px solid #cfc7b6; border-radius: 8px; background: #fff; color: var(--ink); width: 100%; }
+  .task .prompt { font-family: 'Source Serif 4', Georgia, serif; font-size: 26px; line-height: 1.35; margin: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { display: inline-block; padding: 6px 12px; border-radius: 999px; background: var(--panel2); font-size: 16px; }
+  .flash-ok { animation: ok .25s; } .flash-bad { animation: bad .25s; }
+  @keyframes ok { from { background: #d7efe9; } } @keyframes bad { from { background: #f6d9d4; } }
+  .tasktag { font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><h1 id="title">Logistics office · shift</h1><span class="meta" id="meta"></span></header>
+  <main class="center" id="main"></main>
+  <footer><button class="btn ghost" id="close">Close</button></footer>
+</div>
+<script src="bridge.js"></script>
+<script src="work/dat.js"></script>
+<script src="work/aut.js"></script>
+<script src="work/rat.js"></script>
+<script>
+  // The shift shell. Each shift is one task drawn from the registered GV_TASKS (work/*.js, see work/CONTRACT.md):
+  // the host sends {seed, day, shift, pay, cost, tasks}; the draw is seeded so a log can be replayed. The shell
+  // charges the shift (spend), runs the task, pays (earn) and sends the responses up (submit) for the `work` log line.
+  const TASKS = window.GV_TASKS || {};
+  let cfg = { seed: 'standalone', day: 1, shift: 0, pay: 25, cost: 2, tasks: Object.keys(TASKS) };
+  let st = { actions: 0, wallet: 0 };
+  let pending = null, running = null, current = null;
+  const main = document.getElementById('main'), meta = document.getElementById('meta'), title = document.getElementById('title');
+  const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, attrs); kids.forEach((k) => e.append(k)); return e; };
+  const showMeta = () => { meta.textContent = `Actions left ${st.actions} · Wallet $${st.wallet}`; };
+  document.getElementById('close').onclick = () => { stopRunning(); GV.send({ type: 'close' }); };
+
+  function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function mulberry32(seed) { let a = seed >>> 0; return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  const rngFor = (...parts) => mulberry32(hashStr(parts.join('|')));
+
+  /** Which task this shift is: a seeded draw over the tasks the host allows (and that are registered). */
+  function drawTask() {
+    const ids = (cfg.tasks || Object.keys(TASKS)).filter((id) => TASKS[id]);
+    if (!ids.length) return null;
+    const r = rngFor(cfg.seed, cfg.day, cfg.shift, 'task')();
+    return TASKS[ids[Math.floor(r * ids.length)]];
+  }
+
+  /** A countdown the tasks can show: returns {el, stop}; calls onEnd once when it reaches zero. */
+  function countdown(seconds, onEnd) {
+    let left = seconds, ended = false;
+    const t = el('div', { className: 'timer', textContent: fmt(left), role: 'timer', 'aria-live': 'off' });
+    t.setAttribute('aria-label', 'time left');
+    const iv = setInterval(() => {
+      left--; t.textContent = fmt(Math.max(0, left)); if (left <= 10) t.classList.add('low');
+      if (left <= 0) { clearInterval(iv); if (!ended) { ended = true; onEnd(); } }
+    }, 1000);
+    function fmt(s) { return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; }
+    return { el: t, stop() { clearInterval(iv); ended = true; }, get left() { return left; } };
+  }
+
+  function stopRunning() { try { running?.stop?.(); } catch {} running = null; }
+
+  function intro(msg) {
+    stopRunning();
+    current = drawTask();
+    if (!current) { main.replaceChildren(el('p', { className: 'err', textContent: 'No tasks are installed.' })); return; }
+    title.textContent = `Logistics office · ${current.title}`;
+    main.replaceChildren(
+      el('p', { className: 'tasktag', textContent: `Shift ${cfg.shift + 1} today` }),
+      el('p', { className: 'serif', style: 'font-size:22px;max-width:680px', textContent: current.blurb }),
+      el('p', { className: 'muted', style: 'max-width:680px', textContent: `About ${Math.round(current.seconds / 60 * 2) / 2} minute${current.seconds !== 60 ? 's' : ''}. A shift pays $${cfg.pay} however it goes.` }),
+      el('p', { className: 'muted' }, 'One shift costs', GV.costDots(cfg.cost), el('span', { className: 'sr', textContent: ` ${cfg.cost} actions` }), '.'),
+      msg ? el('p', { className: 'err', role: 'alert', textContent: msg }) : '',
+    );
+    const b = GV.costLabel(el('button', { className: 'btn', id: 'start' }), 'Start shift', cfg.cost);
+    b.disabled = st.actions < cfg.cost;
+    b.onclick = () => { b.disabled = true; pending = 'start'; GV.send({ type: 'spend', actions: cfg.cost }); };
+    main.append(b);
+    if (st.actions < cfg.cost) main.append(el('p', { className: 'muted', textContent: 'Not enough actions left today for a shift.' }));
+    b.focus();
+  }
+
+  function play() {
+    const task = current, started = Date.now();
+    const box = el('div', { className: 'task' });
+    main.replaceChildren(box);
+    let finished = false;
+    const ctx = {
+      rng: rngFor(cfg.seed, cfg.day, cfg.shift, task.id), seed: cfg.seed, day: cfg.day, shift: cfg.shift,
+      el, countdown, root: box,
+    };
+    running = task.run(box, ctx, (result) => {
+      if (finished) return; finished = true;
+      stopRunning();
+      const ended = Date.now();
+      GV.send({ type: 'earn', amount: cfg.pay });
+      st.wallet += cfg.pay; showMeta();
+      GV.send({ type: 'submit', answers: { task: task.id, shift: cfg.shift, started: new Date(started).toISOString(), ms: ended - started, ...result } });
+      cfg.shift += 1;
+      current = drawTask(); // the next shift is a fresh draw
+      done(task, result);
+    }) || null;
+  }
+
+  function done(task, result) {
+    const again = GV.costLabel(el('button', { className: 'btn', id: 'again' }), 'Another shift', cfg.cost);
+    again.disabled = st.actions < cfg.cost;
+    again.onclick = () => { again.disabled = true; pending = 'start'; GV.send({ type: 'spend', actions: cfg.cost }); };
+    title.textContent = `Logistics office · ${task.title}`;
+    main.replaceChildren(
+      el('p', { className: 'serif', style: 'font-size:24px;max-width:720px', textContent: `Shift over. ${result.summary || ''}`.trim() }),
+      el('p', { textContent: `+$${cfg.pay} paid to your wallet.` }),
+      current ? el('p', { className: 'muted', textContent: `Next shift: ${current.title}.` }) : '', again);
+    again.disabled ? document.getElementById('close').focus() : again.focus();
+  }
+
+  GV.on('init', (p) => {
+    st = { actions: p.actions ?? 0, wallet: p.wallet ?? 0 };
+    cfg = { ...cfg, ...(p.content && typeof p.content === 'object' ? p.content : {}) };
+    showMeta(); intro();
+  });
+  GV.on('state', (p) => {
+    st.actions = p.actions ?? st.actions; st.wallet = p.wallet ?? st.wallet; showMeta();
+    if (pending === 'start') { pending = null; p.ok ? play() : intro('Not enough actions left for a shift.'); }
+  });
+  // Standalone (opened outside the game, e.g. modules/work.html?task=rat&seed=abc&day=2&shift=1): bridge.js emulates the
+  // host with 8 actions, and the query string picks the task, seed, day and shift so each task can be tried on its own.
+  const q = new URLSearchParams(location.search);
+  const forced = { ...(q.get('task') && TASKS[q.get('task')] ? { tasks: [q.get('task')] } : {}), ...(q.get('seed') ? { seed: q.get('seed') } : {}),
+    ...(q.get('day') ? { day: Number(q.get('day')) || 1 } : {}), ...(q.get('shift') ? { shift: Number(q.get('shift')) || 0 } : {}) };
+  GV.fallback({ content: forced });
+</script>
+</body>
+</html>
